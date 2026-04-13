@@ -62,18 +62,18 @@
 
       <!-- LOGIN -->
       <div id="loginForm">
-        <h2 class="form-heading">Bon retour 👋</h2>
-        <p class="form-sub">Entrez votre identifiant et mot de passe.</p>
+        <h2 class="form-heading">Connexion 🔐</h2>
+        <p class="form-sub">Entrez votre matricule EPPRIDAD et votre mot de passe.</p>
         <div class="form-err" id="loginErr"></div>
         <div class="form-group">
           <label class="form-label">Identifiant étudiant</label>
-          <input class="form-input" type="text" id="loginId" placeholder="Ex: EPPR25-001" autocomplete="username">
+          <input class="form-input" type="text" id="loginId" placeholder="Votre matricule  (ex: EPPRI25-001)" autocomplete="username" spellcheck="false" autocapitalize="characters">
         </div>
         <div class="form-group">
           <label class="form-label">Mot de passe</label>
-          <input class="form-input" type="password" id="loginPwd" placeholder="Votre mot de passe" autocomplete="current-password">
+          <input class="form-input" type="password" id="loginPwd" placeholder="Votre mot de passe" autocomplete="current-password" id="loginPwd">
         </div>
-        <button class="btn-primary" id="loginBtn" onclick="doLogin()">Se connecter</button>
+        <button class="btn-primary" id="loginBtn" onclick="doLogin()">🔓 Se connecter</button>
         <p class="form-link">Pas encore de compte ? <a href="#" onclick="switchTab('register')">Créez-en un</a></p>
         <!-- Accès admin discret — triple clic sur le logo ou taper ADMIN comme ID -->
         <div id="adminHint" style="display:none;margin-top:12px;">
@@ -85,12 +85,12 @@
       <!-- REGISTER -->
       <div id="registerForm" style="display:none">
         <h2 class="form-heading">Créer mon compte</h2>
-        <p class="form-sub">Utilisez l'identifiant fourni par l'administration (ex: EPPR25-001).</p>
+        <p class="form-sub">Entrez le matricule que l'administration vous a donné (ex: EPPRI25-001).</p>
         <div class="form-err" id="regErr"></div>
         <div class="form-success" id="regSuccess"></div>
         <div class="form-group">
           <label class="form-label">Identifiant étudiant</label>
-          <input class="form-input" type="text" id="regId" placeholder="Ex: EPPR25-001" autocomplete="username">
+          <input class="form-input" type="text" id="regId" placeholder="Votre matricule  (ex: EPPRI25-001)" autocomplete="username" spellcheck="false" autocapitalize="characters">
         </div>
         <div class="form-group">
           <label class="form-label">Choisir un mot de passe</label>
@@ -100,7 +100,7 @@
           <label class="form-label">Confirmer le mot de passe</label>
           <input class="form-input" type="password" id="regPwd2" placeholder="Répétez le mot de passe">
         </div>
-        <button class="btn-primary" id="regBtn" onclick="doRegister()">Créer mon compte</button>
+        <button class="btn-primary" id="regBtn" onclick="doRegister()">✅ Créer mon compte</button>
         <p class="form-link">Déjà un compte ? <a href="#" onclick="switchTab('login')">Se connecter</a></p>
       </div>
 
