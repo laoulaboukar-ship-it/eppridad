@@ -1,0 +1,19 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node (si jamais)
+node_modules/
+
+# Logs
+*.log
+
+# Le fichier SQL n'a plus besoin d'être dans GitHub après setup
+# (optionnel - tu peux le garder comme référence)

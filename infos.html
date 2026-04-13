@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>EPPRIDAD — Infos & Actualités</title>
+<meta name="description" content="Actualités, résultats et vie scolaire de l'EPPRIDAD — École Polytechnique Privée pour le Développement Agricole Durable.">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<link rel="stylesheet" href="css/infos.css">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a5d1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EPPRIDAD">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon"><img src="images/logo.png" alt="Logo EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0;padding:2px"></div>
+    <div><div class="nav-brand-name">EPPRIDAD</div><div class="nav-brand-sub">Est. 2024 · Niamey, Niger</div></div>
+  </a>
+  <ul class="nav-menu">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="ecole.html">L'École <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="ecole.html#histoire">Notre Histoire</a><a href="ecole.html#vision">Vision &amp; Missions</a><a href="ecole.html#valeurs">Nos Valeurs</a><a href="ecole.html#pourquoi">Pourquoi EPPRIDAD ?</a></div>
+    </li>
+    <li><a href="filieres.html">Filières <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="filieres.html#environnement">Environnement &amp; Eaux-Forêts</a><a href="filieres.html#elevage">Élevage &amp; Santé Animale</a><a href="filieres.html#genie">Génie Rural</a><a href="filieres.html#agroalimentaire">Transformation Agroalimentaire</a><a href="filieres.html#socioeconomie">Socio-Économie Rurale</a><a href="filieres.html#agriculture">Agriculture &amp; Productions Végétales</a></div>
+    </li>
+    <li><a href="services.html">Services <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="services.html#academique">Formation Académique</a><a href="services.html#courtes">Formations Courtes</a><a href="services.html#accompagnement">Accompagnement Technique</a></div>
+    </li>
+    <li><a href="admission.html">Admission</a></li>
+    <li><a href="infos.html" class="active">Infos</a></li>
+    <li><a href="galerie.html">Galerie</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="lang-btn">EN</button>
+    <a href="admission.html" class="nav-cta">S'inscrire</a>
+    <div class="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="infos-hero">
+  <div class="infos-hero-content">
+    <div class="infos-hero-tag">🔔 Actualités EPPRIDAD</div>
+    <h1>Infos &amp; <span class="gold">Actualités</span></h1>
+    <p>Résultats, vie scolaire, distinctions et moments forts de l'EPPRIDAD.</p>
+  </div>
+</div>
+
+<!-- BANDEAU TICKER -->
+<div class="news-ticker-bar" id="tickerBar">
+  <div class="ticker-label">📢 INFOS</div>
+  <div class="ticker-track" id="tickerTrack">
+    <!-- rempli par JS -->
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="infos-main">
+  <div class="infos-container">
+
+    <!-- FEED PRINCIPAL -->
+    <div class="feed-main">
+      <div class="feed-header">
+        <div class="feed-title">Publications</div>
+        <div class="feed-count" id="feedCount">0 publication</div>
+      </div>
+      <div id="feedContainer">
+        <div class="empty-feed">
+          <div class="empty-feed-icon">📋</div>
+          <p>Aucune publication pour l'instant.<br>L'administration publiera bientôt les premières actualités.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="feed-sidebar">
+
+      <!-- MAJOR DU SEMESTRE -->
+      <div class="sidebar-box" id="majorBox">
+        <div class="sidebar-box-header">🏆 Major du semestre</div>
+        <div class="sidebar-box-body" id="majorContent">
+          <p style="font-size:13px;color:var(--text-light);text-align:center;padding:10px 0;">Résultats à venir</p>
+        </div>
+      </div>
+
+      <!-- STATS RAPIDES -->
+      <div class="sidebar-box">
+        <div class="sidebar-box-header">📊 Situation S1 · 2025/2026</div>
+        <div class="sidebar-box-body" id="statsContent">
+          <div class="quick-stat-row"><span class="quick-stat-label">Total étudiants</span><span class="quick-stat-val" id="st-total">30</span></div>
+          <div class="quick-stat-row"><span class="quick-stat-label">Admis</span><span class="quick-stat-val" id="st-admis" style="color:var(--green)">—</span></div>
+          <div class="quick-stat-row"><span class="quick-stat-label">Taux de réussite</span><span class="quick-stat-val" id="st-taux" style="color:var(--green)">—</span></div>
+          <div class="quick-stat-row"><span class="quick-stat-label">Meilleure moyenne</span><span class="quick-stat-val" id="st-best" style="color:var(--gold)">—</span></div>
+          <div class="quick-stat-row"><span class="quick-stat-label">Moyenne générale</span><span class="quick-stat-val" id="st-moy">—</span></div>
+          <div style="margin-top:14px;">
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-label"><span>Taux de réussite</span><span id="tauxLabel">—</span></div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="tauxBar"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DERNIÈRES INFOS -->
+      <div class="sidebar-box">
+        <div class="sidebar-box-header">📰 Dernières publications</div>
+        <div class="sidebar-box-body" id="recentList">
+          <p style="font-size:13px;color:var(--text-light);">Aucune publication récente.</p>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col footer-brand">
+      <div class="footer-logo"><img src="images/logo.png" alt="Logo" style="height:44px;object-fit:contain;filter:brightness(1.2)"></div>
+      <p class="footer-desc">École Polytechnique Privée pour le Développement Agricole Durable — Niamey, Niger.</p>
+    </div>
+    <div class="footer-col"><h4>Navigation</h4><ul><li><a href="index.html">Accueil</a></li><li><a href="ecole.html">L'École</a></li><li><a href="filieres.html">Filières</a></li><li><a href="services.html">Services</a></li><li><a href="admission.html">Admission</a></li><li><a href="infos.html">Infos</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+    <div class="footer-col"><h4>Contact</h4><ul><li>📍 Niamey, Rive Droite</li><li>📞 +227 XX XX XX XX</li><li>✉️ eppridad@gmail.com</li></ul></div>
+  </div>
+  <div class="footer-bottom"><span>© 2025 EPPRIDAD · Tous droits réservés</span></div>
+</footer>
+
+<!-- BOUTON FLOTTANT ADMIN -->
+<button class="admin-fab" id="adminFab" title="Publier une actualité" onclick="openAdminPanel()">✏️</button>
+
+<!-- PANNEAU ADMIN -->
+<div id="adminPanel">
+  <div class="admin-modal">
+
+    <!-- LOGIN -->
+    <div id="adminLoginSection">
+      <div class="admin-modal-header">
+        <div class="admin-modal-title">🔐 Accès Administration</div>
+        <button class="admin-modal-close" onclick="closeAdminPanel()">✕</button>
+      </div>
+      <div class="admin-login-form">
+        <div class="admin-form-group">
+          <label class="admin-form-label">Mot de passe admin</label>
+          <input class="admin-form-input" type="password" id="adminPwdInput" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkAdminLogin()">
+        </div>
+        <button class="btn-publish" onclick="checkAdminLogin()">Connexion</button>
+        <p id="adminLoginErr" style="color:#dc3545;font-size:12px;margin-top:8px;display:none;">Mot de passe incorrect.</p>
+      </div>
+    </div>
+
+    <!-- FORMULAIRE PUBLICATION -->
+    <div id="adminPostSection" style="display:none;">
+      <div class="admin-modal-header">
+        <div class="admin-modal-title">✏️ Nouvelle publication</div>
+        <button class="admin-modal-close" onclick="closeAdminPanel()">✕</button>
+      </div>
+      <div class="admin-modal-body">
+
+        <div class="admin-form-group">
+          <label class="admin-form-label">Type de publication</label>
+          <div class="admin-type-grid">
+            <button class="admin-type-btn selected" data-type="actu" onclick="selectType(this,'actu')">📢 Actualité</button>
+            <button class="admin-type-btn" data-type="major" onclick="selectType(this,'major')">🏆 Major</button>
+            <button class="admin-type-btn" data-type="results" onclick="selectType(this,'results')">📊 Résultats</button>
+            <button class="admin-type-btn" data-type="photo" onclick="selectType(this,'photo')">📸 Photo</button>
+            <button class="admin-type-btn" data-type="video" onclick="selectType(this,'video')">🎬 Vidéo</button>
+          </div>
+        </div>
+
+        <div class="admin-form-group">
+          <label class="admin-form-label">Titre</label>
+          <input class="admin-form-input" type="text" id="postTitle" placeholder="Ex: Résultats du 1er semestre publiés">
+        </div>
+
+        <div class="admin-form-group">
+          <label class="admin-form-label">Contenu</label>
+          <textarea class="admin-form-textarea" id="postText" placeholder="Décrivez l'actualité, les résultats, ou ajoutez une légende à la photo…"></textarea>
+        </div>
+
+        <div class="admin-form-group" id="videoUrlField" style="display:none">
+            <label class="admin-form-label">🎬 URL Vidéo (YouTube ou lien direct)</label>
+            <input class="admin-form-input" type="url" id="videoUrl" placeholder="https://youtube.com/watch?v=... ou lien MP4">
+          </div>
+          <div class="admin-form-group" id="majorFields" style="display:none;">
+          <label class="admin-form-label">Nom du/de la Major</label>
+          <input class="admin-form-input" type="text" id="majorName" placeholder="Ex: ABDOULAYE MOUNKAILA Djibrilla">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+            <input class="admin-form-input" type="text" id="majorFiliere" placeholder="Filière (ex: Agriculture)">
+            <input class="admin-form-input" type="text" id="majorMoy" placeholder="Moyenne (ex: 14.8)">
+          </div>
+        </div>
+
+        <div class="admin-form-group" id="resultFields" style="display:none;">
+          <label class="admin-form-label">Statistiques (optionnel)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input class="admin-form-input" type="text" id="resAdmis" placeholder="Nb admis (ex: 25)">
+            <input class="admin-form-input" type="text" id="resTaux" placeholder="Taux % (ex: 83)">
+          </div>
+        </div>
+
+        <div class="admin-form-group">
+          <label class="admin-form-label">Image (optionnel)</label>
+          <input class="admin-form-input" type="file" id="postImage" accept="image/*" onchange="previewImage(this)">
+          <img id="imgPreview" class="admin-img-preview" alt="Aperçu">
+        </div>
+
+        <div class="admin-form-group">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="postPinned" style="width:16px;height:16px;">
+            <span>📌 Épingler cette publication en haut</span>
+          </label>
+        </div>
+
+        <div class="admin-actions">
+          <button class="btn-cancel" onclick="closeAdminPanel()">Annuler</button>
+          <button class="btn-publish" id="publishBtn" onclick="publishPost()">📤 Publier</button>
+        </div>
+        <button class="admin-logout-btn" onclick="adminLogout()">Se déconnecter</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script src="js/forms.js"></script>
+<script src="js/main.js"></script>
+
+  <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a5d1a,#0d3d0d);color:#fff;padding:12px 16px;align-items:center;gap:10px;z-index:99999;box-shadow:0 -4px 18px rgba(0,0,0,.3);font-family:sans-serif;">
+    <img src="/web-app-manifest-192x192.png" style="width:42px;height:42px;border-radius:9px;flex-shrink:0;" alt="EPPRIDAD">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:700;">Installer l'app EPPRIDAD</div>
+      <div style="font-size:11px;opacity:.7;">Accès rapide · Fonctionne hors ligne</div>
+    </div>
+    <button onclick="installPWA()" style="background:#d4af37;color:#0a150a;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Installer</button>
+    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:7px;padding:8px 10px;font-size:13px;cursor:pointer;">✕</button>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          reg.addEventListener('updatefound', function() {
+            var nw = reg.installing;
+            nw.addEventListener('statechange', function() {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('Nouvelle version disponible. Recharger ?')) location.reload();
+              }
+            });
+          });
+        }).catch(function(e) { console.error('SW:', e); });
+      });
+    }
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault(); deferredPrompt = e;
+      var b = document.getElementById('pwa-banner');
+      if (b) b.style.display = 'flex';
+    });
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(r) {
+        if (r.outcome === 'accepted') document.getElementById('pwa-banner').style.display = 'none';
+        deferredPrompt = null;
+      });
+    }
+  </script>
+
+<!-- ═══ MESSAGERIE PANEL ═══ -->
+<div id="messageriePanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:700px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.3)">
+    <!-- Header -->
+    <div style="background:var(--primary,#1F4E3D);color:#fff;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-size:18px;font-weight:700">💬 Messagerie EPPRIDAD</div>
+        <div style="font-size:12px;opacity:.7;margin-top:2px">WhatsApp groupé · Email via EmailJS · Individuel</div>
+      </div>
+      <button onclick="closeMessageriePanel()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+    </div>
+    <!-- Body -->
+    <div style="overflow-y:auto;padding:20px 24px;flex:1;font-family:'Plus Jakarta Sans',sans-serif">
+      <!-- Filtre + Groupe -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#6b9485;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Filtrer par nom/matricule</label>
+          <input id="msgFilterInput" type="text" placeholder="Rechercher…" oninput="renderEtudiantsList()" style="width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#6b9485;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Groupe cible</label>
+          <select id="msgGroupeSelect" onchange="renderEtudiantsList()" style="width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;background:#fff"></select>
+        </div>
+      </div>
+      <!-- Actions sélection -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <button onclick="selectAllMsg()" style="padding:6px 14px;border:1.5px solid #1F4E3D;background:transparent;color:#1F4E3D;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">✅ Tout sélect.</button>
+        <button onclick="deselectAllMsg()" style="padding:6px 14px;border:1.5px solid #ccc;background:transparent;color:#666;border-radius:8px;font-size:12px;cursor:pointer">✗ Désélect.</button>
+        <span id="msgSelectedCount" style="font-size:12px;color:#666;margin-left:4px">0 sélectionné(s)</span>
+      </div>
+      <!-- Liste étudiants -->
+      <div id="msgEtudiantsList" style="max-height:200px;overflow-y:auto;border:1.5px solid #f0f0f0;border-radius:12px;margin-bottom:16px"></div>
+      <!-- Message templates -->
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b9485;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Modèles de messages</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button onclick="loadTemplate(0)" style="padding:5px 12px;border:1.5px solid #e0e0e0;background:#f8f8f8;border-radius:8px;font-size:11px;cursor:pointer">💰 Rappel scolarité</button>
+          <button onclick="loadTemplate(1)" style="padding:5px 12px;border:1.5px solid #e0e0e0;background:#f8f8f8;border-radius:8px;font-size:11px;cursor:pointer">📊 Résultats dispo</button>
+          <button onclick="loadTemplate(2)" style="padding:5px 12px;border:1.5px solid #e0e0e0;background:#f8f8f8;border-radius:8px;font-size:11px;cursor:pointer">📋 Convocation</button>
+          <button onclick="loadTemplate(3)" style="padding:5px 12px;border:1.5px solid #e0e0e0;background:#f8f8f8;border-radius:8px;font-size:11px;cursor:pointer">👋 Bienvenue</button>
+        </div>
+        <div style="margin-top:6px;font-size:11px;color:#999">Variables: <code>{nom}</code> · <code>{matricule}</code> · <code>{filiere}</code> · <code>{classe}</code></div>
+      </div>
+      <!-- Sujet (pour email) -->
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b9485;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Sujet (pour email)</label>
+        <input id="msgSujet" type="text" placeholder="Ex: EPPRIDAD — Résultats Semestre 1" style="width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none">
+      </div>
+      <!-- Message -->
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:11px;font-weight:700;color:#6b9485;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Message</label>
+        <textarea id="msgTexte" rows="5" placeholder="Votre message… Utilisez {nom}, {matricule}, {filiere}, {classe} pour personnaliser" style="width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;resize:vertical;font-family:inherit"></textarea>
+      </div>
+      <!-- Boutons envoi -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <button onclick="envoyerWhatsAppGroupe()" style="padding:12px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">💬 WhatsApp groupé</button>
+        <button id="btnEnvoyerEmail" onclick="envoyerEmailGroupe()" style="padding:12px;background:#1F4E3D;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">✉️ Email groupé</button>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:#fff8e1;border-radius:10px;font-size:11px;color:#7d5a00;line-height:1.6">
+        <strong>📧 Pour les emails :</strong> EmailJS doit être configuré (voir README). Les emails nécessitent que les étudiants aient un email dans Supabase.<br>
+        <strong>💬 WhatsApp :</strong> Ouvre WhatsApp successivement pour chaque étudiant sélectionné.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB Messagerie (visible si admin) -->
+<button id="msgFab" onclick="openMessageriePanel()" style="display:none;position:fixed;bottom:100px;right:24px;z-index:900;background:#25D366;color:#fff;border:none;border-radius:50px;padding:14px 20px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(37,211,102,.4);align-items:center;gap:8px" class="fab-msg">
+  💬 Messagerie
+</button>
+
+<script src="js/supabase.js"></script>
+<script src="js/infos.js"></script>
+</body>
+</html>

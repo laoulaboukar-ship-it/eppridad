@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Galerie — EPPRIDAD | Niamey, Niger</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/galerie.css">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a5d1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EPPRIDAD">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-brand"><div class="nav-brand-icon"><img src="images/logo.png" alt="Logo EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0;padding:2px"></div><div><div class="nav-brand-name">EPPRIDAD</div><div class="nav-brand-sub">Est. 2024 · Niamey, Niger</div></div></a>
+  <ul class="nav-menu">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="ecole.html">L'École <span class="arrow">▾</span></a><div class="dropdown"><a href="ecole.html#histoire">Notre Histoire</a><a href="ecole.html#vision">Vision &amp; Missions</a><a href="ecole.html#valeurs">Nos Valeurs</a></div></li>
+    <li><a href="filieres.html">Filières <span class="arrow">▾</span></a><div class="dropdown"><a href="filieres.html#environnement">Environnement</a><a href="filieres.html#elevage">Élevage</a><a href="filieres.html#genie">Génie Rural</a><a href="filieres.html#agroalimentaire">Agroalimentaire</a><a href="filieres.html#agriculture">Agriculture</a></div></li>
+    <li><a href="services.html">Services <span class="arrow">▾</span></a><div class="dropdown"><a href="services.html#courtes">Formations Courtes</a><a href="services.html#accompagnement">Accompagnement</a></div></li>
+    <li><a href="admission.html">Admission</a></li><li><a href="infos.html" style="color:var(--gold);font-weight:600;">🔔 Infos</a></li>
+    <li><a href="galerie.html">Galerie</a></li><li><a href="contact.html">Contact</a></li>
+    <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li>
+  </ul>
+  <div class="nav-right"><button class="lang-btn">EN</button><a href="admission.html" class="nav-cta">S'inscrire</a><div class="hamburger"><span></span><span></span><span></span></div></div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-grid"></div>
+  <div class="page-hero-inner">
+    <div class="page-breadcrumb"><a href="index.html">Accueil</a><span>›</span><span class="current">Galerie</span></div>
+    <h1>Galerie <span class="gold">EPPRIDAD</span></h1>
+    <p>Découvrez nos étudiants en action, nos activités pratiques sur le terrain, notre campus et nos événements. La vie réelle d'EPPRIDAD en images.</p>
+  </div>
+</div>
+
+<section style="background:var(--white)">
+  <div class="reveal">
+    <div class="gallery-filters">
+      <button class="filter-btn active" data-filter="all">Tout voir</button>
+      <button class="filter-btn" data-filter="campus">Campus</button>
+      <button class="filter-btn" data-filter="terrain">Terrain &amp; Pratique</button>
+      <button class="filter-btn" data-filter="elevage">Élevage</button>
+      <button class="filter-btn" data-filter="sport">Sport &amp; Vie étudiante</button>
+      <button class="filter-btn" data-filter="bureau">Administration</button>
+    </div>
+  </div>
+
+  <div class="gallery-masonry" id="galleryGrid">
+    <div class="gal-item reveal" data-cat="campus"><img src="images/campus_gate.jpg" alt="Entrée principale EPPRIDAD"><div class="gal-overlay"><span class="gal-label">Entrée principale du campus</span></div></div>
+    <div class="gal-item reveal reveal-delay-1" data-cat="terrain"><img src="images/formation1.jpg" alt="Formation pratique terrain"><div class="gal-overlay"><span class="gal-label">Formation pratique sur le terrain</span></div></div>
+    <div class="gal-item reveal reveal-delay-2" data-cat="elevage"><img src="images/elevage1.jpg" alt="Élevage et santé animale"><div class="gal-overlay"><span class="gal-label">Cours d'élevage et santé animale</span></div></div>
+    <div class="gal-item reveal" data-cat="campus"><img src="images/campus_building.jpg" alt="Bâtiment principal EPPRIDAD"><div class="gal-overlay"><span class="gal-label">Bâtiment principal</span></div></div>
+    <div class="gal-item reveal reveal-delay-1" data-cat="terrain"><img src="images/agri1.jpg" alt="Agriculture pratique"><div class="gal-overlay"><span class="gal-label">Travaux agricoles pratiques</span></div></div>
+    <div class="gal-item reveal reveal-delay-2" data-cat="sport"><img src="images/sport_club.jpg" alt="EPPRIDAD Sport Club U13"><div class="gal-overlay"><span class="gal-label">EPPRIDAD Sport Club — Équipe U13</span></div></div>
+    <div class="gal-item reveal" data-cat="terrain"><img src="images/students1.jpg" alt="Promotion EPPRIDAD"><div class="gal-overlay"><span class="gal-label">Promotion EPPRIDAD en uniforme</span></div></div>
+    <div class="gal-item reveal reveal-delay-1" data-cat="elevage"><img src="images/elevage2.jpg" alt="Pratique élevage"><div class="gal-overlay"><span class="gal-label">Suivi sanitaire des animaux</span></div></div>
+    <div class="gal-item reveal reveal-delay-2" data-cat="campus"><img src="images/campus_ground.jpg" alt="Cour du campus"><div class="gal-overlay"><span class="gal-label">Cour principale du campus</span></div></div>
+    <div class="gal-item reveal" data-cat="terrain"><img src="images/agri2.jpg" alt="Maraîchage EPPRIDAD"><div class="gal-overlay"><span class="gal-label">Maraîchage intensif — ferme-école</span></div></div>
+    <div class="gal-item reveal reveal-delay-1" data-cat="bureau"><img src="images/campus_office.jpg" alt="Administration EPPRIDAD"><div class="gal-overlay"><span class="gal-label">Secrétariat et administration</span></div></div>
+    <div class="gal-item reveal reveal-delay-2" data-cat="terrain"><img src="images/terrain1.jpg" alt="Activités terrain"><div class="gal-overlay"><span class="gal-label">Activités pratiques terrain</span></div></div>
+    <div class="gal-item reveal" data-cat="terrain"><img src="images/formation2.jpg" alt="Formation terrain"><div class="gal-overlay"><span class="gal-label">Formation terrain encadrée</span></div></div>
+    <div class="gal-item reveal reveal-delay-1" data-cat="terrain"><img src="images/students2.jpg" alt="Étudiants en action"><div class="gal-overlay"><span class="gal-label">Étudiants en activité pratique</span></div></div>
+    <div class="gal-item reveal reveal-delay-2" data-cat="sport"><img src="images/sport2.jpg" alt="Activité sportive"><div class="gal-overlay"><span class="gal-label">Activité sportive et teamwork</span></div></div>
+    <div class="gal-item reveal" data-cat="campus"><img src="images/promotion.jpg" alt="Promotion EPPRIDAD vue du ciel"><div class="gal-overlay"><span class="gal-label">Vue aérienne de la promotion</span></div></div>
+    <div class="gal-item reveal reveal-delay-1" data-cat="bureau"><img src="images/bureau.jpg" alt="Bureau EPPRIDAD"><div class="gal-overlay"><span class="gal-label">Bureau de direction</span></div></div>
+    <div class="gal-item reveal reveal-delay-2" data-cat="terrain"><img src="images/agri3.jpg" alt="Cultures maraîchères"><div class="gal-overlay"><span class="gal-label">Cultures maraîchères en production</span></div></div>
+  </div>
+</section>
+
+<div style="background:var(--green);padding:60px 6%;text-align:center">
+  <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;color:white;margin-bottom:12px" class="reveal">Rejoignez l'aventure EPPRIDAD</h2>
+  <p style="color:rgba(255,255,255,.75);font-size:15px;margin-bottom:28px" class="reveal reveal-delay-1">Inscrivez-vous et devenez acteur de votre propre succès professionnel.</p>
+  <a href="admission.html" class="btn btn-gold reveal reveal-delay-2">S'inscrire maintenant</a>
+</div>
+
+<div class="gold-divider"></div>
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand"><div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><div style="width:38px;height:38px;background:linear-gradient(135deg,#1a5d1a,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #d4af37;padding:2px"><img src="images/logo.png" alt="EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0"></div><div><div class="footer-brand-name">EPPRIDAD</div></div></div><p>École Polytechnique Privée pour le Développement Agricole Durable.</p></div>
+    <div class="footer-col"><h4>Navigation</h4><ul><li><a href="index.html">Accueil</a></li><li><a href="ecole.html">L'École</a></li><li><a href="filieres.html">Filières</a></li><li><a href="services.html">Services</a></li><li><a href="admission.html">Admission</a></li><li><a href="infos.html" style="color:var(--gold);font-weight:600;">🔔 Infos</a></li>
+    <li><a href="galerie.html">Galerie</a></li><li><a href="contact.html">Contact</a></li>
+    <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li></ul></div>
+    <div class="footer-col"><h4>Catégories</h4><ul><li><a href="#" onclick="document.querySelector('[data-filter=campus]').click()">Campus</a></li><li><a href="#" onclick="document.querySelector('[data-filter=terrain]').click()">Terrain &amp; Pratique</a></li><li><a href="#" onclick="document.querySelector('[data-filter=elevage]').click()">Élevage</a></li><li><a href="#" onclick="document.querySelector('[data-filter=sport]').click()">Sport</a></li></ul></div>
+    <div class="footer-col"><h4>Contact</h4><div class="footer-contact-item"><span class="icon">📍</span><span>Niamey, Rive Droite — Niger</span></div><div class="footer-contact-item"><span class="icon">📞</span><a href="tel:+22799851532">+227 99 85 15 32</a></div><div class="footer-contact-item"><span class="icon">✉️</span><a href="mailto:eppridad@gmail.com">eppridad@gmail.com</a></div></div>
+  </div>
+  <div class="footer-bottom"><p>© 2025 <span class="gold">EPPRIDAD</span> — Tous droits réservés. Niger.</p><p>Conçu pour former les <span class="gold">bâtisseurs de demain</span></p></div>
+</footer>
+<script src="js/supabase.js"></script>
+
+<script src="js/forms.js"></script>
+<script src="js/main.js"></script>
+<script>
+// Lightbox for masonry gallery
+document.querySelectorAll('.gal-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const img = item.querySelector('img');
+    const lb = document.createElement('div');
+    lb.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.94);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;animation:fadeIn .25s ease';
+    lb.innerHTML = '<img src="'+img.src+'" style="max-width:92vw;max-height:92vh;border-radius:8px;object-fit:contain"><button style="position:absolute;top:20px;right:24px;background:none;border:none;color:white;font-size:36px;cursor:pointer;line-height:1">×</button>';
+    document.body.appendChild(lb);
+    lb.addEventListener('click', () => lb.remove());
+    document.addEventListener('keydown', e => { if(e.key==='Escape') lb.remove(); }, {once:true});
+  });
+});
+</script>
+
+
+
+  <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a5d1a,#0d3d0d);color:#fff;padding:12px 16px;align-items:center;gap:10px;z-index:99999;box-shadow:0 -4px 18px rgba(0,0,0,.3);font-family:sans-serif;">
+    <img src="/web-app-manifest-192x192.png" style="width:42px;height:42px;border-radius:9px;flex-shrink:0;" alt="EPPRIDAD">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:700;">Installer l'app EPPRIDAD</div>
+      <div style="font-size:11px;opacity:.7;">Accès rapide · Fonctionne hors ligne</div>
+    </div>
+    <button onclick="installPWA()" style="background:#d4af37;color:#0a150a;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Installer</button>
+    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:7px;padding:8px 10px;font-size:13px;cursor:pointer;">✕</button>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          reg.addEventListener('updatefound', function() {
+            var nw = reg.installing;
+            nw.addEventListener('statechange', function() {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('Nouvelle version disponible. Recharger ?')) location.reload();
+              }
+            });
+          });
+        }).catch(function(e) { console.error('SW:', e); });
+      });
+    }
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault(); deferredPrompt = e;
+      var b = document.getElementById('pwa-banner');
+      if (b) b.style.display = 'flex';
+    });
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(r) {
+        if (r.outcome === 'accepted') document.getElementById('pwa-banner').style.display = 'none';
+        deferredPrompt = null;
+      });
+    }
+  </script>
+</body></html>

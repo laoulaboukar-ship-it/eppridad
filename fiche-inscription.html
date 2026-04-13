@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fiche d'Inscription — EPPRIDAD</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/fiche-inscription.css">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a5d1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EPPRIDAD">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+</head>
+<body>
+
+<!-- BARRE ACTIONS (masquée à l'impression) -->
+<div class="no-print">
+  <a href="admission.html" class="btn-back">← Retour au site</a>
+  <button class="btn-print" onclick="window.print()">
+    🖨️ Imprimer / Télécharger PDF
+  </button>
+  <p>Pour télécharger en PDF : cliquez "Imprimer" puis choisissez "Enregistrer en PDF" dans votre navigateur</p>
+</div>
+
+<!-- FICHE A4 -->
+<div class="fiche">
+  <div class="watermark">EPPRIDAD</div>
+
+  <!-- EN-TÊTE -->
+  <div class="entete">
+    <div class="entete-logo">
+      <img src="/images/inline_img_0.png" alt="Logo EPPRIDAD">
+    </div>
+    <div class="entete-text">
+      <div class="school-name">EPPRIDAD</div>
+      <div class="school-full">École Polytechnique Privée pour le Développement Agricole Durable</div>
+      <div class="school-contact">
+        <span>📍 Niamey, Rive Droite — Niger</span>
+        <span>📞 +227 99 85 15 32</span>
+        <span>✉️ eppridad@gmail.com</span>
+      </div>
+    </div>
+    <div class="entete-right">
+      <span class="doc-title">📋 Fiche d'Inscription</span>
+      <span class="annee">Rentrée Académique 2026–2027</span>
+      <span class="num-dossier">N° Dossier : _______________</span>
+    </div>
+  </div>
+
+  <!-- CORPS -->
+  <div class="corps">
+
+    <!-- SECTION 1 : IDENTITÉ -->
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h3>Informations personnelles de l'apprenant(e)</h3>
+    </div>
+    <div class="fields-grid col-2" style="grid-template-columns:1fr 1fr 90px">
+      <div class="field-group"><label>Nom de famille *</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Prénom(s) *</label><div class="field-line"></div></div>
+      <div class="field-group photo-box">
+        <div class="photo-placeholder">👤</div>
+        <label>Photo d'identité<br>(coller ici)</label>
+      </div>
+    </div>
+    <div class="fields-grid col-3" style="margin-top:8px">
+      <div class="field-group"><label>Date de naissance *</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Lieu de naissance</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Nationalité</label><div class="field-line"></div></div>
+    </div>
+    <div class="fields-grid col-2" style="margin-top:8px">
+      <div class="field-group">
+        <label>Sexe *</label>
+        <div style="display:flex;gap:20px;padding:4px 0">
+          <div class="checkbox-item"><div class="box"></div> Masculin</div>
+          <div class="checkbox-item"><div class="box"></div> Féminin</div>
+        </div>
+      </div>
+      <div class="field-group"><label>Numéro de téléphone (personnel)</label><div class="field-line"></div></div>
+    </div>
+    <div class="fields-grid col-2" style="margin-top:8px">
+      <div class="field-group"><label>Adresse de résidence</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Quartier / Ville</label><div class="field-line"></div></div>
+    </div>
+
+    <!-- SECTION 2 : PARENT / TUTEUR -->
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h3>Informations du parent ou tuteur légal</h3>
+    </div>
+    <div class="fields-grid col-2">
+      <div class="field-group"><label>Nom complet du parent / tuteur *</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Lien de parenté</label><div class="field-line"></div></div>
+    </div>
+    <div class="fields-grid col-3" style="margin-top:8px">
+      <div class="field-group"><label>Téléphone principal *</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Téléphone secondaire</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Email (optionnel)</label><div class="field-line"></div></div>
+    </div>
+    <div class="fields-grid col-2" style="margin-top:8px">
+      <div class="field-group"><label>Profession du parent / tuteur</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Adresse du parent / tuteur</label><div class="field-line"></div></div>
+    </div>
+
+    <!-- SECTION 3 : SCOLARITÉ -->
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h3>Parcours scolaire antérieur</h3>
+    </div>
+    <div class="fields-grid col-3">
+      <div class="field-group"><label>Dernier établissement fréquenté</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Dernière classe / niveau</label><div class="field-line"></div></div>
+      <div class="field-group"><label>Année scolaire dernière</label><div class="field-line"></div></div>
+    </div>
+    <div class="fields-grid col-2" style="margin-top:8px">
+      <div class="field-group">
+        <label>Diplôme obtenu (si applicable)</label>
+        <div style="display:flex;gap:14px;padding:4px 0;flex-wrap:wrap">
+          <div class="checkbox-item"><div class="box"></div> CEPE</div>
+          <div class="checkbox-item"><div class="box"></div> BEPC</div>
+          <div class="checkbox-item"><div class="box"></div> CAP</div>
+          <div class="checkbox-item"><div class="box"></div> BEP</div>
+          <div class="checkbox-item"><div class="box"></div> Bac</div>
+          <div class="checkbox-item"><div class="box"></div> Aucun</div>
+        </div>
+      </div>
+      <div class="field-group"><label>Mention / Résultat obtenu</label><div class="field-line"></div></div>
+    </div>
+
+    <!-- SECTION 4 : INSCRIPTION -->
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h3>Choix de formation</h3>
+    </div>
+
+    <p style="font-size:10px;color:#4a5e4a;margin-bottom:8px">Cochez le niveau souhaité (un seul choix) :</p>
+    <div class="niveaux-grid">
+      <div class="niveau-item">
+        <div style="display:flex;justify-content:center;margin-bottom:4px"><div class="box" style="width:14px;height:14px;border:1.5px solid #1a5d1a;border-radius:2px"></div></div>
+        <span class="niveau-code">CAP</span>
+        <div class="niveau-label">Certificat d'Aptitude Professionnelle</div>
+        <div class="niveau-dur">⏱ 2 ans</div>
+        <div style="font-size:8.5px;color:#4a5e4a;margin-top:2px">Entrée : 5e, 4e ou 3e<br>Sans BEPC requis</div>
+      </div>
+      <div class="niveau-item">
+        <div style="display:flex;justify-content:center;margin-bottom:4px"><div class="box" style="width:14px;height:14px;border:1.5px solid #1a5d1a;border-radius:2px"></div></div>
+        <span class="niveau-code">BEP</span>
+        <div class="niveau-label">Brevet d'Études Professionnelles</div>
+        <div class="niveau-dur">⏱ 2 à 3 ans</div>
+        <div style="font-size:8.5px;color:#4a5e4a;margin-top:2px">Entrée : 4e, 3e ou BEPC</div>
+      </div>
+      <div class="niveau-item">
+        <div style="display:flex;justify-content:center;margin-bottom:4px"><div class="box" style="width:14px;height:14px;border:1.5px solid #1a5d1a;border-radius:2px"></div></div>
+        <span class="niveau-code">BAC Pro</span>
+        <div class="niveau-label">Baccalauréat Professionnel</div>
+        <div class="niveau-dur">⏱ 1 à 3 ans</div>
+        <div style="font-size:8.5px;color:#4a5e4a;margin-top:2px">Entrée : BEPC, 2nde, 1ère ou Tle</div>
+      </div>
+      <div class="niveau-item">
+        <div style="display:flex;justify-content:center;margin-bottom:4px"><div class="box" style="width:14px;height:14px;border:1.5px solid #1a5d1a;border-radius:2px"></div></div>
+        <span class="niveau-code">TDR</span>
+        <div class="niveau-label">Technicien Développement Rural</div>
+        <div class="niveau-dur">⏱ 2 ans</div>
+        <div style="font-size:8.5px;color:#4a5e4a;margin-top:2px">Entrée : Niveau 3e min. 15–30 ans</div>
+      </div>
+    </div>
+
+    <p style="font-size:10px;color:#4a5e4a;margin:10px 0 6px">Filière souhaitée (cochez une) :</p>
+    <div class="checkbox-grid">
+      <div class="checkbox-item"><div class="box"></div> Environnement &amp; Eaux-Forêts</div>
+      <div class="checkbox-item"><div class="box"></div> Élevage &amp; Santé Animale</div>
+      <div class="checkbox-item"><div class="box"></div> Génie Rural</div>
+      <div class="checkbox-item"><div class="box"></div> Transformation Agroalimentaire</div>
+      <div class="checkbox-item"><div class="box"></div> Socio-Économie Rurale</div>
+      <div class="checkbox-item"><div class="box"></div> Agriculture &amp; Productions Végétales</div>
+    </div>
+
+    <!-- SECTION 5 : DOCUMENTS FOURNIS -->
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h3>Documents fournis à l'inscription</h3>
+    </div>
+    <div class="docs-grid">
+      <div class="doc-item"><div class="box"></div> Acte de naissance ou extrait</div>
+      <div class="doc-item"><div class="box"></div> Certificat de scolarité ou dernier diplôme</div>
+      <div class="doc-item"><div class="box"></div> 4 photos d'identité récentes</div>
+      <div class="doc-item"><div class="box"></div> Certificat de résidence</div>
+      <div class="doc-item"><div class="box"></div> Certificat médical (si disponible)</div>
+      <div class="doc-item"><div class="box"></div> Copie de la carte d'identité du parent/tuteur</div>
+    </div>
+
+    <!-- ENGAGEMENT -->
+    <div class="engagement">
+      <strong style="color:#1a5d1a">📋 Engagement :</strong> En déposant ce dossier, je certifie l'exactitude des informations fournies et m'engage à respecter le règlement intérieur d'EPPRIDAD, à assister aux cours avec assiduité et à me conformer aux exigences pédagogiques de l'établissement. Je reconnais avoir pris connaissance des conditions d'inscription et des frais de scolarité applicables pour l'année académique 2026–2027.
+    </div>
+
+    <!-- SIGNATURES -->
+    <div class="signatures">
+      <div class="signature-box">
+        <div class="sig-label">Signature de l'apprenant(e)</div>
+        <div class="sig-area"></div>
+        <div class="sig-date">Date : ____________________</div>
+      </div>
+      <div class="signature-box">
+        <div class="sig-label">Signature du parent / tuteur</div>
+        <div class="sig-area"></div>
+        <div class="sig-date">Date : ____________________</div>
+      </div>
+      <div class="signature-box">
+        <div class="sig-label">Cachet &amp; Signature EPPRIDAD</div>
+        <div class="sig-area"></div>
+        <div class="sig-date">Date de réception : _________</div>
+      </div>
+    </div>
+
+  </div><!-- fin corps -->
+
+  <!-- PIED DE PAGE -->
+  <div class="pied">
+    <span>📍 <span class="gold">EPPRIDAD</span> — Niamey, Rive Droite, Niger</span>
+    <span>📞 <span class="gold">+227 99 85 15 32</span> &nbsp;|&nbsp; ✉️ eppridad@gmail.com</span>
+    <span>Rentrée <span class="gold">2026–2027</span> — Dossier complet à déposer sur place</span>
+  </div>
+
+</div><!-- fin fiche -->
+
+<script>
+// Auto-propose impression au chargement si paramètre ?print
+if (window.location.search.includes('print')) {
+  window.onload = () => setTimeout(() => window.print(), 500);
+}
+</script>
+
+  <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a5d1a,#0d3d0d);color:#fff;padding:12px 16px;align-items:center;gap:10px;z-index:99999;box-shadow:0 -4px 18px rgba(0,0,0,.3);font-family:sans-serif;">
+    <img src="/web-app-manifest-192x192.png" style="width:42px;height:42px;border-radius:9px;flex-shrink:0;" alt="EPPRIDAD">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:700;">Installer l'app EPPRIDAD</div>
+      <div style="font-size:11px;opacity:.7;">Accès rapide · Fonctionne hors ligne</div>
+    </div>
+    <button onclick="installPWA()" style="background:#d4af37;color:#0a150a;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Installer</button>
+    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:7px;padding:8px 10px;font-size:13px;cursor:pointer;">✕</button>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          reg.addEventListener('updatefound', function() {
+            var nw = reg.installing;
+            nw.addEventListener('statechange', function() {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('Nouvelle version disponible. Recharger ?')) location.reload();
+              }
+            });
+          });
+        }).catch(function(e) { console.error('SW:', e); });
+      });
+    }
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault(); deferredPrompt = e;
+      var b = document.getElementById('pwa-banner');
+      if (b) b.style.display = 'flex';
+    });
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(r) {
+        if (r.outcome === 'accepted') document.getElementById('pwa-banner').style.display = 'none';
+        deferredPrompt = null;
+      });
+    }
+  </script>
+<script src="js/supabase.js"></script>
+</body>
+</html>

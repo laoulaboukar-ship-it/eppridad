@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPPRIDAD — Portail Étudiant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/espace-etudiant.css">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a5d1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EPPRIDAD">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+</head>
+<body>
+
+<!-- ═══════════════ PAGE AUTH ═══════════════ -->
+<div id="auth-page" class="page active">
+  <div class="auth-left">
+    <div class="auth-left-bg"></div>
+    <div class="auth-left-orb"></div>
+    <div class="auth-left-orb2"></div>
+    <div class="auth-left-content">
+      <div class="auth-logo-wrap">
+        <div class="auth-logo-circle">
+          <img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'">
+        </div>
+        <div class="auth-logo-text">
+          <div class="auth-logo-name">EPPRIDAD</div>
+          <div class="auth-logo-sub">Portail Académique</div>
+        </div>
+      </div>
+      <h1>Votre espace<br>académique <em>personnel</em></h1>
+      <p>Accédez à vos notes, bulletins, emploi du temps et bénéficiez de conseils personnalisés par intelligence artificielle.</p>
+      <div class="auth-stats-row">
+        <div class="auth-stat"><div class="auth-stat-n">30</div><div class="auth-stat-l">Étudiants</div></div>
+        <div class="auth-stat"><div class="auth-stat-n">16</div><div class="auth-stat-l">Matières</div></div>
+        <div class="auth-stat"><div class="auth-stat-n">6</div><div class="auth-stat-l">Filières</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-box">
+      <div class="auth-box-logo">
+        <img src="images/logo.png" alt="EPPRIDAD" onerror="this.outerHTML='<div style=\'font-family:Playfair Display,serif;font-size:22px;font-weight:700;color:var(--primary)\'>EPPRIDAD</div>'">
+      </div>
+
+      <!-- TABS -->
+      <div class="auth-tabs" id="authTabs">
+        <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
+        <button class="auth-tab" onclick="switchTab('register')">Créer mon compte</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <h2 class="form-heading">Bon retour 👋</h2>
+        <p class="form-sub">Entrez votre identifiant et mot de passe.</p>
+        <div class="form-err" id="loginErr"></div>
+        <div class="form-group">
+          <label class="form-label">Identifiant étudiant</label>
+          <input class="form-input" type="text" id="loginId" placeholder="Ex: EPPR25-001" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mot de passe</label>
+          <input class="form-input" type="password" id="loginPwd" placeholder="Votre mot de passe" autocomplete="current-password">
+        </div>
+        <button class="btn-primary" id="loginBtn" onclick="doLogin()">Se connecter</button>
+        <p class="form-link">Pas encore de compte ? <a href="#" onclick="switchTab('register')">Créez-en un</a></p>
+        <!-- Accès admin discret — triple clic sur le logo ou taper ADMIN comme ID -->
+        <div id="adminHint" style="display:none;margin-top:12px;">
+          <div class="divider"><span>Administration</span></div>
+          <button class="btn-primary" style="background:var(--dark2);font-size:13px;" onclick="doAdminLogin()">⚙️ Accès Administration</button>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="registerForm" style="display:none">
+        <h2 class="form-heading">Créer mon compte</h2>
+        <p class="form-sub">Utilisez l'identifiant fourni par l'administration (ex: EPPR25-001).</p>
+        <div class="form-err" id="regErr"></div>
+        <div class="form-success" id="regSuccess"></div>
+        <div class="form-group">
+          <label class="form-label">Identifiant étudiant</label>
+          <input class="form-input" type="text" id="regId" placeholder="Ex: EPPR25-001" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Choisir un mot de passe</label>
+          <input class="form-input" type="password" id="regPwd" placeholder="Minimum 6 caractères">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmer le mot de passe</label>
+          <input class="form-input" type="password" id="regPwd2" placeholder="Répétez le mot de passe">
+        </div>
+        <button class="btn-primary" id="regBtn" onclick="doRegister()">Créer mon compte</button>
+        <p class="form-link">Déjà un compte ? <a href="#" onclick="switchTab('login')">Se connecter</a></p>
+      </div>
+
+      <!-- PENDING -->
+      <div id="pendingForm" style="display:none">
+        <div class="pending-card">
+          <div class="p-icon">⏳</div>
+          <h3>Compte en attente</h3>
+          <p>Votre demande a bien été envoyée à l'administration EPPRIDAD.</p>
+          <div class="pending-id" id="pendingId">—</div>
+          <p>Vous serez contacté sous <strong>24h</strong> pour valider votre accès.</p>
+          <button class="btn-primary" style="margin-top:16px;" onclick="switchTab('login')">← Retour connexion</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STUDENT PAGE ═══════════════ -->
+<div id="student-page" class="page">
+  <aside class="student-sidebar" id="studentSidebar">
+    <div class="sidebar-logo">
+      <img src="images/logo.png" alt="EPP" onerror="this.outerHTML='<span style=\'color:var(--accent);font-weight:700;font-size:13px\'>EPP</span>'">
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="sPanel('accueil',this)" title="Tableau de bord">
+        <span class="nav-icon">🏠</span><span class="nav-label">Accueil</span>
+      </div>
+      <div class="nav-item" onclick="sPanel('notes',this)" title="Mes Notes">
+        <span class="nav-icon">📊</span><span class="nav-label">Mes Notes</span>
+      </div>
+      <div class="nav-item" onclick="sPanel('bulletin',this)" title="Bulletin">
+        <span class="nav-icon">📋</span><span class="nav-label">Bulletin</span>
+      </div>
+      <div class="nav-item" onclick="sPanel('edt',this)" title="Emploi du temps">
+        <span class="nav-icon">📅</span><span class="nav-label">Emploi du temps</span>
+      </div>
+      <div class="nav-item" onclick="sPanel('conseils',this)" title="Conseils IA">
+        <span class="nav-icon">🤖</span><span class="nav-label">Conseils IA</span>
+      </div>
+      <div class="nav-item" onclick="sPanel('progression',this)" title="Progression">
+        <span class="nav-icon">📈</span><span class="nav-label">Progression</span>
+      </div>
+      <div class="nav-item" onclick="sPanel('library',this)" title="Bibliothèque">
+        <span class="nav-icon">📚</span><span class="nav-label">Bibliothèque</span>
+      </div>
+      <div class="nav-item" onclick="sPanel('scolarite',this)" title="Scolarité">
+        <span class="nav-icon">💳</span><span class="nav-label">Scolarité</span>
+      </div>
+      <div class="nav-item" onclick="sPanel('messages',this)" title="Notifications" id="notifNavItem">
+      <div class="nav-item" onclick="sPanel('compte',this)" title="Mon compte">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span>Mon compte</span>
+      </div>
+        <span class="nav-icon">🔔</span><span class="nav-label">Notifications</span>
+        <span class="notif-dot" id="notifDot" style="display:none"></span>
+      </div>
+    </nav>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+  </aside>
+
+  <div class="student-main" id="studentMain">
+    <div id="impersonateBar" class="impersonate-bar" style="display:none;">
+      <span>👁️ Mode prévisualisation — Vous consultez le profil de <strong id="impersonateName">—</strong></span>
+      <button onclick="exitImpersonate()">← Retour Admin</button>
+    </div>
+    <div class="student-topbar">
+      <div class="topbar-title" id="topbarTitle">Tableau de bord</div>
+      <div class="topbar-right">
+        <div class="topbar-notif" onclick="sPanel('messages',null)" style="cursor:pointer;" title="Notifications">🔔</div>
+        <div class="topbar-ava" id="topbarAva" style="cursor:pointer;" onclick="sPanel('accueil',null)">?</div>
+        <button onclick="doLogout()" style="font-size:12px;color:var(--text3);padding:6px 12px;border:1px solid var(--border);border-radius:8px;">Déconnexion</button>
+      </div>
+    </div>
+    <div class="student-body">
+
+      <!-- ACCUEIL -->
+      <div id="sp-accueil" class="s-panel active">
+        <div class="dash-hero">
+          <div class="dash-ava" id="dashAva">?</div>
+          <div class="dash-hero-info">
+            <div class="dash-welcome">Bienvenue sur votre espace</div>
+            <div class="dash-name" id="studName">Étudiant</div>
+            <div class="dash-chips" id="dashChips"><span id="studMat" style="display:none"></span><span id="studFi" style="display:none"></span></div>
+          </div>
+          <div class="dash-score">
+            <div class="dash-score-n" id="dashMoy">—</div>
+            <div class="dash-score-l">/ 20</div>
+            <div class="dash-score-m" id="dashMention">—</div>
+            <div class="dash-score-d" id="dashDecision">—</div>
+          </div>
+        </div>
+        <div class="qs-grid" id="dashStats"></div>
+        <div id="dashboardError" style="display:none;color:var(--danger);padding:10px;font-size:13px;background:#fff5f5;border-radius:8px;margin-bottom:12px"></div>
+        <div id="accueilZone"></div>
+        <div class="s-title">Accès rapide</div>
+        <div class="qnav-grid">
+          <button class="qnav-btn" onclick="sPanel('notes',null)"><span>📊</span><span>Mes Notes</span></button>
+          <button class="qnav-btn" onclick="sPanel('bulletin',null)"><span>📋</span><span>Bulletin</span></button>
+          <button class="qnav-btn" onclick="sPanel('edt',null)"><span>📅</span><span>Emploi du temps</span></button>
+          <button class="qnav-btn" onclick="sPanel('conseils',null)"><span>🤖</span><span>Conseils IA</span></button>
+          <button class="qnav-btn" onclick="sPanel('library',null)"><span>📚</span><span>Bibliothèque</span></button>
+          <button class="qnav-btn" onclick="sPanel('scolarite',null)"><span>💳</span><span>Scolarité</span></button>
+          <button class="qnav-btn" onclick="sPanel('progression',null)"><span>📈</span><span>Progression</span></button>
+        </div>
+        <div class="s-card">
+          <div class="s-title" style="margin-bottom:10px">💬 Message de l'administration</div>
+          <div id="adminMsgDisplay"><p style="color:var(--text3);font-size:13px">Aucun message pour le moment.</p></div>
+        </div>
+        <div class="success-tip" id="successTip">"Travaillez avec méthode, persévérez et demandez de l'aide à vos professeurs. EPPRIDAD croit en votre réussite !"</div>
+      </div>
+
+      <!-- NOTES -->
+      <div id="sp-notes" class="s-panel"><div id="notesZone"></div>
+        <div class="s-title">📊 Mes Notes — Semestre 1 · 2025/2026</div>
+        <div class="table-wrap">
+          <table class="notes-table">
+            <thead><tr><th>#</th><th>Matière</th><th>Note /20</th><th>Niveau</th><th>Coeff</th><th>Points</th><th>Statut</th></tr></thead>
+            <tbody id="notesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BULLETIN -->
+      <div id="sp-bulletin" class="s-panel"><div id="bulletinZone"></div>
+        <div class="s-title-row">
+          <div class="s-title">📋 Bulletin de Notes</div>
+          <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
+        </div>
+        <div class="bulletin-wrap" id="bulletinWrap">
+          <div class="bulletin-header">
+            <div>
+              <div class="bul-school">EPPRIDAD</div>
+              <div class="bul-sub">École Polytechnique Privée pour le Développement Agricole Durable</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">Niamey, Niger · Année 2025/2026 · Semestre 1</div>
+            </div>
+            <div style="text-align:right">
+              <div class="bul-student-name" id="bNom">—</div>
+              <div class="bul-info-grid">
+                <span>ID: <strong id="bId">—</strong></span>
+                <span>Classe: <strong id="bClasse">—</strong></span>
+                <span>Filière: <strong id="bFiliere">—</strong></span>
+                <span>Date: <strong id="bDate">—</strong></span>
+              </div>
+            </div>
+          </div>
+          <div class="bulletin-body">
+            <table class="bul-table">
+              <thead><tr><th>Matière</th><th>Coeff</th><th>Note /20</th><th>Points</th><th>Résultat</th></tr></thead>
+              <tbody id="bulBody"></tbody>
+            </table>
+          </div>
+          <div class="bul-footer">
+            <div>
+              <div style="font-size:12px;color:var(--text3)">Décision du jury</div>
+              <div style="font-weight:700;color:var(--primary);font-size:15px" id="bDecision">—</div>
+            </div>
+            <div class="bul-result">
+              <div class="bul-result-n" id="bAvg">—</div>
+              <div class="bul-result-l">Moyenne · <span id="bMention">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPLOI DU TEMPS -->
+      <div id="sp-edt" class="s-panel"><div id="edtZone"></div>
+        <div class="s-title">📅 Emploi du Temps — Classe <span id="etClasse">—</span></div>
+        <div class="tt-wrap"><table class="tt-table" id="ttTable"></table></div>
+      </div>
+
+      <!-- CONSEILS IA -->
+      <div id="sp-conseils" class="s-panel">
+        <div class="s-title">🤖 Conseils Personnalisés par IA</div>
+        <div id="conseilsZone"><div class="ai-loading"><div class="spinner"></div>Chargement de vos conseils personnalisés…</div></div>
+      </div>
+
+      <!-- PROGRESSION -->
+      <div id="sp-progression" class="s-panel"><div id="progressionZone"></div>
+        <div class="s-title">📈 Analyse de Progression</div>
+        <div class="prog-grid" id="progOverview"></div>
+        <div class="s-card">
+          <div class="s-title" style="margin-bottom:14px">Performance par matière</div>
+          <div id="skillBars"></div>
+        </div>
+        <div class="s-card" style="margin-top:16px">
+          <div class="s-title" style="margin-bottom:10px">💡 Conseil de progression</div>
+          <div id="progAdvice"><div class="ai-loading"><div class="spinner"></div>Analyse en cours…</div></div>
+        </div>
+      </div>
+
+      <!-- BIBLIOTHÈQUE -->
+      <div id="sp-library" class="s-panel"><div class="lib-grid" id="libGrid"></div>
+        <div class="s-title">📚 Bibliothèque Numérique</div>
+        <div class="lib-filters">
+          <button class="lib-filter active" onclick="filterLib('all',this)">Tous les documents</button>
+          <button class="lib-filter" onclick="filterLib('gratuit',this)">📖 Gratuit</button>
+          <button class="lib-filter" onclick="filterLib('etudiant',this)">🎓 Étudiant</button>
+          <button class="lib-filter" onclick="filterLib('premium',this)">⭐ Premium</button>
+        </div>
+        <div class="lib-grid" id="libGrid"></div>
+      </div>
+
+      <!-- SCOLARITÉ -->
+      <div id="sp-scolarite" class="s-panel">
+        <div class="s-title">💳 Ma Scolarité — Année 2025/2026</div>
+        <div id="scolZone"></div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div id="sp-messages" class="s-panel">
+        <div class="s-title">🔔 Notifications</div>
+        <div id="notifList"></div>
+      </div>
+
+      <!-- MON COMPTE -->
+      <div id="sp-compte" class="s-panel">
+        <div id="compteZone"></div>
+      </div>
+
+    </div><!-- end student-body -->
+  </div><!-- end student-main -->
+</div><!-- end student-page -->
+
+<!-- ═══════════════ ADMIN PAGE ═══════════════ -->
+<div id="admin-page" class="page">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-logo">
+      <div class="admin-sidebar-name">EPPRIDAD</div>
+      <div class="admin-sidebar-sub">Administration</div>
+    </div>
+    <nav class="admin-nav">
+      <div class="admin-nav-section">Tableau de bord</div>
+      <div class="admin-nav-item active" onclick="aPanel('dashboard',this)">📊 Vue générale</div>
+      <div class="admin-nav-section">Gestion</div>
+      <div class="admin-nav-item" onclick="aPanel('students',this)">👥 Étudiants <span class="admin-badge" id="pendingBadge">0</span></div>
+      <div class="admin-nav-item" onclick="aPanel('library',this)">📚 Bibliothèque</div>
+      <div class="admin-nav-item" onclick="aPanel('messages',this)">💬 Messages</div>
+      <div class="admin-nav-item" onclick="aPanel('infos',this)">📢 Publications</div>
+      <div class="admin-nav-item" onclick="aPanel('settings',this)">⚙️ Paramètres</div>
+    </nav>
+    <div class="admin-footer"><button onclick="doLogout()">🚪 Déconnexion</button></div>
+  </aside>
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <div class="admin-topbar-title" id="adminTopbarTitle">Vue générale</div>
+    </div>
+    <div class="admin-body">
+
+      <!-- DASHBOARD -->
+      <div id="ap-dashboard" class="ap active">
+        <div class="admin-stats-grid" id="adminStats"></div>
+        <div class="s-card">
+          <div class="s-title" style="margin-bottom:12px">📊 Répartition par filière</div>
+          <div id="filiereStats"></div>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div id="ap-students" class="ap">
+        <div class="s-title-row">
+          <div class="s-title">👥 Gestion des Étudiants</div>
+          <input class="admin-search" type="text" placeholder="🔍 Rechercher…" oninput="searchStudents(this.value)">
+        </div>
+        <div class="students-table-wrap">
+          <table class="students-table">
+            <thead><tr><th>ID</th><th>Nom</th><th>Filière</th><th>Statut</th><th>Expiration</th><th>Actions</th></tr></thead>
+            <tbody id="studentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LIBRARY -->
+      <div id="ap-library" class="ap">
+        <div class="s-title-row">
+          <div class="s-title">📚 Bibliothèque</div>
+          <button class="btn-sm" onclick="showAddDoc()">+ Ajouter un document</button>
+        </div>
+        <div id="adminLibList"></div>
+        <div id="addDocForm" style="display:none;" class="s-card">
+          <div class="s-title" style="margin-bottom:16px">📄 Nouveau document</div>
+          <div class="admin-form-group"><label class="admin-form-label">Titre</label><input class="admin-form-input" id="docTitle" placeholder="Ex: Guide du Zootechnicien"></div>
+          <div class="admin-form-group"><label class="admin-form-label">Description</label><textarea class="admin-form-textarea" id="docDesc" placeholder="Description courte du document…" rows="2"></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="admin-form-group"><label class="admin-form-label">Icône</label><input class="admin-form-input" id="docIcon" placeholder="📄" value="📄"></div>
+            <div class="admin-form-group"><label class="admin-form-label">Type d'accès</label>
+              <select class="admin-form-select" id="docType"><option value="gratuit">📖 Gratuit</option><option value="etudiant" selected>🎓 Étudiant</option><option value="premium">⭐ Premium</option></select>
+            </div>
+          </div>
+          <div class="admin-form-group"><label class="admin-form-label">Filière concernée</label><input class="admin-form-input" id="docFiliere" placeholder="Toutes les filières"></div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Source du document</label>
+            <div class="doc-src-tabs">
+              <button class="doc-src-tab sel" id="srcTabUrl" onclick="switchDocSrc('url')">🔗 Lien URL</button>
+              <button class="doc-src-tab" id="srcTabFile" onclick="switchDocSrc('file')">📁 Fichier PDF</button>
+            </div>
+            <div id="srcUrlSection">
+              <input class="admin-form-input" id="docUrl" placeholder="https://drive.google.com/... ou lien direct PDF">
+              <p style="font-size:11px;color:var(--text3);margin-top:5px">💡 Google Drive : clic droit → Obtenir le lien → Tout le monde peut consulter</p>
+            </div>
+            <div id="srcFileSection" style="display:none;">
+              <div class="drop-zone" id="dropZone" onclick="document.getElementById('docFileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDocDrop(event)">
+                <div style="font-size:32px;margin-bottom:8px">📁</div>
+                <div style="font-size:13.5px;font-weight:600;color:var(--text2)">Glisser un PDF ici ou cliquer pour choisir</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:4px">PDF uniquement · Max 4 MB</div>
+                <div id="fileSelectedName" style="margin-top:10px;font-size:13px;color:var(--primary);font-weight:700;display:none;"></div>
+              </div>
+              <input type="file" id="docFileInput" accept=".pdf" style="display:none" onchange="handleDocFile(this)">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:6px;">
+            <button class="btn-block btn-green-block" onclick="addDoc()" style="flex:1;">✅ Ajouter le document</button>
+            <button class="btn-block" style="flex:0 0 auto;padding:12px 18px;border:1px solid var(--border);border-radius:var(--r);" onclick="document.getElementById('addDocForm').style.display='none'">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MESSAGES -->
+      <div id="ap-messages" class="ap">
+        <div class="s-title" style="margin-bottom:14px">💬 Envoyer un message à tous</div>
+        <div class="s-card">
+          <div class="admin-form-group"><label class="admin-form-label">Type</label>
+            <select class="admin-form-select" id="msgType"><option value="info">ℹ️ Information</option><option value="important">⚠️ Important</option><option value="success">✅ Félicitations</option><option value="reminder">📅 Rappel</option></select>
+          </div>
+          <div class="admin-form-group"><label class="admin-form-label">Titre</label><input class="admin-form-input" id="msgTitle" placeholder="Titre du message"></div>
+          <div class="admin-form-group"><label class="admin-form-label">Contenu</label><textarea class="admin-form-textarea" id="msgBody" placeholder="Contenu du message…"></textarea></div>
+          <button class="btn-block btn-green-block" onclick="sendMsg()">📤 Envoyer à tous les étudiants</button>
+        </div>
+        <div class="s-title" style="margin:20px 0 12px">Messages envoyés</div>
+        <div id="msgList"></div>
+      </div>
+
+      <!-- INFOS / PUBLICATIONS -->
+      <div id="ap-infos" class="ap">
+        <div class="s-title" style="margin-bottom:16px">📢 Publier une actualité</div>
+        <div class="s-card">
+          <div class="admin-form-group">
+            <label class="admin-form-label">Type de publication</label>
+            <div class="post-type-grid">
+              <button class="ptype-btn sel" id="pt-actu" onclick="selPostType('actu',this)">📢<br>Actualité</button>
+              <button class="ptype-btn" id="pt-major" onclick="selPostType('major',this)">🏆<br>Major</button>
+              <button class="ptype-btn" id="pt-results" onclick="selPostType('results',this)">📊<br>Résultats</button>
+              <button class="ptype-btn" id="pt-photo" onclick="selPostType('photo',this)">📸<br>Photo</button>
+            </div>
+          </div>
+          <div class="admin-form-group"><label class="admin-form-label">Titre *</label><input class="admin-form-input" id="postTitle" placeholder="Titre de la publication"></div>
+          <div class="admin-form-group"><label class="admin-form-label">Texte</label><textarea class="admin-form-textarea" id="postText" rows="3" placeholder="Contenu de la publication…"></textarea></div>
+          <div id="majorPostFields" style="display:none;">
+            <div class="admin-form-group"><label class="admin-form-label">Nom du/de la Major</label><input class="admin-form-input" id="postMajorName" placeholder="Ex: ABDOULAYE MOUNKAILA Djibrilla"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="admin-form-group"><label class="admin-form-label">Filière</label><input class="admin-form-input" id="postMajorFi" placeholder="Agriculture"></div>
+              <div class="admin-form-group"><label class="admin-form-label">Moyenne</label><input class="admin-form-input" id="postMajorMoy" placeholder="14.5"></div>
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Image (optionnel)</label>
+            <input class="admin-form-input" type="file" id="postImgInput" accept="image/*" onchange="previewPostImg(this)" style="padding:8px;">
+            <img id="postImgPreview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-top:8px;" alt="aperçu">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+            <input type="checkbox" id="postPinned" style="width:16px;height:16px;">
+            <label for="postPinned" style="font-size:13px;cursor:pointer;">📌 Épingler cette publication en haut</label>
+          </div>
+          <button class="btn-block btn-green-block" onclick="publishPost()">📤 Publier</button>
+        </div>
+        <div class="s-title" style="margin:20px 0 12px;">Publications existantes</div>
+        <div id="postsList"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="ap-settings" class="ap">
+        <div class="s-card">
+          <div class="s-title" style="margin-bottom:14px">🔐 Changer le mot de passe admin</div>
+          <div class="admin-form-group"><label class="admin-form-label">Nouveau mot de passe</label><input class="admin-form-input" type="password" id="newAdminPwd" placeholder="Nouveau mot de passe (min. 6 car.)"></div>
+          <button class="btn-block btn-green-block" onclick="changeAdminPwd()">💾 Enregistrer</button>
+        </div>
+        <div class="s-card" style="margin-top:16px">
+          <div class="s-title" style="margin-bottom:14px">💡 Citation de motivation</div>
+          <div class="admin-form-group"><textarea class="admin-form-textarea" id="tipText" rows="3" placeholder="Texte de la citation..."></textarea></div>
+          <button class="btn-block btn-green-block" onclick="saveTip()">💾 Enregistrer</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MOBILE BOTTOM NAV -->
+<nav class="admin-bottom-nav" id="adminBottomNav">
+  <div class="admin-bnav-item active" onclick="aPanel('dashboard',null);mbnav(this)"><span class="admin-bnav-ico">📊</span><span>Accueil</span></div>
+  <div class="admin-bnav-item" onclick="aPanel('students',null);mbnav(this)" style="position:relative;"><span class="admin-bnav-ico">👥</span><span>Étudiants</span><span class="bnav-badge" id="bnavBadge" style="display:none">0</span></div>
+  <div class="admin-bnav-item" onclick="aPanel('library',null);mbnav(this)"><span class="admin-bnav-ico">📚</span><span>Docs</span></div>
+  <div class="admin-bnav-item" onclick="aPanel('messages',null);mbnav(this)"><span class="admin-bnav-ico">💬</span><span>Messages</span></div>
+  <div class="admin-bnav-item" onclick="aPanel('infos',null);mbnav(this)"><span class="admin-bnav-ico">📢</span><span>Infos</span></div>
+  <div class="admin-bnav-item" onclick="aPanel('settings',null);mbnav(this)"><span class="admin-bnav-ico">⚙️</span><span>Réglages</span></div>
+</nav>
+
+<!-- PDF VIEWER MODAL -->
+<div id="pdfModal" class="pdf-modal-overlay" style="display:none;" onclick="if(event.target===this)closePdfModal()">
+  <div class="pdf-modal-box">
+    <div class="pdf-modal-header">
+      <div style="font-weight:700;font-size:15px" id="pdfModalTitle">Document</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a id="pdfDownloadBtn" href="#" target="_blank" class="btn-sm" style="text-decoration:none;padding:6px 14px;background:var(--primary);color:#fff;border-radius:8px;font-size:12px;font-weight:700;">⬇️ Télécharger</a>
+        <button onclick="closePdfModal()" style="font-size:20px;color:var(--text3);line-height:1;padding:4px 8px;">✕</button>
+      </div>
+    </div>
+    <div class="pdf-modal-body">
+      <iframe id="pdfFrame" src="" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- VALIDATE MODAL -->
+<div id="validateModal" class="vmodal-overlay" style="display:none;" onclick="if(event.target===this)closeValidateModal()">
+  <div class="vmodal-box">
+    <h3>✅ Valider le compte étudiant</h3>
+    <div id="vModalStudentInfo" style="background:var(--surface2);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:13.5px;"></div>
+    <label class="admin-form-label">Durée d'accès</label>
+    <div class="dur-grid" id="durGrid">
+      <button class="dur-btn sel" onclick="selDur(this,'3m')">3 mois<br><small>Formation courte</small></button>
+      <button class="dur-btn" onclick="selDur(this,'6m')">6 mois<br><small>Semestre</small></button>
+      <button class="dur-btn" onclick="selDur(this,'1y')">1 an<br><small>Année</small></button>
+      <button class="dur-btn" onclick="selDur(this,'2y')">2 ans<br><small>Formation longue</small></button>
+      <button class="dur-btn" onclick="selDur(this,'3y')">3 ans<br><small>Bac Pro</small></button>
+      <button class="dur-btn" onclick="selDur(this,'custom')">Date libre<br><small>Choisir</small></button>
+    </div>
+    <div id="customDateWrap" style="display:none;margin-bottom:14px;">
+      <label class="admin-form-label">Date d'expiration</label>
+      <input class="admin-form-input" type="date" id="customExpDate">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="btn-block btn-green-block" onclick="confirmValidate()" style="flex:1;">✅ Valider l'accès</button>
+      <button class="btn-block" style="flex:0 0 auto;padding:12px 18px;border:1px solid var(--border);border-radius:var(--r);" onclick="closeValidateModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase.js"></script>
+
+<script src="js/espace-etudiant.js"></script>
+
+  <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a5d1a,#0d3d0d);color:#fff;padding:12px 16px;align-items:center;gap:10px;z-index:99999;box-shadow:0 -4px 18px rgba(0,0,0,.3);font-family:sans-serif;">
+    <img src="/web-app-manifest-192x192.png" style="width:42px;height:42px;border-radius:9px;flex-shrink:0;" alt="EPPRIDAD">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:700;">Installer l'app EPPRIDAD</div>
+      <div style="font-size:11px;opacity:.7;">Accès rapide · Fonctionne hors ligne</div>
+    </div>
+    <button onclick="installPWA()" style="background:#d4af37;color:#0a150a;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Installer</button>
+    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:7px;padding:8px 10px;font-size:13px;cursor:pointer;">✕</button>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          reg.addEventListener('updatefound', function() {
+            var nw = reg.installing;
+            nw.addEventListener('statechange', function() {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('Nouvelle version disponible. Recharger ?')) location.reload();
+              }
+            });
+          });
+        }).catch(function(e) { console.error('SW:', e); });
+      });
+    }
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault(); deferredPrompt = e;
+      var b = document.getElementById('pwa-banner');
+      if (b) b.style.display = 'flex';
+    });
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(r) {
+        if (r.outcome === 'accepted') document.getElementById('pwa-banner').style.display = 'none';
+        deferredPrompt = null;
+      });
+    }
+  </script>
+</body>
+</html>
