@@ -1,0 +1,214 @@
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Outfit',sans-serif; background:#f5f5f0; }
+
+  /* ===== BOUTON IMPRESSION (masqué à l'impression) ===== */
+  .no-print {
+    text-align:center; padding:20px;
+    background:linear-gradient(135deg,#1a5d1a,#2e7d2e);
+    display:flex; align-items:center; justify-content:center; gap:12px;
+    flex-wrap:wrap;
+  }
+  .btn-print {
+    background:linear-gradient(135deg,#d4af37,#f0d060);
+    color:#0a150a; border:none; padding:12px 28px;
+    border-radius:6px; font-family:'Outfit',sans-serif;
+    font-size:14px; font-weight:700; cursor:pointer;
+    letter-spacing:.5px; text-transform:uppercase;
+    display:flex; align-items:center; gap:8px;
+    transition:all .3s;
+  }
+  .btn-print:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(212,175,55,.4); }
+  .btn-back {
+    background:rgba(255,255,255,.15); color:white;
+    border:1.5px solid rgba(255,255,255,.4); padding:12px 24px;
+    border-radius:6px; font-family:'Outfit',sans-serif;
+    font-size:14px; font-weight:600; cursor:pointer;
+    text-decoration:none; display:flex; align-items:center; gap:8px;
+    transition:all .3s;
+  }
+  .btn-back:hover { background:rgba(255,255,255,.25); }
+  .no-print p { color:rgba(255,255,255,.75); font-size:13px; width:100%; text-align:center; margin-top:4px; }
+
+  /* ===== FICHE FORMAT A4 ===== */
+  .fiche {
+    width:210mm; min-height:297mm;
+    margin:20px auto; background:white;
+    box-shadow:0 4px 40px rgba(0,0,0,.15);
+    padding:0;
+    position:relative;
+  }
+
+  /* BANDEAU HAUT */
+  .entete {
+    background:linear-gradient(135deg,#1a5d1a 0%,#2e7d2e 100%);
+    padding:20px 28px 16px;
+    display:flex; align-items:center; gap:18px;
+    border-bottom:4px solid #d4af37;
+  }
+  .entete-logo {
+    width:80px; height:80px; flex-shrink:0;
+    background:white; border-radius:50%;
+    padding:4px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 12px rgba(0,0,0,.2);
+  }
+  .entete-logo img { width:100%; height:100%; object-fit:contain; border-radius:50%; }
+  .entete-text { flex:1; }
+  .entete-text .school-name {
+    font-family:'Cormorant Garamond',serif;
+    font-size:22px; font-weight:700; color:#d4af37;
+    letter-spacing:2px; line-height:1;
+  }
+  .entete-text .school-full {
+    font-size:11px; color:rgba(255,255,255,.85);
+    letter-spacing:1px; text-transform:uppercase;
+    margin:3px 0 6px;
+  }
+  .entete-text .school-contact {
+    font-size:11px; color:rgba(255,255,255,.7);
+    display:flex; gap:14px; flex-wrap:wrap;
+  }
+  .entete-text .school-contact span { display:flex; align-items:center; gap:4px; }
+  .entete-right { text-align:right; }
+  .entete-right .doc-title {
+    background:#d4af37; color:#0a150a;
+    font-weight:800; font-size:13px; letter-spacing:1px;
+    text-transform:uppercase; padding:6px 14px;
+    border-radius:4px; display:inline-block; margin-bottom:6px;
+  }
+  .entete-right .annee {
+    font-size:11px; color:rgba(255,255,255,.7);
+    display:block;
+  }
+  .entete-right .num-dossier {
+    font-size:10px; color:rgba(255,255,255,.5);
+    display:block; margin-top:4px;
+  }
+
+  /* CORPS DE LA FICHE */
+  .corps { padding:18px 28px 24px; }
+
+  /* SECTION TITRE */
+  .section-header {
+    display:flex; align-items:center; gap:10px;
+    margin:16px 0 10px;
+  }
+  .section-header .section-num {
+    width:24px; height:24px; border-radius:50%;
+    background:#1a5d1a; color:white;
+    font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .section-header h3 {
+    font-family:'Cormorant Garamond',serif;
+    font-size:14px; font-weight:700; color:#1a5d1a;
+    letter-spacing:.5px; text-transform:uppercase;
+    border-bottom:1.5px solid #d4af37;
+    padding-bottom:3px; flex:1;
+  }
+
+  /* GRILLE DE CHAMPS */
+  .fields-grid { display:grid; gap:8px; }
+  .fields-grid.col-2 { grid-template-columns:1fr 1fr; }
+  .fields-grid.col-3 { grid-template-columns:1fr 1fr 1fr; }
+
+  .field-group { display:flex; flex-direction:column; gap:3px; }
+  .field-group label {
+    font-size:9.5px; font-weight:700; color:#4a5e4a;
+    letter-spacing:1px; text-transform:uppercase;
+  }
+  .field-group .field-line {
+    border-bottom:1.5px solid #1a5d1a;
+    min-height:22px; background:transparent;
+    padding:2px 4px;
+    font-size:12px; color:#1a2a1a;
+  }
+  .field-group.photo-box {
+    border:1.5px solid #1a5d1a; border-radius:4px;
+    min-height:90px; align-items:center; justify-content:center;
+    text-align:center; padding:8px;
+    grid-row:span 3;
+  }
+  .field-group.photo-box label { color:#1a5d1a; font-size:9px; margin-top:4px; }
+  .photo-placeholder { font-size:28px; opacity:.3; }
+
+  /* CHECKBOXES */
+  .checkbox-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:4px 0; }
+  .checkbox-item {
+    display:flex; align-items:center; gap:6px;
+    font-size:11px; color:#1a2a1a;
+  }
+  .checkbox-item .box {
+    width:14px; height:14px; border:1.5px solid #1a5d1a;
+    border-radius:2px; flex-shrink:0;
+  }
+
+  /* NIVEAUX */
+  .niveaux-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:6px 0; }
+  .niveau-item {
+    border:1.5px solid #1a5d1a; border-radius:4px;
+    padding:6px 8px; text-align:center;
+    font-size:10px;
+  }
+  .niveau-item .niveau-code {
+    font-weight:800; font-size:14px; color:#1a5d1a;
+    display:block; line-height:1;
+  }
+  .niveau-item .niveau-label { color:#4a5e4a; font-size:9px; margin-top:2px; }
+  .niveau-item .niveau-dur { color:#d4af37; font-size:9px; font-weight:700; }
+
+  /* DOCUMENTS */
+  .docs-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; margin:6px 0; }
+  .doc-item { display:flex; align-items:center; gap:6px; font-size:11px; color:#1a2a1a; }
+  .doc-item .box { width:14px; height:14px; border:1.5px solid #1a5d1a; border-radius:2px; flex-shrink:0; }
+
+  /* ENGAGEMENT */
+  .engagement {
+    background:#e8f5e9; border-radius:6px;
+    padding:12px 14px; margin-top:12px;
+    border-left:3px solid #1a5d1a;
+    font-size:10.5px; color:#1a2a1a; line-height:1.6;
+  }
+
+  /* SIGNATURES */
+  .signatures { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:16px; }
+  .signature-box { text-align:center; }
+  .signature-box .sig-label { font-size:10px; color:#4a5e4a; font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; }
+  .signature-box .sig-area { border-bottom:1.5px solid #1a5d1a; min-height:50px; margin-bottom:6px; }
+  .signature-box .sig-date { font-size:9.5px; color:#4a5e4a; }
+
+  /* PIED DE PAGE */
+  .pied {
+    background:#1a5d1a; color:rgba(255,255,255,.8);
+    padding:10px 28px; text-align:center;
+    display:flex; align-items:center; justify-content:space-between;
+    border-top:3px solid #d4af37;
+  }
+  .pied span { font-size:10px; letter-spacing:.5px; }
+  .pied .gold { color:#d4af37; font-weight:700; }
+
+  /* FILIGRANE */
+  .watermark {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%) rotate(-30deg);
+    font-family:'Cormorant Garamond',serif;
+    font-size:90px; font-weight:700;
+    color:rgba(26,93,26,0.04);
+    white-space:nowrap; pointer-events:none;
+    user-select:none; z-index:0;
+  }
+  .corps { position:relative; z-index:1; }
+
+  /* ===== IMPRESSION ===== */
+  @media print {
+    body { background:white; }
+    .no-print { display:none !important; }
+    .fiche { margin:0; box-shadow:none; width:100%; }
+    @page { size:A4; margin:0; }
+  }
+
+  @media (max-width:220mm) {
+    .fiche { width:100%; margin:0; }
+  }

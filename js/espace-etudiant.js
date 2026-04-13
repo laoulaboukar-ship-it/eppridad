@@ -1,0 +1,1019 @@
+'use strict';
+// ════════════════════════════════════════════════════════════
+//  EPPRIDAD — Espace Étudiant v2
+//  Auth 100% Supabase · Données permanentes · Multi-appareil
+// ════════════════════════════════════════════════════════════
+
+const WA_NUM     = '22799851532';
+const ADMIN_EMAIL= 'eppridad@gmail.com';
+const DEFAULT_TIP= "L'excellence ne s'obtient pas par hasard. Travaillez avec méthode, persévérez et n'hésitez jamais à demander de l'aide à vos professeurs. EPPRIDAD croit en votre réussite !";
+
+const MATIERES=['Zootechnie Générale','Techniques Agricoles Sahél.','Anatomie Animale','Français / Anglais Appliqué','Projet Mini-Exploitation','Reboisement','Agroforestie','CES / DRS','Sécurité Alimentaire','Atelier Irrigation','Coopératives & Socio-Écon.','Production de Semences','Nutrition Animale','Vulgarisation Agricole','Entreprenariat Rural','Conduite & Comportement'];
+
+// ── Données actuellement chargées en mémoire ─────────────────
+let _etudiantActuel = null; // objet étudiant complet
+let _sessionUser = null;
+let conseilsLoaded = false;
+let progAdviceLoaded = false;
+let _impersonating = false;
+let _validateId = null;
+let _selectedDur = '1y';
+let _docSrc = 'url';
+let _docFileData = null;
+let _postType = 'actu';
+
+// ════════════════════════════════════════════════════════════
+//  UTILITAIRES NOTES
+// ════════════════════════════════════════════════════════════
+function moy(nt){const v=nt.filter(n=>n!==null);return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):null;}
+function mention(m){if(m===null)return'—';if(m>=16)return'Très Bien';if(m>=14)return'Bien';if(m>=12)return'Assez Bien';if(m>=10)return'Passable';return'Insuffisant';}
+function decision(m){if(m===null)return'—';return m>=10?'✔ Admis(e)':'✘ Redoublant(e)';}
+function noteColor(n){if(n===null)return'var(--text3)';if(n>=14)return'#1b5e20';if(n>=12)return'#0d47a1';if(n>=10)return'#7d5a00';return'var(--danger)';}
+function fmtF(n){return new Intl.NumberFormat('fr-FR').format(Math.abs(n))+' F CFA';}
+
+// ════════════════════════════════════════════════════════════
+//  NAVIGATION PAGES
+// ════════════════════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const p=document.getElementById(id);if(p)p.classList.add('active');
+  window.scrollTo(0,0);
+  showAdminNav(id==='admin-page');
+}
+
+function switchTab(tab){
+  ['loginForm','registerForm','pendingForm'].forEach(f=>{const el=document.getElementById(f);if(el)el.style.display='none';});
+  document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('active'));
+  const target={'login':'loginForm','register':'registerForm','pending':'pendingForm'}[tab];
+  if(target){const el=document.getElementById(target);if(el)el.style.display='block';}
+  const tabEl=document.querySelector(`.auth-tab[onclick*="${tab}"]`);
+  if(tabEl)tabEl.classList.add('active');
+  document.getElementById('adminHint').style.display='none';
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONNEXION / INSCRIPTION — 100% SUPABASE
+// ════════════════════════════════════════════════════════════
+async function doLogin(){
+  const id=document.getElementById('loginId').value.trim().toUpperCase();
+  const pwd=document.getElementById('loginPwd').value;
+  const err=document.getElementById('loginErr');
+  const btn=document.getElementById('loginBtn');
+  err.classList.remove('show');
+  if(!id||!pwd){err.textContent='Veuillez remplir tous les champs.';err.classList.add('show');return;}
+  if(id==='ADMIN'){doAdminLogin();return;}
+  btn.disabled=true;btn.textContent='Connexion…';
+  try {
+    const acc = await sbLogin(id, pwd);
+    setSession({id, role: acc.role||'etudiant'});
+    _sessionUser = {id, role: acc.role||'etudiant'};
+    await loadStudentDashboard(id);
+    showPage('student-page');
+  } catch(e) {
+    err.textContent=e.message;err.classList.add('show');
+  } finally {
+    btn.disabled=false;btn.textContent='Se connecter';
+  }
+}
+
+function doAdminLogin(){
+  const id=document.getElementById('loginId').value.trim().toUpperCase();
+  const pwd=document.getElementById('loginPwd').value;
+  const err=document.getElementById('loginErr');
+  err.classList.remove('show');
+  if(id==='ADMIN'&&simpleHash(pwd)===getAdminHash()){
+    setSession({id:'ADMIN',role:'admin'});
+    _sessionUser={id:'ADMIN',role:'admin'};
+    loadAdminDashboard();
+    showPage('admin-page');
+  } else {
+    err.textContent='Identifiant ou mot de passe incorrect.';err.classList.add('show');
+  }
+}
+
+async function doRegister(){
+  const id=document.getElementById('regId').value.trim().toUpperCase();
+  const pwd=document.getElementById('regPwd').value;
+  const pwd2=document.getElementById('regPwd2').value;
+  const err=document.getElementById('regErr');
+  const btn=document.getElementById('regBtn');
+  err.classList.remove('show');
+  if(!id||!pwd){err.textContent='Remplissez tous les champs.';err.classList.add('show');return;}
+  if(pwd.length<6){err.textContent='Le mot de passe doit faire au moins 6 caractères.';err.classList.add('show');return;}
+  if(pwd!==pwd2){err.textContent='Les mots de passe ne correspondent pas.';err.classList.add('show');return;}
+  btn.disabled=true;btn.textContent='Création…';
+  try {
+    const etud = await sbRegister(id, pwd);
+    document.getElementById('pendingId').textContent=id;
+    const msg=`🎓 *EPPRIDAD — Demande d'accès Portail Étudiant*\n\n▪️ *Matricule* : ${id}\n▪️ *Étudiant(e)* : ${etud.prenom} ${etud.nom}\n▪️ *Filière* : ${etud.filiere}\n\nL'étudiant(e) demande la validation de son compte portail.\n\n_Envoyé depuis le Portail EPPRIDAD_`;
+    showSendModal('Demande accès — '+id, msg, ()=>switchTab('pending'));
+  } catch(e) {
+    err.textContent=e.message;err.classList.add('show');
+  } finally {
+    btn.disabled=false;btn.textContent='Créer mon compte';
+  }
+}
+
+function doLogout(){
+  clearSession();_etudiantActuel=null;_sessionUser=null;
+  conseilsLoaded=false;progAdviceLoaded=false;_impersonating=false;
+  showPage('auth-page');
+  document.getElementById('loginId').value='';
+  document.getElementById('loginPwd').value='';
+  switchTab('login');
+}
+
+// ════════════════════════════════════════════════════════════
+//  CHARGEMENT TABLEAU DE BORD ÉTUDIANT (depuis Supabase)
+// ════════════════════════════════════════════════════════════
+async function loadStudentDashboard(matricule){
+  conseilsLoaded=false;progAdviceLoaded=false;
+  showLoadingOverlay(true,'Chargement de votre espace…');
+  try {
+    // 1. Infos étudiant
+    const etudRows = await sb.select('etudiants',{
+      select:'*',
+      filters:[{col:'matricule',val:`eq.${matricule}`}],
+      limit:1
+    });
+    if(!etudRows||!etudRows.length) throw new Error('Dossier étudiant introuvable.');
+    const etud=etudRows[0];
+
+    // 2. Notes depuis Supabase
+    const notesRows = await sb.select('notes',{
+      select:'matiere,note,coefficient,semestre',
+      filters:[{col:'etudiant_id',val:`eq.${etud.id}`}],
+      order:'matiere.asc'
+    }).catch(()=>[]);
+
+    // Mapper notes sur tableau MATIERES
+    const nt = new Array(16).fill(null);
+    (notesRows||[]).forEach(n=>{
+      const idx=MATIERES.indexOf(n.matiere);
+      if(idx>=0&&n.note!==null) nt[idx]=parseFloat(n.note);
+    });
+
+    // 3. Scolarité
+    const paiements = await sb.select('paiements',{
+      select:'montant,type_paiement',
+      filters:[{col:'etudiant_id',val:`eq.${etud.id}`}]
+    }).catch(()=>[]);
+    const totalVerse=(paiements||[]).filter(p=>p.type_paiement!=='remboursement').reduce((s,p)=>s+parseFloat(p.montant||0),0);
+    const scol=buildScol(etud,totalVerse);
+
+    // 4. Absences
+    const absences = await sb.select('absences',{
+      select:'date_absence,matiere,justifiee,motif',
+      filters:[{col:'etudiant_id',val:`eq.${etud.id}`}],
+      order:'date_absence.desc'
+    }).catch(()=>[]);
+
+    // 5. Documents
+    const docs = await sb.select('cours_documents',{
+      select:'id,titre,description,fichier_url,type_fichier,taille_ko,filiere,niveau,matiere,categorie,telechargements',
+      filters:[{col:'publie',val:'eq.true'}],
+      order:'created_at.desc'
+    }).catch(()=>[]);
+
+    // 6. Messages/Actualités
+    const msgs = await sb.select('actualites',{
+      select:'id,titre,contenu,categorie,created_at',
+      filters:[{col:'publie',val:'eq.true'}],
+      order:'created_at.desc',limit:10
+    }).catch(()=>[]);
+
+    // Construire objet étudiant complet
+    _etudiantActuel = {
+      id: etud.matricule,
+      nom: `${etud.nom} ${etud.prenom}`,
+      prenom: etud.prenom,
+      cl: etud.classe||'A',
+      sx: etud.sexe||'M',
+      fi: etud.filiere||'',
+      nv: etud.niveau||'',
+      photo: etud.photo_url||null,
+      nt,
+      scol,
+      absences: absences||[],
+      docs: mapDocs(docs||[]),
+      msgs: mapMsgs(msgs||[]),
+    };
+
+    renderStudentDashboard(_etudiantActuel);
+    showLoadingOverlay(false);
+
+  } catch(e) {
+    showLoadingOverlay(false);
+    document.getElementById('dashboardError').textContent='Erreur: '+e.message;
+    document.getElementById('dashboardError').style.display='block';
+    console.error('loadStudentDashboard:', e);
+  }
+}
+
+function buildScol(etud, totalVerse){
+  const brute=parseInt(etud.scolarite_brute||240000);
+  const sub=parseInt(etud.subvention||0);
+  const nette=brute-sub;
+  const solde=nette-totalVerse;
+  let sit='⚪ Aucun versement';
+  if(totalVerse===0)sit='⚪ Aucun versement';
+  else if(solde<=0)sit='✅ SOLDÉ';
+  else if(totalVerse/nette>=0.8)sit='🟡 Bien avancé';
+  else if(totalVerse/nette>=0.4)sit='🟠 En cours';
+  else sit='🔴 À relancer';
+  return{brute,sub,nette,verse:totalVerse,solde,sit};
+}
+
+function mapDocs(rows){
+  const icons={pdf:'📄',docx:'📝',xlsx:'📊',pptx:'📑',zip:'🗜️',cours:'📚',tp:'🔬',examen:'📋',ressource:'📖',emploi_temps:'📅',annonce:'📢'};
+  return rows.map(d=>({
+    id:d.id,title:d.titre,desc:d.description||'',
+    icon:icons[d.type_fichier]||icons[d.categorie]||'📄',
+    type:'etudiant',filiere:d.filiere||'Toutes filières',
+    niveau:d.niveau||'Tous niveaux',matiere:d.matiere||'',
+    categorie:d.categorie,date:'',url:d.fichier_url,
+    taille:d.taille_ko?`${d.taille_ko} Ko`:'',
+    telechargements:d.telechargements||0
+  }));
+}
+
+function mapMsgs(rows){
+  return rows.map(r=>({
+    id:r.id,title:r.titre,body:r.contenu,
+    type:r.categorie==='alerte'?'important':r.categorie==='evenement'?'reminder':r.categorie==='resultat'?'success':'info',
+    date:new Date(r.created_at).toLocaleDateString('fr-FR')
+  }));
+}
+
+// ── Overlay chargement ────────────────────────────────────────
+function showLoadingOverlay(show, msg=''){
+  let ov=document.getElementById('loadingOverlay');
+  if(!ov){
+    ov=document.createElement('div');ov.id='loadingOverlay';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;font-family:inherit';
+    ov.innerHTML='<div class="spinner" style="width:40px;height:40px;border:3px solid rgba(31,78,61,.2);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite"></div><div id="loadingMsg" style="font-size:14px;color:var(--text2);font-weight:600"></div>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display=show?'flex':'none';
+  const msgEl=document.getElementById('loadingMsg');if(msgEl)msgEl.textContent=msg;
+}
+
+// ════════════════════════════════════════════════════════════
+//  RENDU DASHBOARD ÉTUDIANT
+// ════════════════════════════════════════════════════════════
+function renderStudentDashboard(e){
+  // Header
+  const m=moy(e.nt);
+  document.getElementById('studName').textContent=e.nom;
+  document.getElementById('studMat').textContent=e.id;
+  document.getElementById('studFi').textContent=e.fi+' · '+e.nv;
+  document.getElementById('dashMoy').textContent=m?m.toFixed(2):'—';
+  document.getElementById('dashMention').textContent=mention(m);
+  document.getElementById('dashDecision').textContent=decision(m);
+  // Stats rapides
+  const validated=e.nt.filter(n=>n!==null&&n>=10).length;
+  const total=e.nt.filter(n=>n!==null).length;
+  const el=document.getElementById('dashStats');
+  if(el)el.innerHTML=[
+    {ic:'📊',v:m?m.toFixed(2):'—',l:'Moyenne'},
+    {ic:'✅',v:validated+'/'+total,l:'Validées'},
+    {ic:'💰',v:e.scol.sit,l:'Scolarité'},
+    {ic:'📅',v:e.absences.filter(a=>!a.justifiee).length,l:'Absences'}
+  ].map(s=>`<div class="dash-stat"><span class="ds-ic">${s.ic}</span><span class="ds-val">${s.v}</span><span class="ds-lbl">${s.l}</span></div>`).join('');
+  // Notification badge
+  const nb=document.getElementById('notifDot');if(nb)nb.style.display=e.msgs.length?'block':'none';
+  // Charger vue par défaut
+  sPanel('accueil',null);
+}
+
+// ════════════════════════════════════════════════════════════
+//  PANNEAUX ÉTUDIANT
+// ════════════════════════════════════════════════════════════
+function sPanel(name,btn){
+  document.querySelectorAll('.sp').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.s-nav-item').forEach(b=>b.classList.remove('active'));
+  const p=document.getElementById('sp-'+name);if(p)p.classList.add('active');
+  if(btn)btn.classList.add('active');
+  const e=_etudiantActuel;if(!e)return;
+  if(name==='accueil')  renderAccueil(e);
+  if(name==='notes')    fillNotes(e);
+  if(name==='bulletin') fillBulletin(e);
+  if(name==='progression'){fillProgression(e);if(!progAdviceLoaded)loadProgAdvice();}
+  if(name==='conseils') {if(!conseilsLoaded)loadConseils();}
+  if(name==='edt')      fillEDT(e);
+  if(name==='scolarite')fillScolarite(e);
+  if(name==='library')  loadLibrary(e);
+  if(name==='messages') loadNotifications(e);
+  if(name==='compte')   renderCompte(e);
+}
+
+function toggleSidebar(){
+  const sb=document.getElementById('studentSidebar');
+  if(sb)sb.classList.toggle('open');
+}
+
+// ── Accueil ───────────────────────────────────────────────────
+function renderAccueil(e){
+  const m=moy(e.nt);
+  const validated=e.nt.filter(n=>n!==null&&n>=10).length;
+  const total=e.nt.filter(n=>n!==null).length;
+  const top3=MATIERES.map((mat,i)=>({mat,n:e.nt[i]})).filter(x=>x.n!==null).sort((a,b)=>b.n-a.n).slice(0,3);
+  const weak=MATIERES.map((mat,i)=>({mat,n:e.nt[i]})).filter(x=>x.n!==null&&x.n<10).sort((a,b)=>a.n-b.n).slice(0,3);
+  const z=document.getElementById('accueilZone');if(!z)return;
+  const tip=DEFAULT_TIP;
+  z.innerHTML=`
+  <div class="welcome-banner">
+    <div class="wb-text">
+      <div class="wb-hello">Bonjour, <strong>${e.prenom||e.nom.split(' ')[0]}</strong> 👋</div>
+      <div class="wb-sub">${e.fi} · ${e.nv} · Classe ${e.cl}</div>
+      ${m?`<div class="wb-moy">Votre moyenne : <strong>${m.toFixed(2)}/20</strong> — <em>${mention(m)}</em></div>`:''}
+    </div>
+    <div class="wb-badge">${m?`<div class="wb-score">${m.toFixed(2)}</div><div class="wb-score-lbl">/ 20</div>`:'<div class="wb-score" style="font-size:20px">—</div>'}</div>
+  </div>
+  <div class="tip-box"><span class="tip-icon">💡</span><span>${tip}</span></div>
+  <div class="accueil-grid">
+    <div class="ac-card">
+      <div class="ac-card-title">📊 Aperçu des notes</div>
+      ${total?`<div style="font-size:13px;color:var(--text2);margin-bottom:10px">${validated}/${total} matières validées (≥10)</div>
+      <div>${MATIERES.map((mat,i)=>{const n=e.nt[i];if(n===null)return'';const col=noteColor(n);return`<div class="sb-row"><div class="sb-lbl" style="font-size:11px">${mat.substring(0,20)}</div><div class="sb-track"><div class="sb-fill" style="width:${(n/20)*100}%;background:${col}"></div></div><div class="sb-num" style="color:${col};font-size:11px">${n}</div></div>`;}).join('')}</div>`
+      :'<p style="color:var(--text3);font-size:13px">Notes non encore disponibles.</p>'}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="ac-card">
+        <div class="ac-card-title">🏆 Points forts</div>
+        ${top3.length?top3.map(x=>`<div class="ac-row"><span style="color:var(--primary);font-weight:700">${x.n}/20</span> ${x.mat}</div>`).join(''):'<p style="color:var(--text3);font-size:13px">Aucune note disponible.</p>'}
+      </div>
+      <div class="ac-card">
+        <div class="ac-card-title">🔧 À renforcer</div>
+        ${weak.length?weak.map(x=>`<div class="ac-row"><span style="color:var(--danger);font-weight:700">${x.n}/20</span> ${x.mat}</div>`).join(''):'<p style="color:var(--primary);font-size:13px">✅ Toutes vos notes sont au-dessus de 10 !</p>'}
+      </div>
+      <div class="ac-card">
+        <div class="ac-card-title">📬 Dernier message</div>
+        ${e.msgs.length?`<div style="font-size:13px;font-weight:700">${e.msgs[0].title}</div><div style="font-size:12px;color:var(--text3);margin-top:4px">${e.msgs[0].body.substring(0,120)}…</div>`:'<p style="color:var(--text3);font-size:13px">Aucun message.</p>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Notes ─────────────────────────────────────────────────────
+function fillNotes(e){
+  const z=document.getElementById('notesZone');if(!z)return;
+  const m=moy(e.nt);
+  z.innerHTML=`
+  <div class="notes-header">
+    <div class="nh-stat"><div class="nh-val">${m?m.toFixed(2):'—'}</div><div class="nh-lbl">Moyenne générale</div></div>
+    <div class="nh-stat"><div class="nh-val">${mention(m)}</div><div class="nh-lbl">Mention</div></div>
+    <div class="nh-stat"><div class="nh-val" style="color:${m&&m>=10?'var(--primary)':'var(--danger)'}">${decision(m)}</div><div class="nh-lbl">Décision</div></div>
+  </div>
+  <table class="notes-table">
+    <thead><tr><th>#</th><th>Matière</th><th>Note /20</th><th>Appréciation</th></tr></thead>
+    <tbody>${MATIERES.map((mat,i)=>{
+      const n=e.nt[i];const col=noteColor(n);
+      const app=n===null?'—':n>=16?'Excellent':n>=14?'Très Bien':n>=12?'Bien':n>=10?'Passable':'Insuffisant';
+      return`<tr><td class="notes-num">${i+1}</td><td>${mat}</td>
+        <td><span class="note-pill" style="background:${n!==null?col+'20':'var(--surface3)'};color:${col};border:1px solid ${n!==null?col+'40':'var(--border)'}">
+          ${n!==null?n+'/20':'—'}</span></td>
+        <td style="color:${col};font-size:12px;font-weight:700">${app}</td></tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+// ── Bulletin ──────────────────────────────────────────────────
+function fillBulletin(e){
+  const z=document.getElementById('bulletinZone');if(!z)return;
+  const m=moy(e.nt);
+  const rk=MATIERES.map((mat,i)=>({mat,n:e.nt[i]})).filter(x=>x.n!==null).sort((a,b)=>b.n-a.n);
+  z.innerHTML=`
+  <div class="bulletin-header">
+    <div class="bh-logo"><img src="images/logo.png" alt="EPPRIDAD" style="height:48px"></div>
+    <div class="bh-title">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700">ÉPPRIDAD</div>
+      <div style="font-size:10px;color:var(--text3);letter-spacing:1px">BULLETIN DE NOTES — ANNÉE 2025/2026</div>
+    </div>
+  </div>
+  <div class="bulletin-info">
+    <div><span class="bi-lbl">Nom :</span> ${e.nom}</div>
+    <div><span class="bi-lbl">Matricule :</span> ${e.id}</div>
+    <div><span class="bi-lbl">Filière :</span> ${e.fi}</div>
+    <div><span class="bi-lbl">Niveau :</span> ${e.nv}</div>
+    <div><span class="bi-lbl">Classe :</span> ${e.cl}</div>
+  </div>
+  <table class="notes-table">
+    <thead><tr><th>Rang</th><th>Matière</th><th>Note /20</th><th>Mention</th></tr></thead>
+    <tbody>${rk.map((x,i)=>{const col=noteColor(x.n);
+      return`<tr><td class="notes-num">${i+1}</td><td>${x.mat}</td>
+        <td><span class="note-pill" style="background:${col}20;color:${col};border:1px solid ${col}40">${x.n}/20</span></td>
+        <td style="color:${col};font-size:12px;font-weight:700">${x.n>=16?'Excellent':x.n>=14?'Très Bien':x.n>=12?'Bien':x.n>=10?'Passable':'Insuffisant'}</td></tr>`;
+    }).join('')}</tbody>
+  </table>
+  <div class="bulletin-footer">
+    <div class="bf-avg">Moyenne générale : <strong>${m?m.toFixed(2)+'/20':'Non disponible'}</strong> — ${mention(m)}</div>
+    <div class="bf-decision" style="color:${m&&m>=10?'var(--primary)':'var(--danger)'}">${decision(m)}</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:14px">⚠️ Document informatif — Pour le bulletin officiel avec cachet, contactez le secrétariat EPPRIDAD.</div>
+  </div>`;
+}
+
+// ── Emploi du temps ───────────────────────────────────────────
+const EDT={
+  A:{'Lundi':['Zootechnie Générale|C','Anatomie Animale|C','PAUSE','Techniques Agricoles Sahél.|TD','REPAS','Atelier Irrigation|TP','Coopératives & Socio-Écon.|C'],'Mardi':['Français / Anglais Appliqué|C','Agroforestie|C','PAUSE','CES / DRS|TD','REPAS','Production de Semences|TP','Nutrition Animale|C'],'Mercredi':['Reboisement|C','Sécurité Alimentaire|C','PAUSE','Projet Mini-Exploitation|TD','REPAS','Vulgarisation Agricole|TP','—'],'Jeudi':['Zootechnie Générale|TD','Anatomie Animale|TP','PAUSE','Atelier Irrigation|C','REPAS','Entreprenariat Rural|C','Conduite & Comportement|C'],'Vendredi':['Techniques Agricoles Sahél.|C','CES / DRS|C','PAUSE','Coopératives & Socio-Écon.|TD','REPAS','Production de Semences|C','Sport & Activités'],'Samedi':['Révision générale|TD','Projet collectif|TP','PAUSE','—','—','—','—']},
+  B:{'Lundi':['Anatomie Animale|C','Zootechnie Générale|C','PAUSE','Agroforestie|TD','REPAS','Production de Semences|TP','Conduite & Comportement|C'],'Mardi':['Techniques Agricoles Sahél.|C','CES / DRS|C','PAUSE','Sécurité Alimentaire|TD','REPAS','Atelier Irrigation|TP','Zootechnie Générale|TD'],'Mercredi':['Français / Anglais Appliqué|C','Reboisement|C','PAUSE','Nutrition Animale|TD','REPAS','Vulgarisation Agricole|TP','—'],'Jeudi':['Coopératives & Socio-Écon.|C','Projet Mini-Exploitation|TD','PAUSE','Anatomie Animale|TP','REPAS','Agroforestie|C','Sécurité Alimentaire|C'],'Vendredi':['Entreprenariat Rural|C','Atelier Irrigation|C','PAUSE','Techniques Agricoles Sahél.|TD','REPAS','Reboisement|TP','Sport & Activités'],'Samedi':['Révision générale|TD','Projet collectif|TP','PAUSE','—','—','—','—']}
+};
+const JOURS=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const HEURES=['7h30–9h00','9h00–10h30','10h30–11h00','11h00–12h30','12h30–14h00','14h00–15h30','15h30–17h00'];
+function fillEDT(e){
+  const z=document.getElementById('edtZone');if(!z)return;
+  const gr=e.cl==='B'?EDT.B:EDT.A;
+  const typeCls={C:'edt-c',TD:'edt-td',TP:'edt-tp'};
+  z.innerHTML=`<div style="overflow-x:auto"><table class="edt-table"><thead><tr><th>Horaire</th>${JOURS.map(j=>`<th>${j}</th>`).join('')}</tr></thead>
+  <tbody>${HEURES.map((h,hi)=>`<tr><td class="edt-h">${h}</td>${JOURS.map(j=>{
+    const slot=(gr[j]||[])[hi]||'—';
+    if(slot==='PAUSE')return'<td class="edt-pause">☕ Pause</td>';
+    if(slot==='REPAS')return'<td class="edt-pause">🍽 Repas</td>';
+    if(slot==='—')return'<td class="edt-vide">—</td>';
+    const[mat,type]=slot.split('|');
+    return`<td><div class="edt-cell ${typeCls[type]||''}"><div class="edt-mat">${mat}</div><div class="edt-type">${type||'C'}</div></div></td>`;
+  }).join('')}</tr>`).join('')}</tbody></table></div>
+  <div class="edt-legend">
+    <span class="edt-c">C = Cours</span>
+    <span class="edt-td">TD = Travaux Dirigés</span>
+    <span class="edt-tp">TP = Travaux Pratiques</span>
+  </div>`;
+}
+
+// ── Progression ───────────────────────────────────────────────
+function fillProgression(e){
+  const m=moy(e.nt),vn=e.nt.filter(n=>n!==null),mx=vn.length?Math.max(...vn):0,mn=vn.length?Math.min(...vn):0,ok=e.nt.filter(n=>n!==null&&n>=10).length;
+  const z=document.getElementById('progressionZone');if(!z)return;
+  z.innerHTML=`
+  <div class="prog-cards" id="progOverview">${[
+    {ic:'📊',v:m?m.toFixed(2):'—',l:'Moyenne Générale',b:m?mention(m):'—',c:m?m>=12?'pb-up':m>=10?'pb-flat':'pb-down':'pb-flat'},
+    {ic:'⬆️',v:mx||'—',l:'Meilleure Note',b:mx&&e.nt.indexOf(mx)>=0?MATIERES[e.nt.indexOf(mx)].substring(0,18):'',c:'pb-up'},
+    {ic:'⬇️',v:mn||'—',l:'Note la Plus Basse',b:mn&&e.nt.indexOf(mn)>=0?MATIERES[e.nt.indexOf(mn)].substring(0,18):'',c:'pb-down'},
+    {ic:'✅',v:ok+'/'+vn.length,l:'Matières Validées',b:vn.length?Math.round(ok/vn.length*100)+'% réussite':'',c:vn.length&&ok/vn.length>=.7?'pb-up':'pb-down'}
+  ].map(s=>`<div class="prog-card"><div class="prog-icon">${s.ic}</div><div class="prog-val">${s.v}</div><div class="prog-lbl">${s.l}</div><div class="prog-badge ${s.c}">${s.b}</div></div>`).join('')}</div>
+  <div class="s-card" style="margin-top:16px"><div class="s-title" style="margin-bottom:14px">📈 Détail par matière</div><div id="skillBars"></div></div>
+  <div id="progAdvice"></div>`;
+  const sk=document.getElementById('skillBars');
+  MATIERES.forEach((mat,i)=>{const n=e.nt[i],pct=n!==null?(n/20)*100:0,col=noteColor(n);
+    const row=document.createElement('div');row.className='sb-row';
+    row.innerHTML=`<div class="sb-lbl">${mat.length>24?mat.substring(0,23)+'…':mat}</div><div class="sb-track"><div class="sb-fill" style="width:${pct}%;background:${col}"></div></div><div class="sb-num" style="color:${col}">${n!==null?n:'—'}</div>`;
+    sk.appendChild(row);
+  });
+}
+
+// ── IA Conseils ───────────────────────────────────────────────
+async function loadConseils(){
+  conseilsLoaded=true;
+  const e=_etudiantActuel;if(!e)return;
+  const z=document.getElementById('conseilsZone');if(!z)return;
+  z.innerHTML='<div class="ai-loading"><div class="spinner"></div>L\'IA analyse vos résultats et prépare vos conseils personnalisés…</div>';
+  const m=moy(e.nt);
+  const resumeNotes=MATIERES.map((mat,i)=>`- ${mat}: ${e.nt[i]!==null?e.nt[i]+'/20':'Non saisi'}`).join('\n');
+  const prompt=`Tu es le conseiller académique intelligent du portail étudiant EPPRIDAD à Niamey, Niger.\nProfil: ${e.nom} | ${e.fi} | ${e.nv} | Moyenne: ${m?m.toFixed(2)+'/20':'non disponible'}\nNotes:\n${resumeNotes}\nRéponds UNIQUEMENT en JSON valide (sans backticks ni markdown):\n{"global":"Analyse globale encourageante en 2-3 phrases","matieres":[{"nom":"nom matière","note":15,"statut":"Force","emoji":"🌿","conseils":["conseil pratique 1","conseil pratique 2","conseil pratique 3"],"guide":"Exercice ou méthode pratique adaptée au contexte sahélien"}]}\nStatut: "Force" si >=14, "Moyen" si 10-13.9, "À renforcer" si <10 ou null.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json(),txt=d.content.map(x=>x.text||'').join('');
+    let res;try{res=JSON.parse(txt.replace(/```json|```/g,'').trim());}catch(x){res=staticConseils(e);}
+    renderConseils(res);
+  }catch(er){renderConseils(staticConseils(e));}
+}
+
+function staticConseils(e){
+  const m=moy(e.nt),em=['🐄','🌾','🔬','📖','🌱','🌳','🌿','💧','🍽️','💦','🤝','🌻','🐓','📢','💼','🎯'];
+  return{global:m?`Avec ${m.toFixed(2)}/20, votre profil montre ${m>=12?'de solides bases. Continuez sur cette lancée avec méthode et régularité':'des possibilités d\'amélioration. Un travail régulier avec vos professeurs vous permettra de progresser significativement'}.`:'Travaillez avec régularité et consultez vos professeurs.',
+    matieres:MATIERES.map((nom,i)=>{const n=e.nt[i],st=n===null?'À renforcer':n>=14?'Force':n>=10?'Moyen':'À renforcer';
+      const cs=n===null?['Contactez votre professeur pour la note manquante','Assurez-vous que tous vos travaux ont été remis']:n>=14?['Excellente maîtrise, continuez !','Approfondissez avec des pratiques terrain','Aidez vos camarades']:n>=10?['Révisez régulièrement pour consolider','Participez activement aux TP','Pratiquez davantage d\'exercices']:['Consultez immédiatement votre professeur','Rejoignez un groupe de révision','Révisez les bases fondamentales'];
+      return{nom,note:n||0,statut:st,emoji:em[i]||'📚',conseils:cs,guide:'Pratiquez régulièrement sur le terrain.'};
+    })};
+}
+
+function renderConseils(data){
+  const z=document.getElementById('conseilsZone');if(!z)return;
+  let h=`<div class="global-insight"><div class="gi">🤖</div><div><h3 style="font-weight:700;margin-bottom:6px">Analyse de votre profil</h3><p style="font-size:14px;color:var(--text2);line-height:1.7">${data.global}</p></div></div><div class="conseils-grid">`;
+  (data.matieres||[]).forEach(m=>{
+    const sc=m.statut==='Force'?'s-force':m.statut==='Moyen'?'s-moyen':'s-faible';
+    const n=m.note||0,col=noteColor(n>0?n:null),pct=n>0?(n/20)*100:0;
+    const ic=m.statut==='Force'?'var(--primary-pale)':m.statut==='Moyen'?'var(--accent-pale)':'#ffebee';
+    h+=`<div class="conseil-card"><div class="cc-head"><div class="cc-icon" style="background:${ic}">${m.emoji}</div>
+      <div><div class="cc-name">${m.nom}</div><div style="display:flex;align-items:center;gap:5px"><span class="cc-note" style="color:${col}">${n>0?n:'—'}</span><span style="font-size:11px;color:var(--text3)">/20</span></div></div></div>
+      <div class="cc-body"><div class="cc-status ${sc}">${m.statut==='Force'?'💪':m.statut==='Moyen'?'📈':'🔧'} ${m.statut}</div>
+      <ul class="cc-tips">${(m.conseils||[]).map(c=>`<li>${c}</li>`).join('')}</ul>
+      ${m.guide?`<div class="cc-guide"><div class="cc-guide-title">📖 Guide pratique</div><div class="cc-guide-text">${m.guide}</div></div>`:''}
+      <div class="cc-bar"><div class="cc-bar-fill" style="width:${pct}%;background:${col}"></div></div></div></div>`;
+  });
+  h+='</div>';z.innerHTML=h;
+}
+
+async function loadProgAdvice(){
+  progAdviceLoaded=true;const e=_etudiantActuel;if(!e)return;
+  const m=moy(e.nt);
+  const ft=MATIERES.filter((_,i)=>e.nt[i]!==null&&e.nt[i]>=14);
+  const fb=MATIERES.filter((_,i)=>e.nt[i]!==null&&e.nt[i]<10);
+  const prompt=`Conseiller académique EPPRIDAD Niamey. 3-4 phrases motivantes pour: ${e.fi}, ${e.nv}, Moy: ${m?m.toFixed(2):'N/A'}/20, Forces: ${ft.join(', ')||'aucune'}, À renforcer: ${fb.join(', ')||'aucune'}. Direct, encourageant, contexte agro-pastoral nigérien.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json(),txt=d.content.map(x=>x.text||'').join('');
+    const pa=document.getElementById('progAdvice');if(pa)pa.innerHTML=`<div class="advice-box">${txt}</div>`;
+  }catch(er){const pa=document.getElementById('progAdvice');if(pa)pa.innerHTML=`<div class="advice-box">Continuez à travailler avec régularité. Chaque effort sur le terrain de la ferme-école renforce votre expertise agricole.</div>`;}
+}
+
+// ── Scolarité ─────────────────────────────────────────────────
+function fillScolarite(e){
+  const z=document.getElementById('scolZone');if(!z)return;
+  const s=e.scol;
+  const pct=s.nette>0?Math.min(100,Math.round((s.verse/s.nette)*100)):100;
+  const isSolde=s.sit.includes('SOLDÉ');
+  const sitCls=isSolde?'scol-sit-ok':s.sit.includes('relancer')?'scol-sit-red':s.sit.includes('avancé')?'scol-sit-blue':s.sit.includes('cours')?'scol-sit-warn':'scol-sit-none';
+  const prenom=e.prenom||e.nom.split(' ').pop();
+  let msg='',msgCls='scol-msg-warn';
+  if(isSolde){msg=`🎉 Félicitations ${prenom} ! Votre scolarité est entièrement réglée pour l'année 2025/2026. Nous vous remercions pour votre régularité.`;msgCls='scol-msg-ok';}
+  else if(s.verse===0){msg=`⚠️ Cher(e) ${prenom}, aucun versement n'a encore été enregistré. Il est urgent de contacter vos parents ou tuteurs pour régulariser votre situation.`;msgCls='scol-msg-red';}
+  else{msg=`📋 ${prenom}, il reste <strong>${fmtF(s.solde)}</strong> à régler (${pct}% versé). Merci d'inviter vos parents à régulariser avant la fin de l'année scolaire.`;}
+  const ctaHtml=isSolde
+    ?`<div class="scol-cta scol-cta-green"><div class="scol-cta-ico">🎓</div><div><div style="font-size:15px;font-weight:700;margin-bottom:4px">Scolarité entièrement réglée !</div><div style="font-size:12.5px;opacity:.85">Merci pour votre engagement.</div><button class="scol-cta-btn scol-cta-btn-green" onclick="sPanel('notes',null)">📊 Voir mes notes →</button></div></div>`
+    :`<div class="scol-cta scol-cta-red"><div class="scol-cta-ico">📞</div><div style="flex:1"><div style="font-size:15px;font-weight:700;margin-bottom:4px">Invitez vos parents à régulariser</div><div style="font-size:12.5px;opacity:.9">Solde restant : <strong>${fmtF(s.solde)}</strong></div><button class="scol-cta-btn scol-cta-btn-red" onclick="scolContactAdmin('${e.id}','${e.nom.replace(/'/g,"\\'")}',${s.solde})">💬 Contacter l'administration →</button></div></div>`;
+  const waHtml=!isSolde&&s.solde>0?`<div class="s-card"><div class="s-title" style="margin-bottom:12px">📲 Message prêt à envoyer à vos parents</div><div style="background:var(--surface2);border-radius:var(--r);padding:14px;font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:14px;border-left:3px solid var(--primary);font-style:italic">"Bonjour, je suis ${prenom}, étudiant(e) à EPPRIDAD à Niamey. Ma scolarité nette est de ${fmtF(s.nette)} et il me reste <strong>${fmtF(s.solde)}</strong> à régler avant la fin de l'année scolaire. Merci de contacter l'administration EPPRIDAD au +227 99 85 15 32 pour le règlement."</div><button class="scol-wa" onclick="scolWaParents('${prenom}',${s.nette},${s.solde})">💬 Envoyer via WhatsApp</button></div>`:'';
+  // Absences
+  const abs=e.absences||[];
+  const justif=abs.filter(a=>a.justifiee).length,injustif=abs.filter(a=>!a.justifiee).length;
+  const absHtml=abs.length?`<div class="s-card" style="margin-top:16px"><div class="s-title" style="margin-bottom:12px">📅 Suivi des absences</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--surface2);border-radius:8px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--primary)">${justif}</div><div style="font-size:11px;color:var(--text3)">Justifiées</div></div>
+      <div style="background:${injustif>3?'#ffebee':'var(--surface2)'};border-radius:8px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:700;color:${injustif>3?'var(--danger)':'var(--text)'}">${injustif}</div><div style="font-size:11px;color:var(--text3)">Non justifiées</div></div>
+    </div>
+    <div style="max-height:200px;overflow-y:auto">${abs.slice(0,10).map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--surface3)"><span>${a.justifiee?'✅':'⚠️'}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${new Date(a.date_absence).toLocaleDateString('fr-FR')}</div><div style="font-size:11px;color:var(--text3)">${a.matiere||'Non précisé'}${a.motif?' · '+a.motif:''}</div></div><span style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;background:${a.justifiee?'var(--primary-pale)':'#ffebee'};color:${a.justifiee?'var(--primary)':'var(--danger)'}">${a.justifiee?'Justifiée':'Non justifiée'}</span></div>`).join('')}</div></div>`:
+    '<div class="s-card" style="margin-top:16px"><div class="s-title">📅 Absences</div><p style="color:var(--text3);font-size:13px;margin-top:8px">Aucune absence enregistrée.</p></div>';
+  z.innerHTML=`<div class="scol-grid">
+    <div class="scol-bloc"><div class="scol-bloc-n">${fmtF(s.brute)}</div><div class="scol-bloc-l">💰 Scolarité brute</div></div>
+    ${s.sub>0?`<div class="scol-bloc"><div class="scol-bloc-n" style="color:var(--primary)">− ${fmtF(s.sub)}</div><div class="scol-bloc-l">🎁 Subvention</div></div>`:''}
+    <div class="scol-bloc"><div class="scol-bloc-n" style="color:var(--primary)">${fmtF(s.nette)}</div><div class="scol-bloc-l">📋 Scolarité nette</div></div>
+    <div class="scol-bloc"><div class="scol-bloc-n" style="color:#1b5e20">${fmtF(s.verse)}</div><div class="scol-bloc-l">✅ Total versé</div></div>
+    <div class="scol-bloc"><div class="scol-bloc-n" style="color:${s.solde>0?'var(--danger)':'#1b5e20'}">${s.solde>0?fmtF(s.solde):'0 F CFA'}</div><div class="scol-bloc-l">${s.solde>0?'⚠️ Reste à payer':'🎉 Soldé'}</div></div>
+  </div>
+  <div class="scol-prog-wrap"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><span style="font-weight:700;font-size:14px">Avancement</span><span class="scol-sit ${sitCls}">${s.sit}</span></div><div class="scol-bar-bg"><div class="scol-bar-fill" style="width:${pct}%"><span>${pct}%</span></div></div></div>
+  <div class="scol-msg ${msgCls}">${msg}</div>${ctaHtml}${waHtml}${absHtml}`;
+}
+
+function scolContactAdmin(id,nom,solde){
+  window.open('https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(`Bonjour EPPRIDAD,\n\nJe suis l'étudiant(e) ${nom} (${id}).\nMon solde de scolarité restant est de ${fmtF(solde)}.\nJe souhaite avoir des informations sur la procédure de règlement.\n\nMerci.`),'_blank');
+}
+function scolWaParents(prenom,nette,solde){
+  window.open('https://wa.me/?text='+encodeURIComponent(`Bonjour, je suis ${prenom}, étudiant(e) à EPPRIDAD à Niamey. Ma scolarité nette est de ${fmtF(nette)} et il me reste ${fmtF(solde)} à régler avant la fin de l'année scolaire. Merci de contacter l'administration EPPRIDAD au +227 99 85 15 32 pour le règlement.`),'_blank');
+}
+
+// ── Bibliothèque ──────────────────────────────────────────────
+let libFilter='all';
+function loadLibrary(e){
+  const docs=(e||_etudiantActuel)?.docs||[];
+  renderLibGrid(docs);
+}
+function filterLib(f,btn){
+  libFilter=f;
+  document.querySelectorAll('.lib-filter').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const docs=(_etudiantActuel?.docs)||[];
+  renderLibGrid(f==='all'?docs:docs.filter(d=>d.categorie===f||d.type===f));
+}
+function renderLibGrid(docs){
+  const grid=document.getElementById('libGrid');if(!grid)return;
+  if(!docs.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3)">Aucun document disponible pour le moment.</div>';return;}
+  const bc={gratuit:'badge-green',etudiant:'badge-blue',premium:'badge-amber'};
+  const bl={gratuit:'Gratuit',etudiant:'Étudiant',premium:'Premium'};
+  grid.innerHTML=docs.map(d=>`<div class="lib-card">
+    <div class="lib-thumb">${d.icon||'📄'}<div style="position:absolute;top:8px;right:8px"><span class="badge ${bc[d.type]||'badge-gray'}">${bl[d.type]||d.type}</span></div></div>
+    <div class="lib-card-body">
+      <div class="lib-card-title">${d.title}</div>
+      <div class="lib-card-meta">${d.filiere||''} ${d.date?'· '+d.date:''}</div>
+      <div class="lib-card-desc">${d.desc||''}</div>
+      <div class="lib-card-actions">${d.url?`<button class="btn-sm" style="background:var(--primary);color:#fff;border-color:var(--primary);" onclick="openPdf('${d.url}','${(d.title||'').replace(/'/g,"\\'")}','${d.id}')">👁️ Ouvrir</button><a href="${d.url}" target="_blank" class="btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;padding:5px 12px;">⬇️ Télécharger</a>`:`<button class="btn-sm" onclick="alert('Document disponible sur demande.\\n📞 +227 99 85 15 32')">📞 Demander</button>`}</div>
+    </div></div>`).join('');
+}
+
+// ── Notifications ─────────────────────────────────────────────
+function loadNotifications(e){
+  const msgs=(e||_etudiantActuel)?.msgs||[];
+  const list=document.getElementById('notifList');if(!list)return;
+  const td={info:{ic:'ℹ️',bg:'#e7f5ff'},important:{ic:'⚠️',bg:'#fff8e1'},success:{ic:'✅',bg:'var(--primary-pale)'},reminder:{ic:'📅',bg:'var(--accent-pale)'}};
+  list.innerHTML=msgs.length?msgs.map((m,i)=>{const t=td[m.type]||td['info'];return`<div class="notif-item ${i===0?'unread':''}"><div class="notif-icon" style="background:${t.bg}">${t.ic}</div><div><div class="notif-title">${m.title}</div><div class="notif-body">${m.body}</div><div class="notif-time">📅 ${m.date||"Aujourd'hui"}</div></div></div>`;}).join(''):'<div style="text-align:center;padding:40px;color:var(--text3)">Aucune notification.</div>';
+  const nb=document.getElementById('notifDot');if(nb)nb.style.display=msgs.length?'block':'none';
+}
+
+// ── Compte étudiant (changer mot de passe) ────────────────────
+function renderCompte(e){
+  const z=document.getElementById('compteZone');if(!z)return;
+  z.innerHTML=`<div class="s-card">
+    <div class="s-title" style="margin-bottom:14px">👤 Mon profil</div>
+    <div style="display:grid;gap:10px;font-size:14px">
+      <div style="display:flex;gap:12px"><span style="color:var(--text3);width:120px">Nom complet</span><strong>${e.nom}</strong></div>
+      <div style="display:flex;gap:12px"><span style="color:var(--text3);width:120px">Matricule</span><strong>${e.id}</strong></div>
+      <div style="display:flex;gap:12px"><span style="color:var(--text3);width:120px">Filière</span><strong>${e.fi}</strong></div>
+      <div style="display:flex;gap:12px"><span style="color:var(--text3);width:120px">Niveau</span><strong>${e.nv}</strong></div>
+      <div style="display:flex;gap:12px"><span style="color:var(--text3);width:120px">Classe</span><strong>${e.cl}</strong></div>
+    </div>
+  </div>
+  <div class="s-card" style="margin-top:16px">
+    <div class="s-title" style="margin-bottom:14px">🔐 Changer mon mot de passe</div>
+    <div id="pwdChangeErr" class="form-err"></div>
+    <div id="pwdChangeOk" class="form-success"></div>
+    <div class="form-group"><label class="form-label">Mot de passe actuel</label><input class="form-input" type="password" id="oldPwd" placeholder="Votre mot de passe actuel"></div>
+    <div class="form-group"><label class="form-label">Nouveau mot de passe</label><input class="form-input" type="password" id="newPwd" placeholder="Minimum 6 caractères"></div>
+    <div class="form-group"><label class="form-label">Confirmer</label><input class="form-input" type="password" id="newPwd2" placeholder="Répétez le nouveau mot de passe"></div>
+    <button class="btn-primary" onclick="doChangePwd()">🔐 Mettre à jour le mot de passe</button>
+  </div>`;
+}
+
+async function doChangePwd(){
+  const old=document.getElementById('oldPwd').value;
+  const nw=document.getElementById('newPwd').value;
+  const nw2=document.getElementById('newPwd2').value;
+  const err=document.getElementById('pwdChangeErr');
+  const ok=document.getElementById('pwdChangeOk');
+  err.classList.remove('show');ok.classList.remove('show');
+  if(!old||!nw){err.textContent='Remplissez tous les champs.';err.classList.add('show');return;}
+  if(nw.length<6){err.textContent='Nouveau mot de passe trop court.';err.classList.add('show');return;}
+  if(nw!==nw2){err.textContent='Les mots de passe ne correspondent pas.';err.classList.add('show');return;}
+  try{
+    await sbChangePassword(_etudiantActuel.id, old, nw);
+    ok.textContent='✅ Mot de passe mis à jour avec succès.';ok.classList.add('show');
+    document.getElementById('oldPwd').value='';document.getElementById('newPwd').value='';document.getElementById('newPwd2').value='';
+  }catch(e){err.textContent=e.message;err.classList.add('show');}
+}
+
+// ════════════════════════════════════════════════════════════
+//  PDF VIEWER
+// ════════════════════════════════════════════════════════════
+function openPdf(url,title,docId){
+  if(!url){alert('Aucun document disponible.\n📞 +227 99 85 15 32');return;}
+  if(docId){sb.select('cours_documents',{select:'telechargements',filters:[{col:'id',val:`eq.${docId}`}],limit:1}).then(r=>{if(r&&r.length){sb.update('cours_documents',{telechargements:(r[0].telechargements||0)+1},{col:'id',val:`eq.${docId}`}).catch(()=>{});}}).catch(()=>{});}
+  document.getElementById('pdfModalTitle').textContent=title||'Document';
+  document.getElementById('pdfDownloadBtn').href=url;
+  let embedUrl=url;
+  if(url.includes('drive.google.com/file/d/')){const m=url.match(/\/d\/([^/]+)/);if(m)embedUrl='https://drive.google.com/file/d/'+m[1]+'/preview';}
+  else if(url.includes('drive.google.com/open?id=')){const m=url.match(/id=([^&]+)/);if(m)embedUrl='https://drive.google.com/file/d/'+m[1]+'/preview';}
+  document.getElementById('pdfFrame').src=embedUrl;
+  document.getElementById('pdfModal').style.display='flex';
+}
+function closePdfModal(){document.getElementById('pdfModal').style.display='none';document.getElementById('pdfFrame').src='';}
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — CHARGEMENT DEPUIS SUPABASE
+// ════════════════════════════════════════════════════════════
+async function loadAdminDashboard(){
+  showLoadingOverlay(true,'Chargement administration…');
+  try{
+    // Comptes portail
+    const comptes=await sb.select('portail_comptes',{select:'matricule,statut,expiry_date,date_creation,dernier_acces,role',order:'date_creation.desc'}).catch(()=>[]);
+    // Étudiants
+    const etudiants=await sb.select('etudiants',{select:'matricule,nom,prenom,filiere,niveau,classe,actif',order:'matricule.asc'}).catch(()=>[]);
+    // Notes pour stats
+    const notes=await sb.select('notes',{select:'etudiant_id,note'}).catch(()=>[]);
+
+    window._adminData={comptes:comptes||[],etudiants:etudiants||[],notes:notes||[]};
+    renderAdminDashboard(window._adminData);
+    showLoadingOverlay(false);
+  }catch(e){
+    showLoadingOverlay(false);
+    console.error('loadAdminDashboard',e);
+    showError('Erreur chargement admin: '+e.message);
+  }
+}
+
+function renderAdminDashboard(data){
+  const {comptes,etudiants}=data;
+  const actifs=comptes.filter(c=>c.statut==='actif').length;
+  const pending=comptes.filter(c=>c.statut==='pending').length;
+  const expires=comptes.filter(c=>c.statut==='actif'&&c.expiry_date&&new Date(c.expiry_date)<new Date()).length;
+  document.getElementById('pendingBadge').textContent=pending;
+  const bb=document.getElementById('bnavBadge');if(bb){bb.textContent=pending;bb.style.display=pending?'block':'none';}
+  document.getElementById('adminStats').innerHTML=[
+    {ic:'👥',n:etudiants.length,l:'Total étudiants',bg:'var(--primary-pale)'},
+    {ic:'✅',n:actifs,l:'Comptes actifs',bg:'#e8f5e9'},
+    {ic:'⏳',n:pending,l:'En attente',bg:'var(--accent-pale)'},
+    {ic:'⛔',n:expires,l:'Expirés',bg:'#ffebee'},
+  ].map(s=>`<div class="admin-stat-card"><div class="admin-stat-icon" style="background:${s.bg}">${s.ic}</div><div><div class="admin-stat-n">${s.n}</div><div class="admin-stat-l">${s.l}</div></div></div>`).join('');
+  const fc={};etudiants.forEach(e=>{fc[e.filiere]=(fc[e.filiere]||0)+1;});
+  document.getElementById('filiereStats').innerHTML=Object.entries(fc).map(([fi,n])=>`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="width:160px;font-size:12px;color:var(--text2)">${fi}</div>
+      <div style="flex:1;height:10px;background:var(--surface3);border-radius:5px;overflow:hidden"><div style="height:100%;width:${Math.round(n/etudiants.length*100)}%;background:linear-gradient(to right,var(--primary),var(--primary-l));border-radius:5px"></div></div>
+      <div style="width:24px;text-align:right;font-size:13px;font-weight:700;color:var(--primary)">${n}</div>
+    </div>`).join('');
+  loadAdminStudents();
+  loadAdminMessages();
+  loadAdminLibrary_admin();
+}
+
+// ── Étudiants admin ───────────────────────────────────────────
+function loadAdminStudents(filter=''){
+  const data=window._adminData||{comptes:[],etudiants:[]};
+  const compteMap={};data.comptes.forEach(c=>{compteMap[c.matricule]=c;});
+  const rows=data.etudiants.filter(e=>!filter||
+    e.nom.toLowerCase().includes(filter.toLowerCase())||
+    e.prenom.toLowerCase().includes(filter.toLowerCase())||
+    e.matricule.toLowerCase().includes(filter.toLowerCase()));
+  document.getElementById('studentsTableBody').innerHTML=rows.map(e=>{
+    const acc=compteMap[e.matricule];
+    const isExpired=acc&&acc.statut==='actif'&&acc.expiry_date&&new Date(acc.expiry_date)<new Date();
+    const st=acc?isExpired?'expired':acc.statut==='actif'?'active':acc.statut==='pending'?'pending':acc.statut:'none';
+    const stLabel=acc?isExpired?'⛔ Expiré':acc.statut==='actif'?'✅ Actif':acc.statut==='pending'?'⏳ En attente':acc.statut:'—';
+    const stClass=st==='active'?'st-active':st==='pending'?'st-pending':'st-none';
+    const exp=acc&&acc.expiry_date?expiryStatus(acc.expiry_date):{cls:'st-none',txt:'—'};
+    const lastAcces=acc&&acc.dernier_acces?new Date(acc.dernier_acces).toLocaleDateString('fr-FR'):'jamais';
+    return`<tr>
+      <td style="font-weight:700;font-size:12px;color:var(--primary)">${e.matricule}</td>
+      <td style="font-size:13px">${e.nom} ${e.prenom}</td>
+      <td style="font-size:11px;color:var(--text3)">${e.filiere||'—'}</td>
+      <td><span class="st-badge ${stClass}">${stLabel}</span></td>
+      <td><span class="${exp.cls}" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px">${exp.txt}</span></td>
+      <td style="font-size:11px;color:var(--text3)">${lastAcces}</td>
+      <td>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          ${st==='pending'?`<button class="btn-sm" onclick="openValidateModal('${e.matricule}')">✅ Valider</button><button class="btn-sm btn-danger-sm" onclick="rejectAccount('${e.matricule}')">✗ Refuser</button>`:''}
+          ${(st==='active'||st==='expired')?`<button class="btn-sm" style="background:var(--primary);color:#fff;border-color:var(--primary)" onclick="impersonateStudent('${e.matricule}')">👁 Voir</button><button class="btn-sm" onclick="openValidateModal('${e.matricule}')">✏️ Modifier</button><button class="btn-sm btn-danger-sm" onclick="suspendAccount('${e.matricule}')">⏸ Suspendre</button>`:''}
+          ${st==='none'?`<button class="btn-sm" style="background:var(--primary);color:#fff;border-color:var(--primary)" onclick="createAccountForStudent('${e.matricule}')">➕ Créer compte</button>`:''}
+          ${st==='suspendu'||st==='suspended'?`<button class="btn-sm" onclick="reactivateAccount('${e.matricule}')">▶️ Réactiver</button><button class="btn-sm btn-danger-sm" onclick="deleteAccount('${e.matricule}')">🗑 Supprimer</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function searchStudents(v){loadAdminStudents(v);}
+
+// Validation avec durée
+function openValidateModal(matricule){
+  _validateId=matricule;_selectedDur='1y';
+  const data=window._adminData||{};
+  const e=(data.etudiants||[]).find(x=>x.matricule===matricule);
+  const acc=(data.comptes||[]).find(x=>x.matricule===matricule);
+  document.getElementById('vModalStudentInfo').innerHTML=e
+    ?`<strong>${e.nom} ${e.prenom}</strong><br><span style="color:var(--text3)">${e.filiere||'—'} · ${e.niveau||'—'} · Classe ${e.classe||'—'}</span><br><span style="font-size:11px;color:var(--text3)">${acc?'Demande le '+(acc.date_creation?new Date(acc.date_creation).toLocaleDateString('fr-FR'):'—'):'Nouveau compte admin'}</span>`
+    :`<strong>${matricule}</strong>`;
+  document.querySelectorAll('.dur-btn').forEach((b,i)=>b.classList.toggle('sel',i===1));
+  document.getElementById('customDateWrap').style.display='none';
+  document.getElementById('validateModal').style.display='flex';
+}
+function closeValidateModal(){document.getElementById('validateModal').style.display='none';}
+function selDur(btn,dur){
+  _selectedDur=dur;
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  document.getElementById('customDateWrap').style.display=dur==='custom'?'block':'none';
+}
+function getExpiryDate(dur){
+  const d=new Date();
+  if(dur==='3m')d.setMonth(d.getMonth()+3);
+  else if(dur==='6m')d.setMonth(d.getMonth()+6);
+  else if(dur==='1y')d.setFullYear(d.getFullYear()+1);
+  else if(dur==='2y')d.setFullYear(d.getFullYear()+2);
+  else if(dur==='3y')d.setFullYear(d.getFullYear()+3);
+  else if(dur==='custom'){const v=document.getElementById('customExpDate').value;return v?new Date(v).toISOString().split('T')[0]:null;}
+  return d.toISOString().split('T')[0];
+}
+async function confirmValidate(){
+  if(!_validateId)return;
+  const expiry=getExpiryDate(_selectedDur);
+  if(!expiry){alert('Veuillez sélectionner une date d\'expiration.');return;}
+  try{
+    await sb.upsert('portail_comptes',{matricule:_validateId,statut:'actif',expiry_date:expiry,role:'etudiant',date_creation:new Date().toISOString()},'matricule');
+    closeValidateModal();
+    await loadAdminDashboard();
+    showSuccess('✅ Compte validé jusqu\'au '+new Date(expiry).toLocaleDateString('fr-FR'));
+  }catch(e){showError('Erreur: '+e.message);}
+}
+
+async function createAccountForStudent(matricule){
+  const defaultPwd='eppridad2025';
+  try{
+    const expiry=new Date();expiry.setFullYear(expiry.getFullYear()+1);
+    await sb.upsert('portail_comptes',{matricule,pwd_hash:simpleHash(defaultPwd),statut:'actif',expiry_date:expiry.toISOString().split('T')[0],role:'etudiant',date_creation:new Date().toISOString()},'matricule');
+    await loadAdminDashboard();
+    showSuccess(`✅ Compte créé ! Matricule: ${matricule} | Mot de passe: ${defaultPwd}`);
+    alert(`✅ Compte créé pour ${matricule}\n\nIdentifiant : ${matricule}\nMot de passe initial : ${defaultPwd}\n\nL'étudiant(e) pourra changer son mot de passe depuis son espace.`);
+  }catch(e){showError('Erreur: '+e.message);}
+}
+
+async function rejectAccount(matricule){
+  if(!confirm(`Refuser et supprimer le compte de ${matricule} ?`))return;
+  try{await sb.del('portail_comptes',{col:'matricule',val:`eq.${matricule}`});await loadAdminDashboard();showSuccess('Compte supprimé.');}
+  catch(e){showError('Erreur: '+e.message);}
+}
+
+async function suspendAccount(matricule){
+  if(!confirm(`Suspendre le compte de ${matricule} ?`))return;
+  try{await sb.update('portail_comptes',{statut:'suspendu'},{col:'matricule',val:`eq.${matricule}`});await loadAdminDashboard();showSuccess('Compte suspendu.');}
+  catch(e){showError('Erreur: '+e.message);}
+}
+
+async function reactivateAccount(matricule){
+  const expiry=new Date();expiry.setFullYear(expiry.getFullYear()+1);
+  try{await sb.update('portail_comptes',{statut:'actif',expiry_date:expiry.toISOString().split('T')[0]},{col:'matricule',val:`eq.${matricule}`});await loadAdminDashboard();showSuccess('Compte réactivé.');}
+  catch(e){showError('Erreur: '+e.message);}
+}
+
+async function deleteAccount(matricule){
+  if(!confirm(`Supprimer définitivement le compte de ${matricule} ?`))return;
+  try{await sb.del('portail_comptes',{col:'matricule',val:`eq.${matricule}`});await loadAdminDashboard();showSuccess('Compte supprimé définitivement.');}
+  catch(e){showError('Erreur: '+e.message);}
+}
+
+function expiryStatus(expiry){
+  if(!expiry)return{cls:'expiry-ok',txt:'Sans limite'};
+  const d=new Date(expiry),now=new Date(),diff=Math.ceil((d-now)/(1000*86400));
+  if(diff<0)return{cls:'expiry-exp',txt:'Expiré'};
+  if(diff<=30)return{cls:'expiry-warn',txt:`Expire dans ${diff}j`};
+  return{cls:'expiry-ok',txt:new Date(expiry).toLocaleDateString('fr-FR')};
+}
+
+// ── Bibliothèque admin ────────────────────────────────────────
+async function loadAdminLibrary_admin(){
+  try{
+    const docs=await sb.select('cours_documents',{select:'*',order:'created_at.desc'});
+    const list=document.getElementById('adminLibList');if(!list)return;
+    list.innerHTML=(docs||[]).length?(docs||[]).map(d=>`<div class="s-card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+      <div style="font-size:26px">${d.type_fichier==='pdf'?'📄':d.type_fichier==='xlsx'?'📊':d.type_fichier==='pptx'?'📑':'📝'}</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:14px">${d.titre}</div><div style="font-size:11px;color:var(--text3)">${d.filiere||'—'} · ${d.categorie||d.type_fichier||'—'} · ${d.telechargements||0} téléchargements</div></div>
+      <button class="btn-sm btn-danger-sm" onclick="deleteDocAdmin('${d.id}')">🗑 Supprimer</button>
+    </div>`).join(''):'<p style="color:var(--text3);font-size:13px">Aucun document.</p>';
+  }catch(e){console.error('loadAdminLibrary_admin',e);}
+}
+
+async function addDoc(){
+  const title=document.getElementById('docTitle').value.trim();
+  if(!title){alert('Veuillez saisir un titre.');return;}
+  let url='';
+  if(_docSrc==='url'){url=document.getElementById('docUrl').value.trim();}
+  else if(_docSrc==='file'){url=_docFileData||'';}
+  if(!url){alert('Veuillez ajouter un lien URL ou sélectionner un fichier.');return;}
+  try{
+    await sb.insert('cours_documents',{
+      titre:title,
+      description:document.getElementById('docDesc').value.trim(),
+      fichier_url:url,
+      type_fichier:document.getElementById('docType').value||'pdf',
+      categorie:document.getElementById('docType').value||'cours',
+      filiere:document.getElementById('docFiliere').value.trim()||null,
+      publie:true,telechargements:0,
+      uploaded_by:'Administration',
+    });
+    document.getElementById('addDocForm').style.display='none';
+    document.getElementById('docTitle').value='';document.getElementById('docDesc').value='';document.getElementById('docUrl').value='';
+    document.getElementById('fileSelectedName').style.display='none';_docFileData=null;
+    await loadAdminLibrary_admin();
+    showSuccess('✅ Document publié avec succès !');
+  }catch(e){showError('Erreur publication: '+e.message);}
+}
+
+async function deleteDocAdmin(id){
+  if(!confirm('Supprimer ce document ?'))return;
+  try{await sb.del('cours_documents',{col:'id',val:`eq.${id}`});await loadAdminLibrary_admin();showSuccess('Document supprimé.');}
+  catch(e){showError('Erreur: '+e.message);}
+}
+
+// ── Messages admin ────────────────────────────────────────────
+async function loadAdminMessages(){
+  try{
+    const msgs=await sb.select('actualites',{select:'*',order:'created_at.desc',limit:20});
+    const list=document.getElementById('msgList');if(!list)return;
+    list.innerHTML=(msgs||[]).length?(msgs||[]).map(m=>`<div class="msg-item">
+      <div class="msg-title">${m.epingle?'📌 ':''}${m.titre}</div>
+      <div class="msg-body">${m.contenu}</div>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <span style="font-size:11px;color:var(--text3)">${new Date(m.created_at).toLocaleDateString('fr-FR')}</span>
+        <button class="btn-sm btn-danger-sm" onclick="deleteMsgAdmin('${m.id}')">🗑 Supprimer</button>
+      </div>
+    </div>`).join(''):'<p style="color:var(--text3);font-size:13px">Aucun message.</p>';
+  }catch(e){console.error('loadAdminMessages',e);}
+}
+
+async function sendMsg(){
+  const title=document.getElementById('msgTitle').value.trim();
+  const body=document.getElementById('msgBody').value.trim();
+  if(!title||!body){alert('Remplissez le titre et le contenu.');return;}
+  try{
+    await sb.insert('actualites',{titre:title,contenu:body,categorie:document.getElementById('msgType').value||'info',publie:true,epingle:false,auteur:'Administration EPPRIDAD'});
+    await loadAdminMessages();
+    document.getElementById('msgTitle').value='';document.getElementById('msgBody').value='';
+    showSuccess('✅ Message publié pour tous les étudiants !');
+  }catch(e){showError('Erreur: '+e.message);}
+}
+
+async function deleteMsgAdmin(id){
+  if(!confirm('Supprimer ce message ?'))return;
+  try{await sb.del('actualites',{col:'id',val:`eq.${id}`});await loadAdminMessages();showSuccess('Message supprimé.');}
+  catch(e){showError('Erreur: '+e.message);}
+}
+
+// ── Panel admin ───────────────────────────────────────────────
+function aPanel(name,btn){
+  document.querySelectorAll('.ap').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-item').forEach(b=>b.classList.remove('active'));
+  const p=document.getElementById('ap-'+name);if(p)p.classList.add('active');
+  if(btn)btn.classList.add('active');
+  const titles={dashboard:'Vue générale',students:'Étudiants',library:'Bibliothèque',messages:'Messages',settings:'Paramètres'};
+  const t=document.getElementById('adminTopbarTitle');if(t)t.textContent=titles[name]||name;
+  if(name==='library')loadAdminLibrary_admin();
+  if(name==='messages')loadAdminMessages();
+}
+
+function changeAdminPwd(){
+  const pwd=document.getElementById('newAdminPwd').value;
+  if(pwd.length<6){alert('Mot de passe trop court (6 caractères minimum).');return;}
+  localStorage.setItem('eppr_admin_hash_v2',simpleHash(pwd));
+  showSuccess('✅ Mot de passe admin mis à jour.');
+  document.getElementById('newAdminPwd').value='';
+}
+
+// ── Impersonate ───────────────────────────────────────────────
+async function impersonateStudent(matricule){
+  _impersonating=true;
+  showLoadingOverlay(true,'Chargement du profil…');
+  await loadStudentDashboard(matricule);
+  showPage('student-page');
+  showLoadingOverlay(false);
+  document.getElementById('impersonateBar').style.display='flex';
+  const data=window._adminData||{};
+  const e=(data.etudiants||[]).find(x=>x.matricule===matricule);
+  document.getElementById('impersonateName').textContent=(e?`${e.nom} ${e.prenom}`:'')+'  ('+matricule+')';
+}
+function exitImpersonate(){
+  _impersonating=false;
+  document.getElementById('impersonateBar').style.display='none';
+  loadAdminDashboard();
+  showPage('admin-page');
+}
+
+// ── Doc source / file ─────────────────────────────────────────
+function showAddDoc(){document.getElementById('addDocForm').style.display='block';}
+function switchDocSrc(src){
+  _docSrc=src;_docFileData=null;
+  document.getElementById('srcTabUrl').classList.toggle('sel',src==='url');
+  document.getElementById('srcTabFile').classList.toggle('sel',src==='file');
+  document.getElementById('srcUrlSection').style.display=src==='url'?'block':'none';
+  document.getElementById('srcFileSection').style.display=src==='file'?'block':'none';
+}
+function handleDocFile(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>4*1024*1024){alert('Fichier trop lourd (max 4 MB). Utilisez plutôt un lien Google Drive.');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{_docFileData=e.target.result;const nm=document.getElementById('fileSelectedName');nm.textContent='✅ '+file.name;nm.style.display='block';document.getElementById('dropZone').style.borderColor='var(--primary)';};
+  reader.readAsDataURL(file);
+}
+function handleDocDrop(e){
+  e.preventDefault();document.getElementById('dropZone').classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(file&&file.type==='application/pdf'){const dt=new DataTransfer();dt.items.add(file);document.getElementById('docFileInput').files=dt.files;handleDocFile(document.getElementById('docFileInput'));}
+}
+
+// ── Modal envoi WhatsApp/Email ────────────────────────────────
+function showSendModal(type,message,onDone){
+  const overlay=document.createElement('div');overlay.className='modal-overlay';overlay.id='sendModal';
+  overlay.innerHTML=`<div class="modal-box">
+    <div style="text-align:center;font-size:40px;margin-bottom:10px">✅</div>
+    <div class="modal-title" style="text-align:center">Compte créé !</div>
+    <div class="modal-sub" style="text-align:center">Envoyez votre demande de validation à l'administration EPPRIDAD.</div>
+    <div class="modal-btns">
+      <button class="mbt-wa" id="mWa"><span>💬</span> WhatsApp (+227 99 85 15 32)</button>
+      <button class="mbt-em" id="mEm"><span>✉️</span> Email (eppridad@gmail.com)</button>
+      <button class="mbt-both" id="mBoth">🔄 Les deux canaux</button>
+    </div>
+    <button class="modal-close" onclick="document.getElementById('sendModal').remove()">Plus tard</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  const wa=()=>window.open('https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(message),'_blank');
+  const em=()=>{window.location.href='mailto:'+ADMIN_EMAIL+'?subject='+encodeURIComponent('Demande EPPRIDAD — '+type)+'&body='+encodeURIComponent(message);};
+  const done=()=>{
+    if(onDone)onDone();
+    overlay.innerHTML=`<div class="modal-box" style="text-align:center"><div style="font-size:52px;margin-bottom:14px">🎉</div><div class="modal-title">Demande envoyée !</div><div class="modal-sub">L'administration vous contactera sous 24h pour valider votre accès.<br><br>📞 +227 99 85 15 32 · ✉️ eppridad@gmail.com</div><button class="btn-primary" onclick="document.getElementById('sendModal').remove()" style="margin-top:10px">OK</button></div>`;
+    setTimeout(()=>{if(document.getElementById('sendModal'))overlay.remove();},7000);
+  };
+  document.getElementById('mWa').onclick=()=>{wa();done();};
+  document.getElementById('mEm').onclick=()=>{em();done();};
+  document.getElementById('mBoth').onclick=()=>{wa();setTimeout(em,800);done();};
+}
+
+// ── Mobile admin nav ──────────────────────────────────────────
+function mbnav(btn){document.querySelectorAll('.admin-bnav-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function showAdminNav(show){const nav=document.getElementById('adminBottomNav');if(nav)nav.style.display=show?'flex':'none';}
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',async()=>{
+  // Restaurer session
+  const sess=getSession();
+  if(sess){
+    _sessionUser=sess;
+    if(sess.role==='admin'){await loadAdminDashboard();showPage('admin-page');}
+    else if(sess.role==='etudiant'||sess.role==='student'){await loadStudentDashboard(sess.id);showPage('student-page');}
+  }
+  // Clavier
+  document.getElementById('loginPwd')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+  document.getElementById('loginId')?.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPwd')?.focus();});
+  document.getElementById('regPwd2')?.addEventListener('keydown',e=>{if(e.key==='Enter')doRegister();});
+  document.getElementById('loginId')?.addEventListener('input',e=>{
+    const v=e.target.value.trim().toUpperCase();
+    const hint=document.getElementById('adminHint');
+    if(hint)hint.style.display=v==='ADMIN'?'block':'none';
+  });
+});
+window.addEventListener('beforeprint',e=>{e.preventDefault();alert('⚠️ Impression non autorisée. Pour un bulletin officiel avec cachet, contactez le secrétariat EPPRIDAD.');});

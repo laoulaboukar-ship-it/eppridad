@@ -1,0 +1,6 @@
+
+.accomp-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:32px;transition:all .35s;display:flex;align-items:flex-start;gap:20px}
+.accomp-card:hover{border-color:var(--green);box-shadow:0 16px 48px rgba(26,93,26,.1);transform:translateY(-4px)}
+.accomp-icon{font-size:34px;flex-shrink:0;width:60px;height:60px;background:var(--green-pale);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.accomp-card h3{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--dark);margin-bottom:8px}
+.accomp-card p{font-size:14px;color:var(--text-light);line-height:1.65}

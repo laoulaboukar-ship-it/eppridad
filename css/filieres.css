@@ -1,0 +1,28 @@
+
+.filiere-detail{padding:80px 6%;scroll-margin-top:80px}
+.filiere-detail:nth-child(even){background:var(--off-white)}
+.filiere-detail:nth-child(odd){background:var(--white)}
+.fd-header{display:flex;align-items:center;gap:20px;margin-bottom:36px;padding-bottom:24px;border-bottom:2px solid var(--border)}
+.fd-icon-big{width:72px;height:72px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
+.fd-title{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,42px);font-weight:700;color:var(--dark)}
+.fd-sub{font-size:13px;color:var(--text-light);margin-top:4px;letter-spacing:0.5px}
+.fd-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:52px;align-items:start}
+.fd-content p{font-size:15.5px;color:var(--text-light);line-height:1.8;margin-bottom:18px}
+.fd-content strong{color:var(--green)}
+.fd-block{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px;margin-top:20px}
+.fd-detail:nth-child(even) .fd-block{background:var(--white)}
+.fd-block h4{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.fd-block ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.fd-block ul li{font-size:14px;color:var(--text-light);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.fd-block ul li::before{content:'→';color:var(--gold);font-weight:700;flex-shrink:0}
+.fd-photo{border-radius:12px;overflow:hidden;height:320px}
+.fd-photo img{width:100%;height:100%;object-fit:cover}
+.debouche-tag{display:inline-block;background:var(--green-pale);color:var(--green);font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:20px;margin:4px}
+.entre-tag{display:inline-block;background:var(--gold-pale);color:#8a6d0a;font-size:11.5px;font-weight:600;padding:5px 14px;border-radius:20px;margin:4px}
+.coming-section{background:var(--dark2);padding:80px 6%}
+.coming-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:40px}
+.coming-card{border:1px dashed rgba(212,175,55,.35);border-radius:10px;padding:24px;text-align:center;transition:all .3s}
+.coming-card:hover{border-color:rgba(212,175,55,.6);background:rgba(212,175,55,.05)}
+.coming-card span{font-size:32px;display:block;margin-bottom:10px}
+.coming-card h4{font-size:14px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:6px}
+.coming-card p{font-size:11px;color:rgba(212,175,55,.7);letter-spacing:1px;text-transform:uppercase}

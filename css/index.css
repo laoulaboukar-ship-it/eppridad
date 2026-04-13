@@ -1,0 +1,55 @@
+
+#hero{min-height:100vh;background:var(--dark);position:relative;display:flex;align-items:center;overflow:hidden;padding-top:68px}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 15% 60%,rgba(26,93,26,.45) 0%,transparent 55%),radial-gradient(ellipse at 85% 20%,rgba(212,175,55,.12) 0%,transparent 50%),linear-gradient(160deg,#0a150a 0%,#080e08 60%,#0d0d0d 100%)}
+.hero-pattern{position:absolute;inset:0;opacity:.035;background-image:repeating-linear-gradient(0deg,transparent,transparent 44px,rgba(212,175,55,1) 44px,rgba(212,175,55,1) 45px),repeating-linear-gradient(90deg,transparent,transparent 44px,rgba(212,175,55,1) 44px,rgba(212,175,55,1) 45px)}
+.hero-photo{position:absolute;right:0;top:0;bottom:0;width:48%;overflow:hidden}
+.hero-photo::before{content:'';position:absolute;left:0;top:0;bottom:0;width:200px;z-index:1;background:linear-gradient(to right,var(--dark),transparent)}
+.hero-photo img{width:100%;height:100%;object-fit:cover;opacity:.45;filter:saturate(1.1) contrast(1.05)}
+.hero-content{position:relative;z-index:2;padding:80px 6% 100px;max-width:680px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.35);border-radius:30px;padding:6px 16px;margin-bottom:28px;animation:fadeUp .5s ease both}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 2s infinite}
+.hero-badge span{color:var(--gold);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(56px,9vw,96px);font-weight:700;color:var(--white);line-height:.92;margin-bottom:14px;letter-spacing:-1px;animation:fadeUp .5s .12s ease both}
+.hero-title .gold{color:var(--gold);display:block}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.45);letter-spacing:3px;text-transform:uppercase;margin-bottom:22px;animation:fadeUp .5s .22s ease both}
+.hero-desc{font-size:16.5px;color:rgba(255,255,255,.68);line-height:1.75;max-width:540px;margin-bottom:40px;animation:fadeUp .5s .32s ease both}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .5s .42s ease both}
+.hero-scroll{position:absolute;bottom:36px;left:6%;display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.35);font-size:11.5px;letter-spacing:2px;text-transform:uppercase;z-index:2}
+.scroll-line{width:38px;height:1px;background:linear-gradient(to right,transparent,rgba(255,255,255,.35))}
+.axes-section{background:var(--off-white)}
+.axe-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:36px 30px;transition:all .35s;text-decoration:none;color:inherit;display:block}
+.axe-card:hover{transform:translateY(-6px);box-shadow:0 24px 60px rgba(26,93,26,.1);border-color:var(--green)}
+.axe-num{font-family:'Cormorant Garamond',serif;font-size:64px;font-weight:700;color:rgba(26,93,26,.07);line-height:1;margin-bottom:-10px}
+.axe-icon{font-size:38px;display:block;margin-bottom:16px}
+.axe-card h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--dark);margin-bottom:12px}
+.axe-card p{font-size:14px;color:var(--text-light);line-height:1.7;margin-bottom:20px}
+.axe-link{font-size:12px;font-weight:700;color:var(--green);letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.pres-photos{position:relative;height:500px}
+.pres-main{position:absolute;top:0;right:0;width:80%;height:76%;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.14)}
+.pres-main img{width:100%;height:100%;object-fit:cover}
+.pres-secondary{position:absolute;bottom:0;left:0;width:50%;height:50%;border-radius:12px;overflow:hidden;box-shadow:0 16px 50px rgba(0,0,0,.12);border:4px solid var(--white)}
+.pres-secondary img{width:100%;height:100%;object-fit:cover}
+.pres-accent{position:absolute;bottom:24px;right:0;background:var(--green);padding:18px 22px;border-radius:10px;text-align:center}
+.pres-accent strong{display:block;font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--gold);line-height:1}
+.pres-accent span{font-size:11px;color:rgba(255,255,255,.75);letter-spacing:1px}
+.pres-text p{font-size:15.5px;color:var(--text-light);line-height:1.8;margin-bottom:18px}
+.pres-text strong{color:var(--green)}
+.values-mini{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:28px 0}
+.val-item{display:flex;align-items:flex-start;gap:12px;background:var(--off-white);padding:14px;border-radius:8px;border:1px solid var(--border);transition:all .3s}
+.val-item:hover{border-color:var(--gold);background:var(--gold-pale)}
+.val-icon{width:34px;height:34px;border-radius:6px;background:var(--green-pale);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.val-item h4{font-size:13px;font-weight:700;color:var(--green);margin-bottom:2px}
+.val-item p{font-size:11.5px;color:var(--text-light);line-height:1.5}
+.fc-section{background:var(--green);position:relative;overflow:hidden}
+.fc-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(212,175,55,.12) 0%,transparent 60%)}
+.fc-mini-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:20px;transition:all .3s}
+.fc-mini-card:hover{background:rgba(255,255,255,.18);transform:translateY(-3px)}
+.fc-mini-card span{font-size:24px;display:block;margin-bottom:8px}
+.fc-mini-card p{font-size:13px;color:rgba(255,255,255,.85);font-weight:500}
+.accomp-section{background:var(--dark2)}
+.cta-final{background:var(--green);padding:80px 6%;text-align:center;position:relative;overflow:hidden}
+.cta-final::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(212,175,55,.15) 0%,transparent 60%)}
+.cta-final h2{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,5vw,52px);color:var(--white);margin-bottom:16px;position:relative;z-index:1}
+.cta-final p{font-size:16px;color:rgba(255,255,255,.75);margin-bottom:36px;position:relative;z-index:1;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+@media(max-width:768px){.hero-photo{display:none}.pres-photos{height:280px}.fc-section .grid-2{grid-template-columns:1fr}}

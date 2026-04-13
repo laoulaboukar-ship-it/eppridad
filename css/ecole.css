@@ -1,0 +1,11 @@
+
+.vision-quote{font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.65;border-left:3px solid var(--gold);padding-left:24px;margin:28px 0}
+.mission-item{display:flex;align-items:flex-start;gap:16px;padding:18px 22px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;margin-bottom:12px;transition:all .3s}
+.mission-item:hover{background:rgba(212,175,55,.07);border-color:rgba(212,175,55,.25)}
+.mission-num{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold);font-weight:700;line-height:1;min-width:34px}
+.mission-text{font-size:15px;color:rgba(255,255,255,.78);line-height:1.6}
+.pourquoi-item{display:flex;align-items:flex-start;gap:16px;padding:22px;background:var(--white);border:1px solid var(--border);border-radius:10px;transition:all .3s}
+.pourquoi-item:hover{border-color:var(--green);box-shadow:0 8px 24px rgba(26,93,26,.08)}
+.pourquoi-icon{font-size:28px;flex-shrink:0}
+.pourquoi-item h4{font-size:15px;font-weight:700;color:var(--green);margin-bottom:6px}
+.pourquoi-item p{font-size:13.5px;color:var(--text-light);line-height:1.6}

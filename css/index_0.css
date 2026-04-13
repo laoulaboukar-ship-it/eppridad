@@ -1,0 +1,15 @@
+
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-i{color:rgba(255,255,255,.85);font-size:12.5px;display:flex;align-items:center;gap:10px;}
+.ticker-i::before{content:'●';color:var(--gold);font-size:7px;}
+/* CAROUSEL CARD */
+.ccard{flex:0 0 calc(33.333% - 14px);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;transition:transform .25s,box-shadow .25s;cursor:pointer;text-decoration:none;display:block;color:inherit;}
+.ccard:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.3);border-color:rgba(212,175,55,.3);}
+.ccard-img{width:100%;height:160px;object-fit:cover;display:block;}
+.ccard-img-ph{width:100%;height:160px;display:flex;align-items:center;justify-content:center;font-size:44px;background:rgba(255,255,255,.04);}
+.ccard-body{padding:16px;}
+.ccard-badge{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.ccard-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:700;color:#fff;line-height:1.25;margin-bottom:6px;}
+.ccard-date{font-size:11.5px;color:rgba(255,255,255,.4);}
+@media(max-width:760px){.ccard{flex:0 0 calc(100% - 0px);}}
+@media(min-width:761px) and (max-width:1000px){.ccard{flex:0 0 calc(50% - 10px);}}
