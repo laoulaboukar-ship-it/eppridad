@@ -30,7 +30,9 @@ const sb = {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || `Erreur ${res.status}`);
     }
-    return method === 'GET' ? res.json() : res;
+    if(method === 'GET') return res.json();
+    if(res.headers.get('content-type')?.includes('json')) return res.json().catch(()=>null);
+    return null;
   },
   async select(table, opts={})  { return this.query(table, {method:'GET',...opts}); },
   async insert(table, data)     { return this.query(table, {method:'POST', body:data}); },

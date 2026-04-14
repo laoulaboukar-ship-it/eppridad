@@ -262,27 +262,32 @@ function showLoadingOverlay(show, msg=''){
 //  RENDU DASHBOARD ÉTUDIANT
 // ════════════════════════════════════════════════════════════
 function renderStudentDashboard(e){
-  // Header
   const m=moy(e.nt);
-  document.getElementById('studName').textContent=e.nom;
-  document.getElementById('studMat').textContent=e.id;
-  document.getElementById('studFi').textContent=e.fi+' · '+e.nv;
-  document.getElementById('dashMoy').textContent=m?m.toFixed(2):'—';
-  document.getElementById('dashMention').textContent=mention(m);
-  document.getElementById('dashDecision').textContent=decision(m);
-  // Stats rapides
   const validated=e.nt.filter(n=>n!==null&&n>=10).length;
   const total=e.nt.filter(n=>n!==null).length;
-  const el=document.getElementById('dashStats');
-  if(el)el.innerHTML=[
-    {ic:'📊',v:m?m.toFixed(2):'—',l:'Moyenne'},
-    {ic:'✅',v:validated+'/'+total,l:'Validées'},
-    {ic:'💰',v:e.scol.sit,l:'Scolarité'},
-    {ic:'📅',v:e.absences.filter(a=>!a.justifiee).length,l:'Absences'}
-  ].map(s=>`<div class="dash-stat"><span class="ds-ic">${s.ic}</span><span class="ds-val">${s.v}</span><span class="ds-lbl">${s.l}</span></div>`).join('');
+  const absInjustif=e.absences.filter(a=>!a.justifiee).length;
+
+  // Update topbar avatar with initials
+  const ava=document.getElementById('topbarAva');
+  if(ava){const parts=e.nom.split(' ');ava.textContent=(parts[0]?.[0]||'')+(parts[1]?.[0]||'');}
+
+  // Update all dashboard IDs
+  const ids={'studName':e.nom,'studMat':e.id,'studFi':e.fi+' · '+e.nv,
+    'dashMoy':m?m.toFixed(2):'—','dashMention':mention(m),'dashDecision':decision(m)};
+  Object.entries(ids).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v;});
+
   // Notification badge
   const nb=document.getElementById('notifDot');if(nb)nb.style.display=e.msgs.length?'block':'none';
-  // Charger vue par défaut
+
+  // Hero stats
+  const hs=document.getElementById('heroStats');
+  if(hs)hs.innerHTML=[
+    {v:m?m.toFixed(2):'—',l:'Moyenne',panel:'notes'},
+    {v:validated+'/'+total,l:'Validées',panel:'notes'},
+    {v:e.scol.verse>0?'✅':'⚪',l:'Scolarité',panel:'scolarite'},
+    {v:absInjustif||'0',l:'Absences',panel:'scolarite'}
+  ].map(s=>`<div class="hs" onclick="sPanel('${s.panel}',null)"><div class="hs-val">${s.v}</div><div class="hs-lbl">${s.l}</div></div>`).join('');
+
   sPanel('accueil',null);
 }
 
@@ -290,8 +295,8 @@ function renderStudentDashboard(e){
 //  PANNEAUX ÉTUDIANT
 // ════════════════════════════════════════════════════════════
 function sPanel(name,btn){
-  document.querySelectorAll('.sp').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.s-nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.s-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const p=document.getElementById('sp-'+name);if(p)p.classList.add('active');
   if(btn)btn.classList.add('active');
   const e=_etudiantActuel;if(!e)return;
