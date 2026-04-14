@@ -143,7 +143,7 @@
 <!-- BOUTON FLOTTANT ADMIN -->
 <button class="admin-fab" id="adminFab" title="Publier une actualité" onclick="openAdminPanel()">✏️</button>
 
-<!-- PANNEAU ADMIN -->
+<!-- PANNEAU ADMIN — RECONSTRUIT -->
 <div id="adminPanel">
   <div class="admin-modal">
 
@@ -158,8 +158,8 @@
           <label class="admin-form-label">Mot de passe admin</label>
           <input class="admin-form-input" type="password" id="adminPwdInput" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')checkAdminLogin()">
         </div>
-        <button class="btn-publish" onclick="checkAdminLogin()">Connexion</button>
-        <p id="adminLoginErr" style="color:#dc3545;font-size:12px;margin-top:8px;display:none;">Mot de passe incorrect.</p>
+        <button class="btn-publish" style="width:100%;margin-top:4px;" onclick="checkAdminLogin()">🔓 Connexion</button>
+        <p id="adminLoginErr" style="color:#dc3545;font-size:12px;margin-top:10px;display:none;background:#fff5f5;padding:8px 12px;border-radius:8px;border:1px solid #fcc;">❌ Mot de passe incorrect.</p>
       </div>
     </div>
 
@@ -171,40 +171,47 @@
       </div>
       <div class="admin-modal-body">
 
+        <!-- TYPE — 5 boutons en grille 5 colonnes -->
         <div class="admin-form-group">
           <label class="admin-form-label">Type de publication</label>
           <div class="admin-type-grid">
-            <button class="admin-type-btn selected" data-type="actu" onclick="selectType(this,'actu')">📢 Actualité</button>
-            <button class="admin-type-btn" data-type="major" onclick="selectType(this,'major')">🏆 Major</button>
-            <button class="admin-type-btn" data-type="results" onclick="selectType(this,'results')">📊 Résultats</button>
-            <button class="admin-type-btn" data-type="photo" onclick="selectType(this,'photo')">📸 Photo</button>
-            <button class="admin-type-btn" data-type="video" onclick="selectType(this,'video')">🎬 Vidéo</button>
+            <button class="admin-type-btn selected" data-type="actu" onclick="selectType(this,'actu')">📢<br><span>Actualité</span></button>
+            <button class="admin-type-btn" data-type="major" onclick="selectType(this,'major')">🏆<br><span>Major</span></button>
+            <button class="admin-type-btn" data-type="results" onclick="selectType(this,'results')">📊<br><span>Résultats</span></button>
+            <button class="admin-type-btn" data-type="photo" onclick="selectType(this,'photo')">📸<br><span>Photo</span></button>
+            <button class="admin-type-btn" data-type="video" onclick="selectType(this,'video')">🎬<br><span>Vidéo</span></button>
           </div>
         </div>
 
+        <!-- TITRE -->
         <div class="admin-form-group">
-          <label class="admin-form-label">Titre</label>
+          <label class="admin-form-label">Titre *</label>
           <input class="admin-form-input" type="text" id="postTitle" placeholder="Ex: Résultats du 1er semestre publiés">
         </div>
 
+        <!-- CONTENU -->
         <div class="admin-form-group">
           <label class="admin-form-label">Contenu</label>
-          <textarea class="admin-form-textarea" id="postText" placeholder="Décrivez l'actualité, les résultats, ou ajoutez une légende à la photo…"></textarea>
+          <textarea class="admin-form-textarea" id="postText" rows="3" placeholder="Décrivez l'actualité, les résultats, ou ajoutez une légende…"></textarea>
         </div>
 
-        <div class="admin-form-group" id="videoUrlField" style="display:none">
-            <label class="admin-form-label">🎬 URL Vidéo (YouTube ou lien direct)</label>
-            <input class="admin-form-input" type="url" id="videoUrl" placeholder="https://youtube.com/watch?v=... ou lien MP4">
-          </div>
-          <div class="admin-form-group" id="majorFields" style="display:none;">
+        <!-- CHAMPS VIDÉO -->
+        <div class="admin-form-group" id="videoUrlField" style="display:none;">
+          <label class="admin-form-label">🎬 Lien YouTube ou vidéo</label>
+          <input class="admin-form-input" type="url" id="videoUrl" placeholder="https://youtube.com/watch?v=...">
+        </div>
+
+        <!-- CHAMPS MAJOR -->
+        <div class="admin-form-group" id="majorFields" style="display:none;">
           <label class="admin-form-label">Nom du/de la Major</label>
-          <input class="admin-form-input" type="text" id="majorName" placeholder="Ex: ABDOULAYE MOUNKAILA Djibrilla">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
-            <input class="admin-form-input" type="text" id="majorFiliere" placeholder="Filière (ex: Agriculture)">
+          <input class="admin-form-input" type="text" id="majorName" placeholder="Ex: ABDOULAYE MOUNKAILA Djibrilla" style="margin-bottom:10px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input class="admin-form-input" type="text" id="majorFiliere" placeholder="Filière">
             <input class="admin-form-input" type="text" id="majorMoy" placeholder="Moyenne (ex: 14.8)">
           </div>
         </div>
 
+        <!-- CHAMPS RÉSULTATS -->
         <div class="admin-form-group" id="resultFields" style="display:none;">
           <label class="admin-form-label">Statistiques (optionnel)</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -213,24 +220,35 @@
           </div>
         </div>
 
+        <!-- IMAGE -->
         <div class="admin-form-group">
-          <label class="admin-form-label">Image (optionnel)</label>
-          <input class="admin-form-input" type="file" id="postImage" accept="image/*" onchange="previewImage(this)">
+          <label class="admin-form-label">Photo / Image (optionnel)</label>
+          <div class="admin-upload-zone" onclick="document.getElementById('postImage').click()">
+            <div class="auz-icon">📎</div>
+            <div class="auz-text">Cliquez pour choisir une image</div>
+            <div class="auz-sub">JPG, PNG — max 4 MB</div>
+          </div>
+          <input type="file" id="postImage" accept="image/*" style="display:none;" onchange="previewImage(this)">
           <img id="imgPreview" class="admin-img-preview" alt="Aperçu">
         </div>
 
+        <!-- ÉPINGLER -->
         <div class="admin-form-group">
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
-            <input type="checkbox" id="postPinned" style="width:16px;height:16px;">
-            <span>📌 Épingler cette publication en haut</span>
+          <label class="admin-pin-label">
+            <input type="checkbox" id="postPinned">
+            <span>📌 Épingler en haut du fil d'actualité</span>
           </label>
         </div>
 
+        <!-- BOUTONS ACTION -->
         <div class="admin-actions">
           <button class="btn-cancel" onclick="closeAdminPanel()">Annuler</button>
           <button class="btn-publish" id="publishBtn" onclick="publishPost()">📤 Publier</button>
         </div>
-        <button class="admin-logout-btn" onclick="adminLogout()">Se déconnecter</button>
+        <div style="text-align:center;margin-top:12px;">
+          <button class="admin-logout-btn" onclick="adminLogout()">🚪 Se déconnecter</button>
+        </div>
+
       </div>
     </div>
 
