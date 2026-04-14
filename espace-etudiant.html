@@ -168,8 +168,11 @@
       <button onclick="exitImpersonate()">← Retour Admin</button>
     </div>
     <div class="student-topbar">
+        <button class="topbar-back" id="topbarBack" onclick="goBack()" style="display:none">←</button>
       <div class="topbar-title" id="topbarTitle">Tableau de bord</div>
       <div class="topbar-right">
+          <button id="pwaInstallBtn" onclick="installPWA()" style="display:none;background:var(--accent);color:#1a1a1a;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;">📲 App</button>
+          <button id="pwaInstallBtn" onclick="installPWA()" title="Installer l'app" style="display:none;background:var(--accent);color:#1a1a1a;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📲 Installer</button>
         <div class="topbar-notif" onclick="sPanel('messages',null)" style="cursor:pointer;" title="Notifications">🔔</div>
         <div class="topbar-ava" id="topbarAva" style="cursor:pointer;" onclick="sPanel('accueil',null)">?</div>
         <button onclick="doLogout()" style="font-size:12px;color:var(--text3);padding:6px 12px;border:1px solid var(--border);border-radius:8px;">Déconnexion</button>
@@ -326,6 +329,31 @@
       </div>
 
     </div><!-- end student-body -->
+
+      <!-- ═══ BARRE NAVIGATION MOBILE (bas d'écran) ═══ -->
+      <nav class="mobile-bottom-nav" id="mobileBottomNav">
+        <button class="mbn-item active" id="mbn-accueil" onclick="mbnClick('accueil',this)">
+          <span class="mbn-icon">🏠</span>
+          <span class="mbn-label">Accueil</span>
+        </button>
+        <button class="mbn-item" id="mbn-notes" onclick="mbnClick('notes',this)">
+          <span class="mbn-icon">📊</span>
+          <span class="mbn-label">Notes</span>
+        </button>
+        <button class="mbn-item" id="mbn-conseils" onclick="mbnClick('conseils',this)">
+          <span class="mbn-icon">🤖</span>
+          <span class="mbn-label">IA</span>
+        </button>
+        <button class="mbn-item" id="mbn-library" onclick="mbnClick('library',this)">
+          <span class="mbn-icon">📚</span>
+          <span class="mbn-label">Cours</span>
+        </button>
+        <button class="mbn-item" id="mbn-scolarite" onclick="mbnClick('scolarite',this)">
+          <span class="mbn-icon">💳</span>
+          <span class="mbn-label">Scolarité</span>
+        </button>
+      </nav>
+
   </div><!-- end student-main -->
 </div><!-- end student-page -->
 
@@ -586,5 +614,17 @@
       });
     }
   </script>
+
+<div id="pwa-install-toast" style="display:none;position:fixed;bottom:80px;left:12px;right:12px;z-index:9999;background:linear-gradient(135deg,#0b2f25,#16503f);color:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 8px 32px rgba(0,0,0,.3);">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="images/logo.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0;" alt="">
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;margin-bottom:2px;">Installer l'app EPPRIDAD</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.65);">Accès rapide · Fonctionne hors ligne</div>
+    </div>
+    <button onclick="installPWA()" style="background:#C9A84C;color:#1a1a1a;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">📲 Installer</button>
+    <button onclick="hidePwaToast()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:none;border-radius:8px;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+  </div>
+</div>
 </body>
 </html>
