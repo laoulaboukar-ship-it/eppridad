@@ -175,12 +175,20 @@ async function loadStudentDashboard(matricule){
       order:'created_at.desc'
     }).catch(()=>[]);
 
-    // 6. Messages/Actualités
-    const msgs = await sb.select('actualites',{
-      select:'id,titre,contenu,categorie,created_at',
-      filters:[{col:'publie',val:'eq.true'}],
-      order:'created_at.desc',limit:10
-    }).catch(()=>[]);
+    // 6. Messages/Actualités — publics + privés pour cet étudiant
+    const [msgsPublics, msgsPrives] = await Promise.all([
+      sb.select('actualites',{
+        select:'id,titre,contenu,categorie,created_at,type_post',
+        filters:[{col:'publie',val:'eq.true'},{col:'destinataire_matricule',val:'is.null'},{col:'categorie',val:'neq.conseil_stage'}],
+        order:'created_at.desc',limit:8
+      }).catch(()=>[]),
+      sb.select('actualites',{
+        select:'id,titre,contenu,categorie,created_at,type_post',
+        filters:[{col:'publie',val:'eq.true'},{col:'destinataire_matricule',val:`eq.${matricule}`}],
+        order:'created_at.desc',limit:5
+      }).catch(()=>[])
+    ]);
+    const msgs = [...(msgsPrives||[]), ...(msgsPublics||[])];
 
     // Construire objet étudiant complet
     _etudiantActuel = {
@@ -1046,6 +1054,9 @@ window.sPanel = function(name, btn) {
   updateMobileNav(name);
   updateTopbarBack();
   updateTopbarTitle(name);
+  // Scroll to top smoothly on panel change
+  const body = document.querySelector('.student-main');
+  if (body) body.scrollTo({top: 0, behavior: 'smooth'});
 };
 
 function mbnClick(name, btn) {
@@ -1114,11 +1125,13 @@ let _pwaPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _pwaPrompt = e;
-  // Afficher bouton install dans topbar
   const btn = document.getElementById('pwaInstallBtn');
   if (btn) btn.style.display = 'block';
-  // Afficher toast après 3 secondes si l'app n'est pas déjà installée
-  setTimeout(() => showPwaToast(), 3000);
+  // Show the prominent banner in accueil
+  const banner = document.getElementById('pwaPromoBanner');
+  if (banner) banner.style.display = 'flex';
+  // Also show toast after 5s
+  setTimeout(() => showPwaToast(), 5000);
 });
 
 window.addEventListener('appinstalled', () => {
