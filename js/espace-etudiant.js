@@ -1022,3 +1022,163 @@ document.addEventListener('DOMContentLoaded',async()=>{
   });
 });
 window.addEventListener('beforeprint',e=>{e.preventDefault();alert('⚠️ Impression non autorisée. Pour un bulletin officiel avec cachet, contactez le secrétariat EPPRIDAD.');});
+
+// ════════════════════════════════════════════════════════════
+//  NAVIGATION MOBILE — Barre bas + Back button + Historique
+// ════════════════════════════════════════════════════════════
+
+let _panelHistory = []; // Historique des panels visités
+const _panelTitles = {
+  accueil:'Mon Espace', notes:'Mes Notes', bulletin:'Bulletin',
+  edt:'Emploi du temps', conseils:'Conseils IA', progression:'Progression',
+  library:'Bibliothèque', scolarite:'Scolarité', messages:'Messages', compte:'Mon Compte'
+};
+
+// Override sPanel pour ajouter l'historique
+const _originalSPanel = sPanel;
+window.sPanel = function(name, btn) {
+  const current = _panelHistory[_panelHistory.length - 1];
+  if (current !== name) {
+    _panelHistory.push(name);
+    if (_panelHistory.length > 15) _panelHistory.shift();
+  }
+  _originalSPanel(name, btn);
+  updateMobileNav(name);
+  updateTopbarBack();
+  updateTopbarTitle(name);
+};
+
+function mbnClick(name, btn) {
+  // Reset history when clicking bottom nav (fresh start)
+  _panelHistory = [name];
+  _originalSPanel(name, null);
+  // Update bottom nav active state
+  document.querySelectorAll('.mbn-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  updateTopbarBack();
+  updateTopbarTitle(name);
+}
+
+function goBack() {
+  if (_panelHistory.length <= 1) {
+    // Si on est sur le premier panel, proposer de revenir à l'accueil
+    _panelHistory = ['accueil'];
+    _originalSPanel('accueil', null);
+    updateMobileNav('accueil');
+    updateTopbarBack();
+    updateTopbarTitle('accueil');
+    return;
+  }
+  _panelHistory.pop(); // Retirer le panel actuel
+  const prev = _panelHistory[_panelHistory.length - 1] || 'accueil';
+  _originalSPanel(prev, null);
+  updateMobileNav(prev);
+  updateTopbarBack();
+  updateTopbarTitle(prev);
+}
+
+function updateMobileNav(name) {
+  // Mapping panel → bouton bottom nav
+  const map = {
+    accueil:'accueil', notes:'notes', bulletin:'notes',
+    conseils:'conseils', progression:'conseils',
+    library:'library', cours:'library',
+    scolarite:'scolarite', messages:'scolarite',
+    edt:'accueil', compte:'accueil'
+  };
+  const active = map[name] || 'accueil';
+  document.querySelectorAll('.mbn-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('mbn-' + active);
+  if (btn) btn.classList.add('active');
+}
+
+function updateTopbarBack() {
+  const btn = document.getElementById('topbarBack');
+  if (!btn) return;
+  // Afficher le back uniquement si on n'est pas sur accueil
+  const current = _panelHistory[_panelHistory.length - 1];
+  btn.style.display = (current && current !== 'accueil') ? 'flex' : 'none';
+}
+
+function updateTopbarTitle(name) {
+  const el = document.getElementById('studentTopbarTitle') || document.querySelector('.topbar-title');
+  if (el) el.textContent = _panelTitles[name] || 'EPPRIDAD';
+}
+
+// ════════════════════════════════════════════════════════════
+//  PWA — Installation sur l'écran d'accueil
+// ════════════════════════════════════════════════════════════
+
+let _pwaPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _pwaPrompt = e;
+  // Afficher bouton install dans topbar
+  const btn = document.getElementById('pwaInstallBtn');
+  if (btn) btn.style.display = 'block';
+  // Afficher toast après 3 secondes si l'app n'est pas déjà installée
+  setTimeout(() => showPwaToast(), 3000);
+});
+
+window.addEventListener('appinstalled', () => {
+  hidePwaToast();
+  const btn = document.getElementById('pwaInstallBtn');
+  if (btn) btn.style.display = 'none';
+  _pwaPrompt = null;
+  showSuccess('✅ Application EPPRIDAD installée !');
+});
+
+function installPWA() {
+  if (!_pwaPrompt) return;
+  _pwaPrompt.prompt();
+  _pwaPrompt.userChoice.then(result => {
+    if (result.outcome === 'accepted') {
+      hidePwaToast();
+    }
+    _pwaPrompt = null;
+  });
+}
+
+function showPwaToast() {
+  // Ne montrer qu'une fois par session
+  if (sessionStorage.getItem('pwa_toast_shown')) return;
+  sessionStorage.setItem('pwa_toast_shown', '1');
+  let toast = document.getElementById('pwa-install-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'pwa-install-toast';
+    toast.innerHTML = `
+      <div class="pwa-toast-inner">
+        <img src="images/logo.png" class="pwa-toast-icon" alt="EPPRIDAD">
+        <div class="pwa-toast-text">
+          <div class="pwa-toast-title">Installer l'app EPPRIDAD</div>
+          <div class="pwa-toast-sub">Accès rapide · Fonctionne hors ligne</div>
+        </div>
+        <button class="pwa-toast-btn" onclick="installPWA()">📲 Installer</button>
+        <button class="pwa-toast-close" onclick="hidePwaToast()">✕</button>
+      </div>`;
+    document.body.appendChild(toast);
+  }
+  toast.style.display = 'block';
+  // Auto-cacher après 8 secondes
+  setTimeout(hidePwaToast, 8000);
+}
+
+function hidePwaToast() {
+  const t = document.getElementById('pwa-install-toast');
+  if (t) t.style.display = 'none';
+}
+
+// Intercepter le bouton back du navigateur (Android)
+window.addEventListener('popstate', () => {
+  const sess = getSession();
+  if (sess && sess.role !== 'admin') {
+    goBack();
+  }
+});
+
+// Enregistrer un état dans l'historique navigateur au chargement
+document.addEventListener('DOMContentLoaded', () => {
+  history.pushState({panel:'accueil'}, '', '');
+});

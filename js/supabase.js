@@ -1,6 +1,5 @@
 // ============================================================
-//  EPPRIDAD — Supabase Client v2
-//  Toutes les données stockées dans Supabase (permanent)
+//  EPPRIDAD — Supabase Client v3 — Connexion permanente
 // ============================================================
 
 const SUPABASE_URL = 'https://iethhoddmztmjdhhmgsb.supabase.co';
@@ -16,25 +15,35 @@ const sb = {
     if (limit)  params.set('limit', String(limit));
     filters.forEach(f => params.set(f.col, f.val));
     if ([...params].length) url += '?' + params.toString();
+
+    const headers = {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    };
+    // Pour les SELECT retourner le JSON, pour les mutations on veut aussi le retour
+    if (method === 'POST') headers['Prefer'] = 'return=minimal';
+    if (method === 'PATCH') headers['Prefer'] = 'return=minimal';
+    if (method === 'DELETE') headers['Prefer'] = 'return=minimal';
+
     const res = await fetch(url, {
       method,
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal',
-      },
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
+
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `Erreur ${res.status}`);
+      let errMsg = `Erreur ${res.status}`;
+      try { const e = await res.json(); errMsg = e.message || e.error || errMsg; } catch(x) {}
+      throw new Error(errMsg);
     }
-    if(method === 'GET') return res.json();
-    if(res.headers.get('content-type')?.includes('json')) return res.json().catch(()=>null);
+
+    if (method === 'GET') return res.json();
+    // Pour POST/PATCH/DELETE avec return=minimal → 204 No Content, pas de JSON
     return null;
   },
-  async select(table, opts={})  { return this.query(table, {method:'GET',...opts}); },
+
+  async select(table, opts={})  { return this.query(table, {method:'GET', ...opts}); },
   async insert(table, data)     { return this.query(table, {method:'POST', body:data}); },
   async update(table, data, f)  { return this.query(table, {method:'PATCH', body:data, filters:[f]}); },
   async del(table, f)           { return this.query(table, {method:'DELETE', filters:[f]}); },
@@ -46,34 +55,45 @@ const sb = {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=representation',
+        'Prefer': 'resolution=merge-duplicates,return=minimal',
       },
       body: JSON.stringify(data),
     });
-    if (!res.ok) { const err = await res.json().catch(()=>({})); throw new Error(err.message||`Upsert ${res.status}`); }
-    return res.json();
+    if (!res.ok) {
+      let errMsg = `Upsert ${res.status}`;
+      try { const e = await res.json(); errMsg = e.message || errMsg; } catch(x) {}
+      throw new Error(errMsg);
+    }
+    return null;
   },
 };
 
 async function sbUpload(bucket, path, file) {
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
     method: 'POST',
-    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': file.type },
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': file.type,
+    },
     body: file,
   });
-  if (!res.ok) throw new Error('Upload échoué');
+  if (!res.ok) throw new Error('Upload échoué — vérifiez que le bucket "media" existe dans Supabase Storage');
   return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
 }
 
-function showSuccess(msg) { _toast(msg,'#1a5d1a','✅'); }
+// Toasts
+function showSuccess(msg) { _toast(msg,'#1a6644','✅'); }
 function showError(msg)   { _toast(msg,'#7a1a1a','❌'); }
 function _toast(msg,bg,icon) {
   const t=document.createElement('div');
-  t.style.cssText=`position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${bg};color:white;padding:14px 22px;border-radius:12px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;z-index:999999;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center`;
-  t.innerHTML=`${icon} ${msg}`;document.body.appendChild(t);setTimeout(()=>t.remove(),4000);
+  t.style.cssText=`position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${bg};color:white;padding:14px 22px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;z-index:999999;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center`;
+  t.textContent=`${icon} ${msg}`;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),4000);
 }
 
-// ── Auth helpers ─────────────────────────────────────────────
+// Auth helpers
 function simpleHash(s){let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0}return h.toString(36);}
 const ADMIN_DEFAULT_HASH=simpleHash('eppridad2025');
 function getAdminHash(){return localStorage.getItem('eppr_admin_hash_v2')||ADMIN_DEFAULT_HASH;}
