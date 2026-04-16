@@ -61,7 +61,7 @@ async function loadPostsFromSupabase() {
   try {
     const rows = await sb.select('actualites', {
       select: 'id,titre,contenu,categorie,image_url,video_url,epingle,date_event,created_at,type_post,major_nom,major_filiere,major_moy,res_admis,res_taux',
-      filters: [{col:'publie',val:'eq.true'}],
+      filters: [{col:'publie',val:'eq.true'},{col:'categorie',val:'neq.conseil_stage'}],
       order: 'created_at.desc'
     });
     _posts = (rows||[]).map(r => ({
