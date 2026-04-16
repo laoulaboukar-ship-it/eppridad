@@ -25,6 +25,8 @@
     <li><a href="ecole.html">L'École <span class="arrow">▾</span></a><div class="dropdown"><a href="ecole.html#histoire">Notre Histoire</a><a href="ecole.html#vision">Vision &amp; Missions</a><a href="ecole.html#valeurs">Nos Valeurs</a></div></li>
     <li><a href="filieres.html">Filières <span class="arrow">▾</span></a><div class="dropdown"><a href="filieres.html#environnement">Environnement</a><a href="filieres.html#elevage">Élevage</a><a href="filieres.html#genie">Génie Rural</a><a href="filieres.html#agroalimentaire">Agroalimentaire</a><a href="filieres.html#agriculture">Agriculture</a></div></li>
     <li><a href="services.html">Services <span class="arrow">▾</span></a><div class="dropdown"><a href="#academique">Formation Académique</a><a href="#courtes">Formations Courtes</a><a href="#accompagnement">Accompagnement</a></div></li>
+    <li><a href="formations-en-ligne.html" style="color:var(--gold-light);font-weight:600;">🎓 Cours en ligne</a></li>
+    <li><a href="marketplace.html" style="color:var(--gold-light);font-weight:600;">🛒 Boutique</a></li>
     <li><a href="admission.html">Admission</a></li><li><a href="infos.html" style="color:var(--gold);font-weight:600;">🔔 Infos</a></li>
     <li><a href="galerie.html">Galerie</a></li><li><a href="contact.html">Contact</a></li>
     <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li>
@@ -231,7 +233,11 @@
     <div class="form-group" style="margin-bottom:16px"><label>Description du projet *</label>
       <textarea name="projet" placeholder="Décrivez votre projet agricole : type de production envisagée, situation actuelle, besoins spécifiques, budget approximatif..." style="min-height:100px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:10px 14px;color:white;font-family:'Outfit',sans-serif;font-size:14px;width:100%;resize:vertical;outline:none" required></textarea>
     </div>
-    <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center">📤 Envoyer ma demande de devis</button>
+    <div style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:rgba(212,175,55,.8);display:flex;align-items:flex-start;gap:8px">
+      <span style="font-size:16px;flex-shrink:0">🤖</span>
+      <span>Notre IA analysera votre projet et vous générera instantanément un <strong>devis technique gratuit</strong> avec estimations budgétaires en FCFA, étapes de réalisation et recommandations adaptées au Niger. Un expert EPPRIDAD pourra approfondir ce devis sur option payante.</span>
+    </div>
+    <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center">🤖 Générer mon devis IA gratuit</button>
   </form>
 </div>
 </section>
@@ -240,7 +246,9 @@
 <footer>
   <div class="footer-grid">
     <div class="footer-brand"><div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><div style="width:38px;height:38px;background:linear-gradient(135deg,#1a5d1a,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #d4af37;padding:2px"><img src="images/logo.png" alt="EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0"></div><div><div class="footer-brand-name">EPPRIDAD</div></div></div><p>École Polytechnique Privée pour le Développement Agricole Durable.</p></div>
-    <div class="footer-col"><h4>Navigation</h4><ul><li><a href="index.html">Accueil</a></li><li><a href="ecole.html">L'École</a></li><li><a href="filieres.html">Filières</a></li><li><a href="services.html">Services</a></li><li><a href="admission.html">Admission</a></li><li><a href="infos.html" style="color:var(--gold);font-weight:600;">🔔 Infos</a></li>
+    <div class="footer-col"><h4>Navigation</h4><ul><li><a href="index.html">Accueil</a></li><li><a href="ecole.html">L'École</a></li><li><a href="filieres.html">Filières</a></li><li><a href="services.html">Services</a></li><li><a href="formations-en-ligne.html" style="color:var(--gold-light);font-weight:600;">🎓 Cours en ligne</a></li>
+    <li><a href="marketplace.html" style="color:var(--gold-light);font-weight:600;">🛒 Boutique</a></li>
+    <li><a href="admission.html">Admission</a></li><li><a href="infos.html" style="color:var(--gold);font-weight:600;">🔔 Infos</a></li>
     <li><a href="galerie.html">Galerie</a></li><li><a href="contact.html">Contact</a></li>
     <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li></ul></div>
     <div class="footer-col"><h4>Nos Services</h4><ul><li><a href="#academique">Formation Académique</a></li><li><a href="#courtes">Formations Courtes</a></li><li><a href="#accompagnement">Accompagnement Technique</a></li></ul></div>
@@ -294,4 +302,6 @@
       });
     }
   </script>
+<script src="js/devis-ia.js"></script>
+<script src="js/chatbot.js"></script>
 </body></html>

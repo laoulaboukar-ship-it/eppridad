@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Marketplace — Produits EPPRIDAD | Niamey, Niger</title>
+<meta name="description" content="Boutique en ligne EPPRIDAD — Produits agricoles made in Niger, fabriqués et supervisés par nos élèves et experts. Fromages, huiles, plants, semences et plus.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a5d1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+/* ── MARKETPLACE STYLES ── */
+.market-hero {
+  background: linear-gradient(160deg, var(--dark) 0%, #0f2a0f 60%, #1a3d0a 100%);
+  padding: 110px 5% 60px;
+  position: relative; overflow: hidden;
+}
+.market-hero::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(212,175,55,0.08) 0%, transparent 60%);
+}
+.market-hero-inner { max-width:1140px; margin:0 auto; position:relative; }
+.market-hero-tag { display:inline-block; background:rgba(212,175,55,.12); border:1px solid rgba(212,175,55,.3); color:var(--gold); font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:5px 14px; border-radius:20px; margin-bottom:16px; font-family:'Outfit',sans-serif; }
+.market-hero h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(36px,6vw,64px); color:#fff; line-height:1.05; margin-bottom:14px; }
+.market-hero h1 .gold { color:var(--gold); }
+.market-hero p { color:rgba(255,255,255,.65); font-size:16px; line-height:1.7; max-width:580px; margin-bottom:28px; font-family:'Outfit',sans-serif; }
+.market-badges { display:flex; gap:10px; flex-wrap:wrap; }
+.market-badge { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:7px 13px; color:rgba(255,255,255,.8); font-size:12.5px; font-family:'Outfit',sans-serif; }
+
+/* PANIER FLOTTANT */
+.cart-fab {
+  position:fixed; top:80px; right:20px; z-index:900;
+  background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  color:var(--dark); border:none; border-radius:12px;
+  padding:10px 16px; cursor:pointer; font-family:'Outfit',sans-serif;
+  font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;
+  box-shadow:0 4px 18px rgba(0,0,0,.3); transition:transform .2s;
+}
+.cart-fab:hover { transform:scale(1.05); }
+.cart-count { background:var(--dark); color:var(--gold); border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+
+/* FILTRES */
+.market-filters { background:var(--off-white); border-bottom:1px solid var(--border); padding:16px 5%; position:sticky; top:68px; z-index:500; }
+.market-filters-inner { max-width:1140px; margin:0 auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.filter-btn { background:#fff; border:1px solid var(--border); color:var(--text-light); border-radius:20px; padding:6px 16px; font-size:13px; cursor:pointer; font-family:'Outfit',sans-serif; transition:all .2s; white-space:nowrap; }
+.filter-btn.active, .filter-btn:hover { background:var(--green); color:#fff; border-color:var(--green); }
+.filter-search { flex:1; min-width:180px; max-width:300px; background:#fff; border:1px solid var(--border); border-radius:20px; padding:7px 16px; font-size:13px; font-family:'Outfit',sans-serif; outline:none; color:var(--text); }
+.filter-search:focus { border-color:var(--green); }
+
+/* GRILLE PRODUITS */
+.market-grid-section { max-width:1140px; margin:0 auto; padding:40px 5%; }
+.market-section-title { font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--dark); margin-bottom:6px; }
+.market-section-title .gold { color:var(--gold); }
+.market-section-sub { color:var(--text-light); font-size:14px; margin-bottom:28px; font-family:'Outfit',sans-serif; }
+.products-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:20px; }
+
+/* CARTE PRODUIT */
+.product-card {
+  background:#fff; border:1px solid var(--border); border-radius:14px;
+  overflow:hidden; transition:transform .2s, box-shadow .2s;
+  display:flex; flex-direction:column;
+}
+.product-card:hover { transform:translateY(-4px); box-shadow:0 12px 36px rgba(26,93,26,0.12); }
+.product-img {
+  height:200px; background:linear-gradient(135deg,var(--green-pale),#e0f0e0);
+  position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
+  font-size:72px;
+}
+.product-img img { width:100%; height:100%; object-fit:cover; }
+.product-badge {
+  position:absolute; top:10px; left:10px;
+  background:var(--green); color:#fff; font-size:10.5px; font-weight:700;
+  padding:3px 10px; border-radius:20px; font-family:'Outfit',sans-serif;
+  text-transform:uppercase; letter-spacing:.5px;
+}
+.product-badge.coup { background:var(--gold); color:var(--dark); }
+.product-badge.nouveau { background:#e53935; color:#fff; }
+.product-body { padding:16px; flex:1; display:flex; flex-direction:column; }
+.product-cat { font-size:11px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; font-family:'Outfit',sans-serif; }
+.product-name { font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--dark); font-weight:600; margin-bottom:6px; line-height:1.2; }
+.product-desc { font-size:12.5px; color:var(--text-light); line-height:1.6; margin-bottom:12px; flex:1; font-family:'Outfit',sans-serif; }
+.product-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.product-tag { background:var(--green-pale); color:var(--green); font-size:11px; padding:2px 8px; border-radius:4px; font-family:'Outfit',sans-serif; }
+.product-footer { display:flex; align-items:center; justify-content:space-between; padding-top:12px; border-top:1px solid var(--border); }
+.product-price { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:700; color:var(--green); }
+.product-price span { font-size:12px; color:var(--text-light); font-family:'Outfit',sans-serif; font-weight:400; }
+.btn-add-cart {
+  background:var(--green); color:#fff; border:none; border-radius:8px;
+  padding:9px 16px; font-size:12.5px; font-weight:600; cursor:pointer;
+  font-family:'Outfit',sans-serif; transition:background .2s; display:flex; align-items:center; gap:6px;
+}
+.btn-add-cart:hover { background:var(--green-mid); }
+
+/* SECTION PAIEMENT MODAL */
+.modal-overlay {
+  display:none; position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,0,.65); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center; padding:16px;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:#fff; border-radius:16px; width:100%; max-width:560px;
+  max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,.4);
+}
+.modal-header {
+  background:linear-gradient(135deg,var(--dark),#0f2a0f);
+  padding:20px 24px; display:flex; align-items:center; justify-content:space-between;
+  border-radius:16px 16px 0 0;
+}
+.modal-header h3 { font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--gold); }
+.modal-close { background:none; border:none; color:rgba(255,255,255,.6); font-size:20px; cursor:pointer; padding:4px; }
+.modal-body { padding:24px; }
+
+/* RÉCAPITULATIF PANIER */
+.cart-item { display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+.cart-item-icon { font-size:28px; width:44px; text-align:center; }
+.cart-item-info { flex:1; }
+.cart-item-name { font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; color:var(--dark); }
+.cart-item-price { font-size:13px; color:var(--text-light); }
+.cart-item-qty { display:flex; align-items:center; gap:8px; }
+.qty-btn { background:var(--green-pale); border:none; color:var(--green); width:26px; height:26px; border-radius:6px; cursor:pointer; font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.cart-total { font-family:'Cormorant Garamond',serif; font-size:24px; color:var(--green); text-align:right; margin:16px 0; }
+
+/* MÉTHODES DE PAIEMENT */
+.payment-title { font-family:'Outfit',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-light); margin:20px 0 12px; }
+.payment-methods { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+.pay-method {
+  border:2px solid var(--border); border-radius:10px; padding:14px 12px;
+  cursor:pointer; transition:all .2s; text-align:center; background:#fff;
+}
+.pay-method:hover, .pay-method.selected { border-color:var(--green); background:var(--green-pale); }
+.pay-method-icon { font-size:24px; margin-bottom:6px; }
+.pay-method-name { font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; color:var(--dark); }
+.pay-method-sub { font-size:11px; color:var(--text-light); margin-top:2px; }
+.pay-single { grid-column:1/-1; }
+
+/* INSTRUCTIONS PAIEMENT */
+.pay-instructions {
+  display:none; background:var(--green-pale); border:1px solid rgba(26,93,26,.2);
+  border-radius:10px; padding:16px; margin-bottom:16px;
+}
+.pay-instructions.show { display:block; }
+.pay-instructions h4 { font-family:'Outfit',sans-serif; font-size:14px; font-weight:700; color:var(--green); margin-bottom:10px; }
+.pay-step { display:flex; gap:10px; margin-bottom:8px; align-items:flex-start; }
+.pay-step-num { width:22px; height:22px; background:var(--green); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; font-family:'Outfit',sans-serif; }
+.pay-step-text { font-size:13px; color:var(--text); line-height:1.5; font-family:'Outfit',sans-serif; }
+.pay-step-text strong { color:var(--green); }
+
+/* FORMULAIRE COMMANDE */
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+.form-row.single { grid-template-columns:1fr; }
+.form-group label { display:block; font-size:12px; font-weight:600; color:var(--text-light); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; font-family:'Outfit',sans-serif; }
+.form-group input, .form-group textarea, .form-group select {
+  width:100%; background:#f9f7f2; border:1px solid var(--border); border-radius:8px;
+  padding:10px 13px; font-size:13.5px; color:var(--text); font-family:'Outfit',sans-serif;
+  outline:none; transition:border-color .2s;
+}
+.form-group input:focus, .form-group textarea:focus { border-color:var(--green); }
+.upload-zone {
+  border:2px dashed var(--border); border-radius:10px; padding:20px; text-align:center;
+  cursor:pointer; transition:all .2s; background:#f9f7f2; margin-bottom:12px;
+}
+.upload-zone:hover { border-color:var(--green); background:var(--green-pale); }
+.upload-zone.has-file { border-color:var(--green); background:var(--green-pale); }
+.upload-zone-text { font-size:13px; color:var(--text-light); font-family:'Outfit',sans-serif; }
+.upload-zone-text strong { color:var(--green); }
+
+.btn-confirm {
+  width:100%; background:linear-gradient(135deg,var(--green),var(--green-mid));
+  color:#fff; border:none; border-radius:10px; padding:14px;
+  font-size:15px; font-weight:700; cursor:pointer; font-family:'Outfit',sans-serif;
+  transition:opacity .2s; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-confirm:hover { opacity:.92; }
+.btn-confirm:disabled { opacity:.5; cursor:not-allowed; }
+
+/* CONFIRMATION */
+.confirm-box { text-align:center; padding:24px 0; }
+.confirm-icon { font-size:56px; margin-bottom:12px; }
+.confirm-title { font-family:'Cormorant Garamond',serif; font-size:28px; color:var(--green); margin-bottom:10px; }
+.confirm-text { font-size:14px; color:var(--text-light); line-height:1.7; font-family:'Outfit',sans-serif; max-width:420px; margin:0 auto; }
+
+/* SECTION COUP DE COEUR */
+.coup-section { background:linear-gradient(160deg,var(--dark),#0f2a0f); padding:50px 5%; }
+.coup-inner { max-width:1140px; margin:0 auto; }
+
+/* SECTION COMMANDER PAR TÉLÉPHONE */
+.phone-order { background:var(--green-pale); border:1px solid rgba(26,93,26,.15); border-radius:14px; padding:28px; margin-top:40px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+.phone-order-text h3 { font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--dark); margin-bottom:6px; }
+.phone-order-text p { font-size:13.5px; color:var(--text-light); line-height:1.6; font-family:'Outfit',sans-serif; }
+.phone-order-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+
+@media(max-width:600px){
+  .payment-methods { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .products-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon"><img src="images/logo.png" alt="Logo EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0;padding:2px"></div>
+    <div><div class="nav-brand-name">EPPRIDAD</div><div class="nav-brand-sub">Est. 2024 · Niamey, Niger</div></div>
+  </a>
+  <ul class="nav-menu">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="ecole.html">L'École <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="ecole.html#histoire">Notre Histoire</a><a href="ecole.html#vision">Vision &amp; Missions</a><a href="ecole.html#valeurs">Nos Valeurs</a></div>
+    </li>
+    <li><a href="filieres.html">Filières <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="filieres.html#environnement">Environnement</a><a href="filieres.html#elevage">Élevage</a><a href="filieres.html#genie">Génie Rural</a><a href="filieres.html#agroalimentaire">Agroalimentaire</a><a href="filieres.html#agriculture">Agriculture</a></div>
+    </li>
+    <li><a href="services.html">Services <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="services.html#academique">Formation Académique</a><a href="services.html#courtes">Formations Courtes</a><a href="services.html#accompagnement">Accompagnement</a></div>
+    </li>
+    <li><a href="formations-en-ligne.html" style="color:var(--gold-light);font-weight:600;">🎓 Cours en ligne</a></li>
+    <li><a href="marketplace.html" class="active" style="color:var(--gold);font-weight:700;">🛒 Boutique</a></li>
+    <li><a href="admission.html">Admission</a></li>
+    <li><a href="infos.html" style="color:var(--gold);font-weight:600;">🔔 Infos</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="lang-btn">EN</button>
+    <a href="admission.html" class="nav-cta">S'inscrire</a>
+    <div class="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- PANIER FLOTTANT -->
+<button class="cart-fab" id="cart-fab" onclick="openCart()" style="display:none">
+  🛒 Panier <span class="cart-count" id="cart-count">0</span>
+</button>
+
+<!-- HERO -->
+<div class="market-hero">
+  <div class="market-hero-inner">
+    <div class="market-hero-tag">Boutique officielle</div>
+    <h1>Produits <span class="gold">Made in</span><br>EPPRIDAD</h1>
+    <p>Des produits agricoles authentiques, fabriqués par nos élèves et supervisés par nos experts. Du champ à votre table — qualité nigérienne, savoir-faire certifié.</p>
+    <div class="market-badges">
+      <div class="market-badge">🌿 100% naturel</div>
+      <div class="market-badge">🎓 Produit par nos élèves</div>
+      <div class="market-badge">✅ Supervisé par nos experts</div>
+      <div class="market-badge">🇳🇪 Made in Niger</div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTRES -->
+<div class="market-filters">
+  <div class="market-filters-inner">
+    <input type="text" class="filter-search" id="search-input" placeholder="🔍 Rechercher un produit..." oninput="filterProducts()">
+    <button class="filter-btn active" onclick="setFilter('tous',this)">Tous</button>
+    <button class="filter-btn" onclick="setFilter('laitier',this)">🧀 Laitier</button>
+    <button class="filter-btn" onclick="setFilter('huiles',this)">🫒 Huiles</button>
+    <button class="filter-btn" onclick="setFilter('cereales',this)">🌾 Céréales</button>
+    <button class="filter-btn" onclick="setFilter('plants',this)">🌱 Plants</button>
+    <button class="filter-btn" onclick="setFilter('transformation',this)">🍯 Transformation</button>
+    <button class="filter-btn" onclick="setFilter('coup',this)">⭐ Coups de cœur</button>
+  </div>
+</div>
+
+<!-- COUPS DE COEUR -->
+<div class="coup-section" id="section-coup">
+  <div class="coup-inner">
+    <div class="section-tag" style="color:rgba(212,175,55,.8);border-left-color:rgba(212,175,55,.4)">Sélection spéciale</div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#fff;margin-bottom:6px">Coups de Cœur <span style="color:var(--gold)">EPPRIDAD</span></h2>
+    <p style="color:rgba(255,255,255,.55);font-size:14px;margin-bottom:28px;font-family:'Outfit',sans-serif">Nos produits les plus appréciés, recommandés par notre équipe d'experts.</p>
+    <div class="products-grid" id="coup-grid"></div>
+  </div>
+</div>
+
+<!-- GRILLE PRINCIPALE -->
+<div class="market-grid-section">
+  <h2 class="market-section-title">Tous nos <span class="gold">Produits</span></h2>
+  <p class="market-section-sub">Chaque produit est issu de notre ferme-école (8 ha) ou de productions d'élèves supervisées par nos techniciens.</p>
+  <div class="products-grid" id="products-grid"></div>
+  <div id="no-results" style="display:none;text-align:center;padding:40px;color:var(--text-light);font-family:'Outfit',sans-serif">
+    Aucun produit trouvé pour cette recherche.
+  </div>
+
+  <!-- COMMANDER PAR TÉLÉPHONE -->
+  <div class="phone-order">
+    <div style="font-size:40px">📞</div>
+    <div class="phone-order-text" style="flex:1">
+      <h3>Vous préférez commander par téléphone ?</h3>
+      <p>Appelez-nous ou envoyez un message WhatsApp avec votre liste de produits. Nous vous confirmons la disponibilité et organisons la livraison ou le retrait sur place à Niamey, Rive Droite.</p>
+      <div class="phone-order-actions">
+        <a href="tel:+22799851532" class="btn btn-gold" style="font-size:13px">📞 +227 99 85 15 32</a>
+        <a href="https://wa.me/22799851532" target="_blank" class="btn btn-outline" style="font-size:13px;color:var(--dark);border-color:var(--green)">💬 WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PANIER & PAIEMENT -->
+<div class="modal-overlay" id="cart-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title">🛒 Votre Panier</h3>
+      <button class="modal-close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Contenu dynamique -->
+    </div>
+  </div>
+</div>
+
+<div class="gold-divider"></div>
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#1a5d1a,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #d4af37;padding:2px">
+          <img src="images/logo.png" alt="EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0">
+        </div>
+        <div><div class="footer-brand-name">EPPRIDAD</div></div>
+      </div>
+      <p>École Polytechnique Privée pour le Développement Agricole Durable.</p>
+    </div>
+    <div class="footer-col"><h4>Navigation</h4><ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="filieres.html">Filières</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="marketplace.html" style="color:var(--gold)">🛒 Boutique</a></li>
+      <li><a href="formations-en-ligne.html" style="color:var(--gold)">🎓 Cours en ligne</a></li>
+      <li><a href="espace-etudiant.html" style="color:var(--gold)">Espace Étudiant</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Boutique</h4><ul>
+      <li><a href="marketplace.html#section-coup">Coups de cœur</a></li>
+      <li><a href="marketplace.html">Produits laitiers</a></li>
+      <li><a href="marketplace.html">Huiles &amp; graines</a></li>
+      <li><a href="marketplace.html">Plants &amp; semences</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Contact</h4>
+      <div class="footer-contact-item"><span class="icon">📍</span><span>Niamey, Rive Droite — Niger</span></div>
+      <div class="footer-contact-item"><span class="icon">📞</span><a href="tel:+22799851532">+227 99 85 15 32</a></div>
+      <div class="footer-contact-item"><span class="icon">✉️</span><a href="mailto:eppridad@gmail.com">eppridad@gmail.com</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 <span class="gold">EPPRIDAD</span> — Tous droits réservés. Niger.</p>
+    <p>Conçu pour former les <span class="gold">bâtisseurs de demain</span></p>
+  </div>
+</footer>
+
+<script src="js/supabase.js"></script>
+<script src="js/main.js"></script>
+<script src="js/chatbot.js"></script>
+
+<script>
+// ── CATALOGUE PRODUITS ──────────────────────────────────────
+const PRODUCTS = [
+  // COUPS DE COEUR
+  { id:1, nom:'Fromage frais de chèvre EPPRIDAD', cat:'laitier', coup:true, nouveau:false,
+    icon:'🧀', prix:2500, unite:'pièce (300g)',
+    desc:'Fromage artisanal produit sur notre ferme-école. Lait de chèvre local, fabrication supervisée par notre expert en transformation laitière.',
+    tags:['Artisanal','Sans conservateur','Ferme-école'] },
+  { id:2, nom:'Huile de sésame pressée à froid', cat:'huiles', coup:true, nouveau:false,
+    icon:'🫒', prix:4500, unite:'bouteille 500ml',
+    desc:'Huile de sésame pure, première pression à froid. Produite par les élèves de la filière Transformation Agroalimentaire.',
+    tags:['Première pression','100% pur','Filière Agroalimentaire'] },
+  { id:3, nom:'Miel de Niamey — Récolte EPPRIDAD', cat:'transformation', coup:true, nouveau:false,
+    icon:'🍯', prix:6000, unite:'pot 500g',
+    desc:'Miel pur collecté sur les ruches de notre ferme-école. Goût floral unique, récolte saisonnière limitée. Certifié par nos experts apicoles.',
+    tags:['Récolte limitée','Pur naturel','Apiculture EPPRIDAD'] },
+  // PRODUITS LAITIERS
+  { id:4, nom:'Lait frais pasteurisé de vache', cat:'laitier', coup:false, nouveau:false,
+    icon:'🥛', prix:500, unite:'litre',
+    desc:'Lait de vache frais, pasteurisé sur place à la ferme-école EPPRIDAD. Disponible à la commande groupée (minimum 5 litres).',
+    tags:['Frais du jour','Pasteurisé','Ferme-école'] },
+  { id:5, nom:'Yaourt nature artisanal', cat:'laitier', coup:false, nouveau:true,
+    icon:'🥣', prix:750, unite:'pot 250ml',
+    desc:'Yaourt fermenté artisanalement par les élèves de la filière Élevage & Santé Animale. Texture crémeuse, sans additifs.',
+    tags:['Artisanal','Filière Élevage','Sans additifs'] },
+  { id:6, nom:'Beurre de vache traditionnel', cat:'laitier', coup:false, nouveau:false,
+    icon:'🧈', prix:3500, unite:'250g',
+    desc:'Beurre fabriqué selon les méthodes traditionnelles nigériennes, à partir du lait de nos vaches de ferme.',
+    tags:['Traditionnel','Ferme-école','100% naturel'] },
+  // HUILES & GRAINES
+  { id:7, nom:'Graines de moringa séchées', cat:'huiles', coup:false, nouveau:false,
+    icon:'🌿', prix:2000, unite:'sachet 200g',
+    desc:'Graines de Moringa oleifera cultivées sur notre ferme-école. Très riche en nutriments, idéal pour alimentation humaine et animale.',
+    tags:['Superfood','Culture EPPRIDAD','Nutritif'] },
+  { id:8, nom:'Huile de neem bio', cat:'huiles', coup:false, nouveau:true,
+    icon:'🌱', prix:3000, unite:'flacon 250ml',
+    desc:'Huile de neem extraite sur notre site, utilisée en biopesticide naturel. Protège les cultures sans produits chimiques.',
+    tags:['Biopesticide','Filière Environnement','Bio'] },
+  // CÉRÉALES & LÉGUMINEUSES
+  { id:9, nom:'Niébé local — Variété EPPRIDAD', cat:'cereales', coup:false, nouveau:false,
+    icon:'🫘', prix:1500, unite:'kg',
+    desc:'Niébé sélectionné et cultivé par nos élèves. Variété adaptée au Sahel, haute productivité, excellente conservation.',
+    tags:['Sélectionné','Adapté Sahel','Filière Agriculture'] },
+  { id:10, nom:'Mil pénicillaire — Semences certifiées', cat:'cereales', coup:false, nouveau:false,
+    icon:'🌾', prix:2500, unite:'kg de semences',
+    desc:'Semences de mil certifiées, sélectionnées par notre équipe pédagogique. Taux de germination contrôlé. Idéal pour petits et grands cultivateurs.',
+    tags:['Certifié','Haute germination','Fil. Agriculture'] },
+  { id:11, nom:'Sorgho rouge — Semences améliorées', cat:'cereales', coup:false, nouveau:false,
+    icon:'🌽', prix:2000, unite:'kg de semences',
+    desc:'Sorgho rouge amélioré, résistant à la sécheresse. Cultivé et sélectionné sur notre ferme-école de 8 hectares.',
+    tags:['Résistant sécheresse','Amélioré','8 ha ferme'] },
+  // PLANTS
+  { id:12, nom:'Plants de moringa (lot de 10)', cat:'plants', coup:true, nouveau:false,
+    icon:'🌳', prix:5000, unite:'lot 10 plants',
+    desc:'Plants de moringa âgés de 3 mois, prêts à être transplantés. Croissance rapide, multiple usages (nutrition, médecine, fourrage).',
+    tags:['3 mois','Prêts à planter','Multi-usages'] },
+  { id:13, nom:'Plants de gommier (Acacia senegal)', cat:'plants', coup:false, nouveau:false,
+    icon:'🌲', prix:3500, unite:'lot 10 plants',
+    desc:'Plants produits par les élèves de la filière Environnement. Idéal pour reboisement, lutte contre la désertification et production de gomme arabique.',
+    tags:['Reboisement','Filière Environnement','Gomme arabique'] },
+  { id:14, nom:'Plants de neem (lot de 20)', cat:'plants', coup:false, nouveau:true,
+    icon:'🌿', prix:4000, unite:'lot 20 plants',
+    desc:'Plants de neem robustes, adaptés au climat sahélien. Protection naturelle contre les insectes, ombrage, bois de feu.',
+    tags:['Sahélien','Ombrage','Protection naturelle'] },
+  // TRANSFORMATION
+  { id:15, nom:'Poudre de feuilles de moringa séchées', cat:'transformation', coup:false, nouveau:false,
+    icon:'💚', prix:3500, unite:'sachet 100g',
+    desc:'Feuilles de moringa séchées et réduites en poudre fine. Complément alimentaire naturel, riche en protéines, fer et vitamines.',
+    tags:['Complément naturel','Riche en fer','Filière Agroalimentaire'] },
+  { id:16, nom:'Savon artisanal au karité', cat:'transformation', coup:false, nouveau:true,
+    icon:'🧼', prix:1500, unite:'pièce 150g',
+    desc:'Savon fabriqué artisanalement par les élèves avec du beurre de karité local. Hydratant, sans parfum synthétique.',
+    tags:['Artisanal','Karité local','Hydratant'] },
+];
+
+let cart = [];
+let currentFilter = 'tous';
+
+// ── RENDU PRODUITS ──────────────────────────────────────────
+function renderCard(p) {
+  return `
+    <div class="product-card" data-id="${p.id}" data-cat="${p.cat}" data-coup="${p.coup}">
+      <div class="product-img">
+        <span>${p.icon}</span>
+        ${p.coup ? '<span class="product-badge coup">⭐ Coup de cœur</span>' : ''}
+        ${p.nouveau ? '<span class="product-badge nouveau">Nouveau</span>' : ''}
+        ${!p.coup && !p.nouveau ? '<span class="product-badge">Made in EPPRIDAD</span>' : ''}
+      </div>
+      <div class="product-body">
+        <div class="product-cat">${getCatLabel(p.cat)}</div>
+        <div class="product-name">${p.nom}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-meta">${p.tags.map(t=>`<span class="product-tag">${t}</span>`).join('')}</div>
+        <div class="product-footer">
+          <div class="product-price">${p.prix.toLocaleString('fr-FR')} <span>FCFA / ${p.unite}</span></div>
+          <button class="btn-add-cart" onclick="addToCart(${p.id})">🛒 Ajouter</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function getCatLabel(cat) {
+  const labels = { laitier:'🧀 Produits Laitiers', huiles:'🫒 Huiles & Graines', cereales:'🌾 Céréales & Légumineuses', plants:'🌱 Plants & Pépinière', transformation:'🍯 Transformation Agroalimentaire', coup:'⭐ Coup de Cœur' };
+  return labels[cat] || cat;
+}
+
+function renderAll() {
+  const grid = document.getElementById('products-grid');
+  const coupGrid = document.getElementById('coup-grid');
+  const search = document.getElementById('search-input').value.toLowerCase();
+
+  // Coups de cœur
+  const coups = PRODUCTS.filter(p => p.coup);
+  coupGrid.innerHTML = coups.map(renderCard).join('');
+
+  // Tous les produits filtrés
+  let filtered = PRODUCTS.filter(p => {
+    const matchCat = currentFilter === 'tous' || p.cat === currentFilter || (currentFilter === 'coup' && p.coup);
+    const matchSearch = !search || p.nom.toLowerCase().includes(search) || p.desc.toLowerCase().includes(search) || p.tags.some(t => t.toLowerCase().includes(search));
+    return matchCat && matchSearch;
+  });
+
+  grid.innerHTML = filtered.map(renderCard).join('');
+  document.getElementById('no-results').style.display = filtered.length === 0 ? 'block' : 'none';
+}
+
+function setFilter(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Scroll vers section coup si filtre coup
+  if (cat === 'coup') document.getElementById('section-coup').scrollIntoView({ behavior:'smooth' });
+  renderAll();
+}
+
+function filterProducts() { renderAll(); }
+
+// ── PANIER ─────────────────────────────────────────────────
+function addToCart(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  const existing = cart.find(x => x.id === id);
+  if (existing) { existing.qty++; }
+  else { cart.push({ ...p, qty: 1 }); }
+  updateCartFab();
+  showCartNotif(p.nom);
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(x => x.id !== id);
+  updateCartFab();
+  renderCartBody();
+}
+
+function updateQty(id, delta) {
+  const item = cart.find(x => x.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) removeFromCart(id);
+  else { updateCartFab(); renderCartBody(); }
+}
+
+function updateCartFab() {
+  const total = cart.reduce((s, x) => s + x.qty, 0);
+  document.getElementById('cart-count').textContent = total;
+  document.getElementById('cart-fab').style.display = total > 0 ? 'flex' : 'none';
+}
+
+function showCartNotif(nom) {
+  const n = document.createElement('div');
+  n.style.cssText = 'position:fixed;bottom:100px;right:24px;background:var(--green);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-family:Outfit,sans-serif;z-index:1500;box-shadow:0 4px 16px rgba(0,0,0,.3);animation:fadeInUp .3s ease';
+  n.textContent = '✓ Ajouté : ' + nom.substring(0, 30) + (nom.length > 30 ? '...' : '');
+  if (!document.getElementById('notif-css')) {
+    const s = document.createElement('style');
+    s.id = 'notif-css';
+    s.textContent = '@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}';
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 2500);
+}
+
+// ── MODAL PANIER ────────────────────────────────────────────
+let currentStep = 'cart'; // cart | payment | confirm
+
+function openCart() {
+  currentStep = 'cart';
+  renderCartBody();
+  document.getElementById('cart-modal').classList.add('open');
+}
+
+function closeCart() {
+  document.getElementById('cart-modal').classList.remove('open');
+}
+
+function renderCartBody() {
+  const body = document.getElementById('modal-body');
+  document.getElementById('modal-title').textContent = '🛒 Votre Panier';
+
+  if (cart.length === 0) {
+    body.innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--text-light);font-family:'Outfit',sans-serif">
+      <div style="font-size:48px;margin-bottom:12px">🛒</div>
+      <p>Votre panier est vide.<br>Ajoutez des produits depuis la boutique.</p>
+    </div>`;
+    return;
+  }
+
+  const total = cart.reduce((s, x) => s + x.prix * x.qty, 0);
+
+  body.innerHTML = `
+    <div id="cart-items">
+      ${cart.map(item => `
+        <div class="cart-item">
+          <div class="cart-item-icon">${item.icon}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.nom}</div>
+            <div class="cart-item-price">${item.prix.toLocaleString('fr-FR')} FCFA / ${item.unite}</div>
+          </div>
+          <div class="cart-item-qty">
+            <button class="qty-btn" onclick="updateQty(${item.id},-1)">−</button>
+            <span style="font-family:'Outfit',sans-serif;font-weight:600;min-width:20px;text-align:center">${item.qty}</span>
+            <button class="qty-btn" onclick="updateQty(${item.id},1)">+</button>
+            <button onclick="removeFromCart(${item.id})" style="background:none;border:none;color:#e53935;cursor:pointer;font-size:16px;padding:4px">🗑</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="cart-total">${total.toLocaleString('fr-FR')} FCFA <span style="font-size:13px;font-family:'Outfit',sans-serif;color:var(--text-light)">total estimé</span></div>
+    <p style="font-size:12px;color:var(--text-light);margin-bottom:16px;font-family:'Outfit',sans-serif">Livraison à Niamey : gratuite pour commandes ≥ 15 000 FCFA. Retrait sur place toujours gratuit.</p>
+    <button class="btn-confirm" onclick="goToPayment()">➜ Procéder au paiement</button>
+  `;
+}
+
+function goToPayment() {
+  currentStep = 'payment';
+  const total = cart.reduce((s, x) => s + x.prix * x.qty, 0);
+  document.getElementById('modal-title').textContent = '💳 Choisir le paiement';
+
+  document.getElementById('modal-body').innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="font-family:'Outfit',sans-serif;font-size:13px;color:var(--text-light);margin-bottom:4px">Total à régler :</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--green);font-weight:700">${total.toLocaleString('fr-FR')} FCFA</div>
+    </div>
+
+    <div class="payment-title">Choisissez votre mode de paiement</div>
+    <div class="payment-methods">
+      <div class="pay-method" id="pay-mynita" onclick="selectPayment('mynita')">
+        <div class="pay-method-icon">📱</div>
+        <div class="pay-method-name">MyNita</div>
+        <div class="pay-method-sub">Dépôt + preuve PDF</div>
+      </div>
+      <div class="pay-method" id="pay-amanata" onclick="selectPayment('amanata')">
+        <div class="pay-method-icon">📲</div>
+        <div class="pay-method-name">Amanata</div>
+        <div class="pay-method-sub">Dépôt + preuve PDF</div>
+      </div>
+      <div class="pay-method" id="pay-virement" onclick="selectPayment('virement')">
+        <div class="pay-method-icon">🏦</div>
+        <div class="pay-method-name">Virement bancaire</div>
+        <div class="pay-method-sub">Coordonnées à venir</div>
+      </div>
+      <div class="pay-method pay-single" id="pay-cash" onclick="selectPayment('cash')">
+        <div class="pay-method-icon">💵</div>
+        <div class="pay-method-name">Cash en nos locaux</div>
+        <div class="pay-method-sub">Niamey, Rive Droite — retrait sur place</div>
+      </div>
+    </div>
+
+    <!-- Instructions dynamiques -->
+    <div class="pay-instructions" id="instr-mynita">
+      <h4>📱 Paiement via MyNita</h4>
+      <div class="pay-step"><div class="pay-step-num">1</div><div class="pay-step-text">Ouvrez l'application <strong>MyNita</strong> sur votre téléphone</div></div>
+      <div class="pay-step"><div class="pay-step-num">2</div><div class="pay-step-text">Effectuez un dépôt de <strong>${total.toLocaleString('fr-FR')} FCFA</strong> vers le numéro EPPRIDAD : <strong>+227 99 85 15 32</strong></div></div>
+      <div class="pay-step"><div class="pay-step-num">3</div><div class="pay-step-text">Téléchargez ou prenez une capture de votre <strong>reçu de paiement</strong></div></div>
+      <div class="pay-step"><div class="pay-step-num">4</div><div class="pay-step-text">Joignez le reçu dans le formulaire ci-dessous ou envoyez-le par email à <strong>eppridad@gmail.com</strong> avec votre nom et commande</div></div>
+    </div>
+    <div class="pay-instructions" id="instr-amanata">
+      <h4>📲 Paiement via Amanata</h4>
+      <div class="pay-step"><div class="pay-step-num">1</div><div class="pay-step-text">Ouvrez l'application <strong>Amanata</strong> sur votre téléphone</div></div>
+      <div class="pay-step"><div class="pay-step-num">2</div><div class="pay-step-text">Effectuez un dépôt de <strong>${total.toLocaleString('fr-FR')} FCFA</strong> vers le numéro EPPRIDAD : <strong>+227 99 85 15 32</strong></div></div>
+      <div class="pay-step"><div class="pay-step-num">3</div><div class="pay-step-text">Téléchargez votre <strong>reçu de paiement</strong> en PDF ou capture d'écran</div></div>
+      <div class="pay-step"><div class="pay-step-num">4</div><div class="pay-step-text">Joignez le reçu dans le formulaire ci-dessous ou envoyez-le par email à <strong>eppridad@gmail.com</strong></div></div>
+    </div>
+    <div class="pay-instructions" id="instr-virement">
+      <h4>🏦 Virement bancaire</h4>
+      <div class="pay-step"><div class="pay-step-num">1</div><div class="pay-step-text">Les coordonnées bancaires EPPRIDAD seront communiquées très prochainement — contactez-nous directement en attendant</div></div>
+      <div class="pay-step"><div class="pay-step-num">2</div><div class="pay-step-text">En attendant, vous pouvez passer commande et nous vous contacterons pour finaliser le virement</div></div>
+    </div>
+    <div class="pay-instructions" id="instr-cash">
+      <h4>💵 Paiement cash en nos locaux</h4>
+      <div class="pay-step"><div class="pay-step-num">1</div><div class="pay-step-text">Remplissez le formulaire ci-dessous pour confirmer votre commande</div></div>
+      <div class="pay-step"><div class="pay-step-num">2</div><div class="pay-step-text">Nous vous confirmons la disponibilité par <strong>SMS ou WhatsApp</strong> dans les 24h</div></div>
+      <div class="pay-step"><div class="pay-step-num">3</div><div class="pay-step-text">Venez récupérer votre commande et payer à notre adresse : <strong>Niamey, Rive Droite</strong></div></div>
+    </div>
+
+    <!-- FORMULAIRE COMMANDE -->
+    <div class="payment-title">Vos coordonnées</div>
+    <div class="form-row">
+      <div class="form-group"><label>Prénom *</label><input type="text" id="order-prenom" required placeholder="Votre prénom"></div>
+      <div class="form-group"><label>Nom *</label><input type="text" id="order-nom" required placeholder="Votre nom"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Téléphone *</label><input type="tel" id="order-tel" required placeholder="+227 XX XX XX XX"></div>
+      <div class="form-group"><label>Email (optionnel)</label><input type="email" id="order-email" placeholder="votre@email.com"></div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group"><label>Quartier / Adresse de livraison</label><input type="text" id="order-adresse" placeholder="Votre quartier à Niamey"></div>
+    </div>
+    <div class="form-row single">
+      <div class="form-group"><label>Notes (optionnel)</label><textarea id="order-notes" rows="2" placeholder="Instructions spéciales, heure de disponibilité..."></textarea></div>
+    </div>
+
+    <!-- Upload preuve -->
+    <div id="upload-zone-wrapper" style="display:none">
+      <div class="payment-title">Joindre votre preuve de paiement</div>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('proof-file').click()">
+        <input type="file" id="proof-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleFileUpload(this)">
+        <div class="upload-zone-text">
+          <div style="font-size:28px;margin-bottom:8px">📎</div>
+          <strong>Cliquez pour joindre votre reçu</strong><br>
+          PDF, JPG ou PNG — Maximum 5 Mo
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text-light);font-family:'Outfit',sans-serif;margin-top:6px">Ou envoyez directement à <strong>eppridad@gmail.com</strong> avec votre nom et votre numéro de commande.</p>
+    </div>
+
+    <button class="btn-confirm" id="confirm-btn" onclick="confirmOrder()" style="margin-top:16px">
+      ✅ Confirmer ma commande
+    </button>
+    <button onclick="currentStep='cart';renderCartBody()" style="width:100%;background:none;border:none;color:var(--text-light);font-size:13px;cursor:pointer;padding:12px;font-family:'Outfit',sans-serif;margin-top:8px">← Retour au panier</button>
+  `;
+}
+
+let selectedPayment = '';
+
+function selectPayment(method) {
+  selectedPayment = method;
+  document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+  document.getElementById('pay-' + method).classList.add('selected');
+  ['mynita','amanata','virement','cash'].forEach(m => {
+    const el = document.getElementById('instr-' + m);
+    if (el) el.classList.toggle('show', m === method);
+  });
+  const uploadWrapper = document.getElementById('upload-zone-wrapper');
+  if (uploadWrapper) uploadWrapper.style.display = (method === 'mynita' || method === 'amanata') ? 'block' : 'none';
+}
+
+function handleFileUpload(input) {
+  const zone = document.getElementById('upload-zone');
+  if (input.files.length > 0) {
+    zone.classList.add('has-file');
+    zone.querySelector('.upload-zone-text').innerHTML = `<div style="font-size:28px;margin-bottom:6px">✅</div><strong style="color:var(--green)">${input.files[0].name}</strong><br><span style="font-size:12px;color:var(--text-light)">Cliquez pour changer</span>`;
+  }
+}
+
+async function confirmOrder() {
+  const prenom = document.getElementById('order-prenom')?.value.trim();
+  const nom = document.getElementById('order-nom')?.value.trim();
+  const tel = document.getElementById('order-tel')?.value.trim();
+
+  if (!prenom || !nom || !tel) { alert('Veuillez remplir au moins votre prénom, nom et téléphone.'); return; }
+  if (!selectedPayment) { alert('Veuillez choisir un mode de paiement.'); return; }
+
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px"><span style="width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin-devis .7s linear infinite;display:inline-block"></span>Envoi en cours...</span>';
+
+  const total = cart.reduce((s, x) => s + x.prix * x.qty, 0);
+  const resume = cart.map(x => `${x.nom} x${x.qty} = ${(x.prix*x.qty).toLocaleString('fr-FR')} FCFA`).join('\n');
+
+  // Sauvegarder dans Supabase
+  try {
+    await sb.query('commandes_marketplace', {
+      method: 'POST',
+      body: {
+        prenom, nom,
+        telephone: tel,
+        email: document.getElementById('order-email')?.value || null,
+        adresse: document.getElementById('order-adresse')?.value || null,
+        notes: document.getElementById('order-notes')?.value || null,
+        mode_paiement: selectedPayment,
+        total_fcfa: total,
+        resume_commande: resume,
+        statut: 'en_attente',
+        lu: false
+      }
+    });
+  } catch(e) { console.warn('Supabase commande:', e); }
+
+  // Afficher confirmation
+  document.getElementById('modal-title').textContent = '✅ Commande confirmée !';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="confirm-box">
+      <div class="confirm-icon">🎉</div>
+      <div class="confirm-title">Merci ${prenom} !</div>
+      <div class="confirm-text">
+        Votre commande de <strong>${total.toLocaleString('fr-FR')} FCFA</strong> a bien été enregistrée.<br><br>
+        ${selectedPayment === 'cash' ? 'Nous vous contacterons au <strong>+227 99 85 15 32</strong> dans les 24h pour confirmer le retrait.' :
+          selectedPayment === 'virement' ? 'Nous vous contacterons pour vous communiquer les coordonnées bancaires.' :
+          'Si vous n\'avez pas encore envoyé votre preuve de paiement, envoyez-la à <strong>eppridad@gmail.com</strong> avec votre nom.'}
+        <br><br>
+        <span style="color:var(--green-mid);font-weight:600">Numéro de commande : EPP-${Date.now().toString().slice(-6)}</span>
+      </div>
+      <button onclick="cart=[];updateCartFab();closeCart();" style="margin-top:24px;background:var(--green);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif">Terminer</button>
+    </div>
+  `;
+}
+
+// ── INIT ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  renderAll();
+  // Fermer modal au clic dehors
+  document.getElementById('cart-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeCart();
+  });
+});
+</script>
+</body>
+</html>
