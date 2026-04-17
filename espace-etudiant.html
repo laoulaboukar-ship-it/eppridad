@@ -377,35 +377,103 @@
 <div id="admin-page" class="page">
   <aside class="admin-sidebar">
     <div class="admin-sidebar-logo">
-      <div class="admin-sidebar-name">EPPRIDAD</div>
-      <div class="admin-sidebar-sub">Administration</div>
+      <div class="admin-logo-row">
+        <div class="admin-logo-circle">
+          <img src="images/logo.png" alt="EPPRIDAD">
+        </div>
+        <div>
+          <div class="admin-sidebar-name">EPPRIDAD</div>
+          <div class="admin-sidebar-sub">Centre de contrôle</div>
+        </div>
+      </div>
+      <div class="admin-user-badge">
+        <div class="admin-user-dot"></div>
+        <div class="admin-user-text">
+          <strong>Administrateur</strong>
+          Session active
+        </div>
+      </div>
     </div>
     <nav class="admin-nav">
-      <div class="admin-nav-section">Tableau de bord</div>
-      <div class="admin-nav-item active" onclick="aPanel('dashboard',this)">📊 Vue générale</div>
-      <div class="admin-nav-section">Gestion</div>
+      <div class="admin-nav-section">Vue d'ensemble</div>
+      <div class="admin-nav-item active" onclick="aPanel('dashboard',this)">📊 Tableau de bord</div>
+
+      <div class="admin-nav-section">Gestion académique</div>
       <div class="admin-nav-item" onclick="aPanel('students',this)">👥 Étudiants <span class="admin-badge" id="pendingBadge">0</span></div>
       <div class="admin-nav-item" onclick="aPanel('library',this)">📚 Bibliothèque</div>
-      <div class="admin-nav-item" onclick="aPanel('messages',this)">💬 Messages</div>
+      <div class="admin-nav-item" onclick="aPanel('messages',this)">💬 Messagerie</div>
       <div class="admin-nav-item" onclick="aPanel('infos',this)">📢 Publications</div>
-      <div class="admin-nav-item" onclick="aPanel('marketplace',this)">🛒 Boutique produits</div>
-      <div class="admin-nav-item" onclick="aPanel('inscriptions',this)">✍️ Inscriptions <span class="admin-badge" id="inscBadge">0</span></div>
+
+      <div class="admin-nav-section">Inscriptions</div>
+      <div class="admin-nav-item" onclick="aPanel('inscriptions',this)">✍️ Demandes <span class="admin-badge" id="inscBadge">0</span></div>
+      <div class="admin-nav-item" onclick="aPanel('contacts',this)">📩 Contacts reçus</div>
+
+      <div class="admin-nav-section">Commerce</div>
+      <div class="admin-nav-item" onclick="aPanel('marketplace',this)">🌿 Boutique produits</div>
+      <div class="admin-nav-item" onclick="aPanel('commandes',this)">🛒 Commandes <span class="admin-badge" id="cmdBadge">0</span></div>
+
+      <div class="admin-nav-section">Système</div>
       <div class="admin-nav-item" onclick="aPanel('settings',this)">⚙️ Paramètres</div>
     </nav>
-    <div class="admin-footer"><button onclick="doLogout()">🚪 Déconnexion</button></div>
+    <div class="admin-footer">
+      <button onclick="doLogout()">🚪 Déconnexion</button>
+    </div>
   </aside>
   <div class="admin-main">
     <div class="admin-topbar">
-      <div class="admin-topbar-title" id="adminTopbarTitle">Vue générale</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="admin-topbar-title" id="adminTopbarTitle">Tableau de bord</div>
+      </div>
+      <div class="admin-topbar-right">
+        <button class="admin-topbar-btn" onclick="loadAdminDashboard()" title="Actualiser">🔄</button>
+        <button class="admin-topbar-btn" title="Site public" onclick="window.open('index.html','_blank')">🌐</button>
+        <div style="width:1px;height:24px;background:#e0e8e3;margin:0 4px"></div>
+        <div style="font-size:12px;color:var(--text3);font-weight:600" id="adminDateTime"></div>
+      </div>
     </div>
     <div class="admin-body">
 
       <!-- DASHBOARD -->
       <div id="ap-dashboard" class="ap active">
         <div class="admin-stats-grid" id="adminStats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="s-card" style="margin-bottom:0">
+            <div class="s-title" style="margin-bottom:14px;font-size:16px">📊 Répartition par filière</div>
+            <div id="filiereStats"></div>
+          </div>
+          <div class="s-card" style="margin-bottom:0">
+            <div class="s-title" style="margin-bottom:14px;font-size:16px">⚡ Actions rapides</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <button onclick="aPanel('students',null)" style="background:var(--primary-pale);border:1px solid rgba(22,80,63,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit" onmouseover="this.style.background='var(--primary-pale)'" >
+                <div style="font-size:24px;margin-bottom:6px">👥</div>
+                <div style="font-size:12px;font-weight:700;color:var(--primary)">Gérer étudiants</div>
+              </button>
+              <button onclick="aPanel('inscriptions',null)" style="background:#e3f2fd;border:1px solid rgba(13,110,253,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
+                <div style="font-size:24px;margin-bottom:6px">✍️</div>
+                <div style="font-size:12px;font-weight:700;color:#0d6efd">Inscriptions</div>
+              </button>
+              <button onclick="aPanel('commandes',null)" style="background:#fff8e1;border:1px solid rgba(255,193,7,.3);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
+                <div style="font-size:24px;margin-bottom:6px">🛒</div>
+                <div style="font-size:12px;font-weight:700;color:#e65100">Commandes</div>
+              </button>
+              <button onclick="aPanel('infos',null)" style="background:#f3e5f5;border:1px solid rgba(156,39,176,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
+                <div style="font-size:24px;margin-bottom:6px">📢</div>
+                <div style="font-size:12px;font-weight:700;color:#7b1fa2">Publier</div>
+              </button>
+              <button onclick="aPanel('library',null)" style="background:#e8f5e9;border:1px solid rgba(27,94,32,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
+                <div style="font-size:24px;margin-bottom:6px">📚</div>
+                <div style="font-size:12px;font-weight:700;color:#1b5e20">Bibliothèque</div>
+              </button>
+              <button onclick="aPanel('marketplace',null)" style="background:#fce4ec;border:1px solid rgba(233,30,99,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
+                <div style="font-size:24px;margin-bottom:6px">🌿</div>
+                <div style="font-size:12px;font-weight:700;color:#c62828">Boutique</div>
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="s-card">
-          <div class="s-title" style="margin-bottom:12px">📊 Répartition par filière</div>
-          <div id="filiereStats"></div>
+          <div class="s-title" style="margin-bottom:14px;font-size:16px">📅 Dernières inscriptions</div>
+          <div id="recentInscriptions"><div style="color:var(--text3);font-size:13px">Chargement...</div></div>
         </div>
       </div>
 
@@ -599,6 +667,28 @@
           </select>
         </div>
         <div id="inscriptionsList">
+          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- COMMANDES MARKETPLACE -->
+      <div id="ap-commandes" class="ap">
+        <div class="s-title-row">
+          <div class="s-title">🛒 Commandes de la boutique</div>
+          <button class="btn-sm" onclick="loadCommandes()" style="font-size:12px">🔄 Actualiser</button>
+        </div>
+        <div id="commandesList">
+          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- CONTACTS -->
+      <div id="ap-contacts" class="ap">
+        <div class="s-title-row">
+          <div class="s-title">📩 Messages reçus</div>
+          <button class="btn-sm" onclick="loadContacts()" style="font-size:12px">🔄 Actualiser</button>
+        </div>
+        <div id="contactsList">
           <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement...</div>
         </div>
       </div>

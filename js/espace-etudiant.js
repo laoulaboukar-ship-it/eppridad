@@ -687,14 +687,20 @@ function showToast(msg, color) {
 async function loadAdminDashboard(){
   showLoadingOverlay(true,'Chargement administration…');
   try{
-    // Comptes portail
-    const comptes=await sb.select('portail_comptes',{select:'matricule,statut,expiry_date,date_creation,dernier_acces,role',order:'date_creation.desc'}).catch(()=>[]);
-    // Étudiants
-    const etudiants=await sb.select('etudiants',{select:'matricule,nom,prenom,filiere,niveau,classe,actif',order:'matricule.asc'}).catch(()=>[]);
-    // Notes pour stats
-    const notes=await sb.select('notes',{select:'etudiant_id,note'}).catch(()=>[]);
-
-    window._adminData={comptes:comptes||[],etudiants:etudiants||[],notes:notes||[]};
+    const [comptes,etudiants,notes,inscriptions,commandes] = await Promise.all([
+      sb.select('portail_comptes',{select:'matricule,statut,expiry_date,date_creation,dernier_acces,role',order:'date_creation.desc'}).catch(()=>[]),
+      sb.select('etudiants',{select:'matricule,nom,prenom,filiere,niveau,classe,actif',order:'matricule.asc'}).catch(()=>[]),
+      sb.select('notes',{select:'etudiant_id,note'}).catch(()=>[]),
+      sb.select('inscriptions',{select:'id,statut,type_inscription,created_at',order:'created_at.desc',limit:200}).catch(()=>[]),
+      sb.select('commandes_marketplace',{select:'id,statut,total_fcfa,created_at',order:'created_at.desc',limit:200}).catch(()=>[]),
+    ]);
+    window._adminData={
+      comptes:comptes||[],
+      etudiants:etudiants||[],
+      notes:notes||[],
+      inscriptions:inscriptions||[],
+      commandes:commandes||[]
+    };
     renderAdminDashboard(window._adminData);
     showLoadingOverlay(false);
   }catch(e){
@@ -711,12 +717,19 @@ function renderAdminDashboard(data){
   const expires=comptes.filter(c=>c.statut==='actif'&&c.expiry_date&&new Date(c.expiry_date)<new Date()).length;
   document.getElementById('pendingBadge').textContent=pending;
   const bb=document.getElementById('bnavBadge');if(bb){bb.textContent=pending;bb.style.display=pending?'block':'none';}
+  // Calcul inscriptions et commandes
+  const {inscriptions=[],commandes=[]}=data;
+  const inscNew=inscriptions.filter(i=>i.statut==='nouveau').length;
+  const cmdNew=commandes.filter(c=>c.statut==='en_attente').length;
+  const cmdRevenu=commandes.filter(c=>c.statut==='livree').reduce((s,c)=>s+(c.total_fcfa||0),0);
   document.getElementById('adminStats').innerHTML=[
-    {ic:'👥',n:etudiants.length,l:'Total étudiants',bg:'var(--primary-pale)'},
-    {ic:'✅',n:actifs,l:'Comptes actifs',bg:'#e8f5e9'},
-    {ic:'⏳',n:pending,l:'En attente',bg:'var(--accent-pale)'},
-    {ic:'⛔',n:expires,l:'Expirés',bg:'#ffebee'},
-  ].map(s=>`<div class="admin-stat-card"><div class="admin-stat-icon" style="background:${s.bg}">${s.ic}</div><div><div class="admin-stat-n">${s.n}</div><div class="admin-stat-l">${s.l}</div></div></div>`).join('');
+    {ic:'👥',n:etudiants.length,l:'Étudiants inscrits',bg:'var(--primary-pale)',action:"aPanel('students',null)"},
+    {ic:'✅',n:actifs,l:'Comptes actifs',bg:'#e8f5e9',action:"aPanel('students',null)"},
+    {ic:'⏳',n:pending,l:'Comptes en attente',bg:'var(--accent-pale)',action:"aPanel('students',null)"},
+    {ic:'✍️',n:inscNew,l:'Nouvelles inscriptions',bg:'#e3f2fd',action:"aPanel('inscriptions',null)"},
+    {ic:'🛒',n:cmdNew,l:'Commandes en attente',bg:'#fff8e1',action:"aPanel('commandes',null)"},
+    {ic:'💰',n:(cmdRevenu/1000).toFixed(0)+'k',l:'FCFA livrés (boutique)',bg:'#e8f5e9',action:"aPanel('commandes',null)"},
+  ].map(s=>`<div class="admin-stat-card" onclick="${s.action}" style="cursor:pointer"><div class="admin-stat-icon" style="background:${s.bg}">${s.ic}</div><div><div class="admin-stat-n">${s.n}</div><div class="admin-stat-l">${s.l}</div></div></div>`).join('');
   const fc={};etudiants.forEach(e=>{fc[e.filiere]=(fc[e.filiere]||0)+1;});
   document.getElementById('filiereStats').innerHTML=Object.entries(fc).map(([fi,n])=>`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
@@ -936,10 +949,24 @@ function aPanel(name,btn){
   document.querySelectorAll('.admin-nav-item').forEach(b=>b.classList.remove('active'));
   const p=document.getElementById('ap-'+name);if(p)p.classList.add('active');
   if(btn)btn.classList.add('active');
-  const titles={dashboard:'Vue générale',students:'Étudiants',library:'Bibliothèque',messages:'Messages',settings:'Paramètres'};
+  const titles={
+    dashboard:'📊 Tableau de bord',
+    students:'👥 Gestion des étudiants',
+    library:'📚 Bibliothèque & Documents',
+    messages:'💬 Messagerie',
+    infos:'📢 Publications & Actualités',
+    marketplace:'🛒 Boutique EPPRIDAD',
+    inscriptions:'✍️ Demandes d\'inscription',
+    settings:'⚙️ Paramètres'
+  };
   const t=document.getElementById('adminTopbarTitle');if(t)t.textContent=titles[name]||name;
-  if(name==='library')loadAdminLibrary_admin();
-  if(name==='messages')loadAdminMessages();
+  // Charger les données du panel sélectionné
+  if(name==='library')    loadAdminLibrary_admin();
+  if(name==='messages')   loadAdminMessages();
+  if(name==='infos')      loadAdminPosts();
+  if(name==='marketplace'){ loadProducts(); }
+  if(name==='inscriptions'){ loadInscriptions(); }
+  if(name==='dashboard')  renderAdminDashboard(window._adminData||{comptes:[],etudiants:[],notes:[]});
 }
 
 function changeAdminPwd(){
@@ -1598,3 +1625,171 @@ async function loadInscriptionsBadge(){
   }catch(e){}
 }
 
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — COMMANDES MARKETPLACE
+// ════════════════════════════════════════════════════════════
+
+async function loadCommandes() {
+  const container = document.getElementById('commandesList');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Chargement...</div>';
+  try {
+    const cmds = await sb.select('commandes_marketplace', { order: 'created_at.desc', limit: 100 });
+    if (!cmds || cmds.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Aucune commande reçue pour le moment.</div>';
+      const badge = document.getElementById('cmdBadge'); if (badge) badge.textContent = '0';
+      return;
+    }
+    const newCount = cmds.filter(c => c.statut === 'en_attente').length;
+    const badge = document.getElementById('cmdBadge');
+    if (badge) badge.textContent = newCount > 0 ? newCount : '0';
+    const statusColors = { en_attente:'#e53935', confirmee:'#f57c00', livree:'var(--primary)', annulee:'#999' };
+    const statusLabels = { en_attente:'⏳ En attente', confirmee:'✅ Confirmée', livree:'🚚 Livrée', annulee:'✗ Annulée' };
+    container.innerHTML = cmds.map(c => `
+      <div class="s-card" style="margin-bottom:10px;padding:14px 16px">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+              <strong style="font-size:14px">${c.prenom || ''} ${c.nom || ''}</strong>
+              <span style="background:${statusColors[c.statut]||'#999'};color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">${statusLabels[c.statut]||c.statut}</span>
+              <span style="font-family:'Playfair Display',serif;font-size:16px;color:var(--primary);font-weight:700">${(c.total_fcfa||0).toLocaleString('fr-FR')} FCFA</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">📞 ${c.telephone||'—'} ${c.email?'· ✉️ '+c.email:''}</div>
+            ${c.adresse?`<div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">📍 ${c.adresse}</div>`:''}
+            <div style="font-size:12px;color:var(--text3);margin-bottom:3px">💳 Paiement: ${c.mode_paiement||'—'}</div>
+            ${c.resume_commande?`<div style="font-size:11.5px;color:var(--text3);margin-top:6px;background:var(--surface2);border-radius:6px;padding:8px 10px;line-height:1.6"><strong>Détail commande:</strong><br>${c.resume_commande}</div>`:''}
+            ${c.notes?`<div style="font-size:11.5px;color:var(--text3);margin-top:5px;font-style:italic">"${c.notes}"</div>`:''}
+            <div style="font-size:10.5px;color:var(--text3);margin-top:5px">${c.created_at?new Date(c.created_at).toLocaleString('fr-FR'):''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+            <a href="tel:${c.telephone}" style="background:var(--primary);color:#fff;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;text-decoration:none;text-align:center">📞 Appeler</a>
+            <a href="https://wa.me/${(c.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227')}?text=${encodeURIComponent('Bonjour '+c.prenom+', votre commande EPPRIDAD ('+((c.total_fcfa||0).toLocaleString('fr-FR'))+' FCFA) a bien été reçue. Nous vous confirmons la disponibilité et la livraison sous peu.')}" target="_blank" style="background:#25D366;color:#fff;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;text-decoration:none;text-align:center">💬 WhatsApp</a>
+            <select onchange="updateCommandeStatus('${c.id}',this.value)" style="font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+              <option ${c.statut==='en_attente'?'selected':''} value="en_attente">⏳ En attente</option>
+              <option ${c.statut==='confirmee'?'selected':''} value="confirmee">✅ Confirmée</option>
+              <option ${c.statut==='livree'?'selected':''} value="livree">🚚 Livrée</option>
+              <option ${c.statut==='annulee'?'selected':''} value="annulee">✗ Annulée</option>
+            </select>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(err) {
+    container.innerHTML = `<div style="color:#e53935;padding:16px;font-size:13px">Erreur: ${err.message}</div>`;
+  }
+}
+
+async function updateCommandeStatus(id, status) {
+  try {
+    await sb.update('commandes_marketplace', { statut: status }, { col: 'id', val: 'eq.' + id });
+    showToast('Commande mise à jour → ' + status);
+    loadCommandes();
+  } catch(e) { alert('Erreur: ' + e.message); }
+}
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — CONTACTS REÇUS
+// ════════════════════════════════════════════════════════════
+
+async function loadContacts() {
+  const container = document.getElementById('contactsList');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Chargement...</div>';
+  try {
+    const contacts = await sb.select('contacts', { order: 'created_at.desc', limit: 50 });
+    if (!contacts || contacts.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Aucun message reçu.</div>';
+      return;
+    }
+    container.innerHTML = contacts.map(c => `
+      <div class="s-card" style="margin-bottom:10px;padding:14px 16px${c.lu?'':';border-left:3px solid var(--primary)'}">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px">${c.prenom||''} ${c.nom||''} ${!c.lu?'<span style="background:var(--primary);color:#fff;font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700">Nouveau</span>':''}</div>
+            <div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">📞 ${c.telephone||'—'} ${c.email?'· ✉️ '+c.email:''}</div>
+            ${c.objet?`<div style="font-size:12.5px;color:var(--text2);font-weight:600;margin-bottom:3px">Objet: ${c.objet}</div>`:''}
+            ${c.message?`<div style="font-size:13px;color:var(--text);line-height:1.65;background:var(--surface2);border-radius:6px;padding:8px 10px;margin-top:6px">${c.message}</div>`:''}
+            <div style="font-size:10.5px;color:var(--text3);margin-top:6px">${c.created_at?new Date(c.created_at).toLocaleString('fr-FR'):''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+            ${c.telephone?`<a href="tel:${c.telephone}" style="background:var(--primary);color:#fff;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;text-decoration:none;text-align:center">📞 Appeler</a>`:''}
+            ${c.telephone?`<a href="https://wa.me/${(c.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227')}" target="_blank" style="background:#25D366;color:#fff;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;text-decoration:none;text-align:center">💬 WhatsApp</a>`:''}
+            ${!c.lu?`<button onclick="markContactLu('${c.id}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12px;cursor:pointer">✓ Lu</button>`:''}
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(err) {
+    container.innerHTML = `<div style="color:#e53935;padding:16px;font-size:13px">Erreur: ${err.message}</div>`;
+  }
+}
+
+async function markContactLu(id) {
+  try {
+    await sb.update('contacts', { lu: true, statut: 'lu' }, { col: 'id', val: 'eq.' + id });
+    loadContacts();
+  } catch(e) {}
+}
+
+// Fix aPanel to include commandes and contacts
+const _originalAPanel = aPanel;
+window.aPanel = function(name, btn) {
+  _originalAPanel(name, btn);
+  if(name === 'commandes') loadCommandes();
+  if(name === 'contacts')  loadContacts();
+};
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — HORLOGE TOPBAR
+// ════════════════════════════════════════════════════════════
+function updateAdminClock(){
+  const el=document.getElementById('adminDateTime');
+  if(!el)return;
+  const now=new Date();
+  el.textContent=now.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})+' · '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateAdminClock,30000);
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — INSCRIPTIONS RÉCENTES (dashboard)
+// ════════════════════════════════════════════════════════════
+async function loadRecentInscriptions(){
+  const el=document.getElementById('recentInscriptions');
+  if(!el)return;
+  try{
+    const rows=await sb.select('inscriptions',{order:'created_at.desc',limit:8});
+    if(!rows||!rows.length){
+      el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0">Aucune demande reçue.</div>';
+      return;
+    }
+    const typeIcons={diplomante:'🎓',courte:'📜',enligne:'💻'};
+    const statusColor={nouveau:'#e53935',en_cours:'#f57c00',traite:'var(--primary)',annule:'#999'};
+    el.innerHTML=rows.map(r=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f0f4f2">
+        <div style="font-size:20px;flex-shrink:0">${typeIcons[r.type_inscription]||'📋'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:600;color:var(--text)">${r.prenom||''} ${r.nom||''}</div>
+          <div style="font-size:11.5px;color:var(--text3)">${r.formation_titre||r.filiere||r.type_inscription||'—'} · ${r.telephone||''}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <span style="background:${statusColor[r.statut]||'#999'};color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">${r.statut||'—'}</span>
+          <span style="font-size:10.5px;color:var(--text3)">${r.created_at?new Date(r.created_at).toLocaleDateString('fr-FR'):''}</span>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    el.innerHTML='<div style="color:var(--text3);font-size:13px">Erreur de chargement.</div>';
+  }
+}
+
+// Override renderAdminDashboard to also load recent inscriptions
+const _origRender = renderAdminDashboard;
+window.renderAdminDashboard = function(data){
+  _origRender(data);
+  updateAdminClock();
+  loadRecentInscriptions();
+  // Update badges from preloaded data
+  const cmdBadge=document.getElementById('cmdBadge');
+  if(cmdBadge&&data.commandes){
+    const n=data.commandes.filter(c=>c.statut==='en_attente').length;
+    cmdBadge.textContent=n||'0';
+  }
+};
