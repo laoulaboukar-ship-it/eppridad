@@ -5,7 +5,7 @@ const CACHE_IMG = 'eppridad-img-v5';
 const CORE = [
   '/index.html', '/ecole.html', '/filieres.html', '/services.html',
   '/admission.html', '/galerie.html', '/contact.html', '/infos.html',
-  '/espace-etudiant.html', '/fiche-inscription.html', '/marketplace.html', '/formations-en-ligne.html',
+  '/espace-etudiant.html', '/fiche-inscription.html', '/inscription.html', '/marketplace.html', '/formations-en-ligne.html',
   '/css/style.css', '/css/index.css', '/css/index_0.css',
   '/css/espace-etudiant.css', '/css/infos.css', '/css/contact.css',
   '/css/ecole.css', '/css/filieres.css', '/css/galerie.css',

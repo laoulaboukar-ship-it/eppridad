@@ -1195,3 +1195,284 @@ window.addEventListener('popstate', () => {
 document.addEventListener('DOMContentLoaded', () => {
   history.pushState({panel:'accueil'}, '', '');
 });
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — BOUTIQUE MARKETPLACE
+// ═══════════════════════════════════════════════════════════
+
+let editingProductId = null;
+let prodImgBase64 = null;
+
+function showAddProduct() {
+  editingProductId = null;
+  prodImgBase64 = null;
+  document.getElementById('addProductForm').style.display = 'block';
+  document.getElementById('product-form-title').textContent = 'Nouveau produit';
+  document.getElementById('btn-save-prod').textContent = '✅ Publier dans la boutique';
+  ['prod-nom','prod-prix','prod-unite','prod-desc','prod-tags','prod-img-url'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('prod-emoji').value = '🌿';
+  document.getElementById('prod-cat').value = 'maraicher';
+  document.getElementById('prod-coup').checked = false;
+  document.getElementById('prod-new').checked = false;
+  document.getElementById('prod-dispo').checked = true;
+  document.getElementById('prodImgPreview').style.display = 'none';
+  document.getElementById('prodImgPreview').src = '';
+  document.getElementById('addProductForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelAddProduct() {
+  document.getElementById('addProductForm').style.display = 'none';
+  editingProductId = null; prodImgBase64 = null;
+}
+
+function handleProdImgFile(input) {
+  if (!input.files.length) return;
+  const file = input.files[0];
+  if (file.size > 3 * 1024 * 1024) { alert('Image trop grande (max 3 Mo)'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    prodImgBase64 = e.target.result;
+    const preview = document.getElementById('prodImgPreview');
+    preview.src = prodImgBase64;
+    preview.style.display = 'block';
+    document.getElementById('prod-img-url').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleProdImgDrop(event) {
+  event.preventDefault();
+  const dt = event.dataTransfer;
+  if (dt.files.length > 0) {
+    document.getElementById('prodImgInput').files = dt.files;
+    handleProdImgFile(document.getElementById('prodImgInput'));
+  }
+  document.getElementById('prodImgDrop').classList.remove('drag');
+}
+
+async function saveProduct() {
+  const nom = document.getElementById('prod-nom').value.trim();
+  const prix = parseInt(document.getElementById('prod-prix').value) || 0;
+  const unite = document.getElementById('prod-unite').value.trim();
+  const desc = document.getElementById('prod-desc').value.trim();
+  if (!nom || !prix || !unite || !desc) {
+    alert('Veuillez remplir : nom, prix, unité et description.');
+    return;
+  }
+  const tags = document.getElementById('prod-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const imgUrl = prodImgBase64 || document.getElementById('prod-img-url').value.trim() || null;
+
+  const btn = document.getElementById('btn-save-prod');
+  btn.disabled = true; btn.textContent = 'Publication en cours...';
+
+  const productData = {
+    nom,
+    categorie: document.getElementById('prod-cat').value,
+    prix,
+    unite,
+    description: desc,
+    emoji: document.getElementById('prod-emoji').value || '🌿',
+    tags: tags.join(', '),
+    image_url: imgUrl,
+    coup_de_coeur: document.getElementById('prod-coup').checked,
+    nouveau: document.getElementById('prod-new').checked,
+    disponible: document.getElementById('prod-dispo').checked,
+    cree_le: new Date().toISOString()
+  };
+
+  try {
+    if (editingProductId) {
+      await sb.update('produits_boutique', productData, { col: 'id', val: 'eq.' + editingProductId });
+      showToast('✅ Produit mis à jour !');
+    } else {
+      await sb.insert('produits_boutique', productData);
+      showToast('✅ Produit publié dans la boutique !');
+    }
+    cancelAddProduct();
+    loadProducts();
+  } catch(err) {
+    console.error('saveProduct:', err);
+    alert('Erreur lors de la sauvegarde. Vérifiez la connexion. Détail : ' + err.message);
+  }
+  btn.disabled = false;
+  btn.textContent = editingProductId ? '✅ Mettre à jour' : '✅ Publier dans la boutique';
+}
+
+async function loadProducts() {
+  const container = document.getElementById('productsList');
+  if (!container) return;
+  try {
+    const prods = await sb.select('produits_boutique', { order: 'cree_le.desc' });
+    if (!prods || prods.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Aucun produit dans la boutique.<br>Cliquez sur "+ Ajouter un produit" pour commencer.</div>';
+      return;
+    }
+    container.innerHTML = prods.map(p => `
+      <div class="s-card" style="margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;padding:14px 16px">
+        <div style="font-size:36px;width:50px;text-align:center;flex-shrink:0">${p.emoji || '🌿'}</div>
+        ${p.image_url ? `<img src="${p.image_url}" style="width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">` : ''}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <strong style="font-size:14px;color:var(--text1)">${p.nom}</strong>
+            ${p.coup_de_coeur ? '<span style="background:var(--gold);color:var(--dark);font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700">⭐ Coup de cœur</span>' : ''}
+            ${p.nouveau ? '<span style="background:#e53935;color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700">Nouveau</span>' : ''}
+            <span style="background:${p.disponible ? 'var(--primary)' : '#999'};color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700">${p.disponible ? '✓ Disponible' : '✗ Indispo'}</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--text3);margin-bottom:4px">${p.categorie} · ${p.prix?.toLocaleString('fr-FR')} FCFA / ${p.unite}</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.5">${(p.description || '').substring(0, 100)}${(p.description || '').length > 100 ? '...' : ''}</div>
+          ${p.tags ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">🏷️ ${p.tags}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          <button class="btn-sm" onclick="editProduct(${p.id})" style="background:var(--primary);color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px">✏️ Modifier</button>
+          <button class="btn-sm" onclick="toggleProductDispo(${p.id},${p.disponible})" style="background:${p.disponible ? '#f57c00' : 'var(--primary)'};color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px">${p.disponible ? '⏸ Masquer' : '▶ Afficher'}</button>
+          <button class="btn-sm" onclick="deleteProduct(${p.id})" style="background:#e53935;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px">🗑 Supprimer</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(err) {
+    container.innerHTML = '<div style="color:#e53935;padding:16px;font-size:13px">Erreur de chargement. La table "produits_boutique" doit être créée dans Supabase. <br><a href="#" onclick="showCreateTableGuide()" style="color:var(--primary)">Voir le guide →</a></div>';
+  }
+}
+
+async function editProduct(id) {
+  let prods;
+  try { prods = await sb.select('produits_boutique', { filters: [{ col: 'id', val: 'eq.' + id }] }); }
+  catch(e) { return; }
+  if (!prods || !prods.length) return;
+  const p = prods[0];
+  editingProductId = id;
+  prodImgBase64 = null;
+  showAddProduct();
+  document.getElementById('product-form-title').textContent = 'Modifier le produit';
+  document.getElementById('btn-save-prod').textContent = '✅ Mettre à jour';
+  document.getElementById('prod-nom').value = p.nom || '';
+  document.getElementById('prod-cat').value = p.categorie || 'maraicher';
+  document.getElementById('prod-prix').value = p.prix || '';
+  document.getElementById('prod-unite').value = p.unite || '';
+  document.getElementById('prod-desc').value = p.description || '';
+  document.getElementById('prod-tags').value = p.tags || '';
+  document.getElementById('prod-emoji').value = p.emoji || '🌿';
+  document.getElementById('prod-img-url').value = p.image_url || '';
+  document.getElementById('prod-coup').checked = !!p.coup_de_coeur;
+  document.getElementById('prod-new').checked = !!p.nouveau;
+  document.getElementById('prod-dispo').checked = !!p.disponible;
+  if (p.image_url) {
+    document.getElementById('prodImgPreview').src = p.image_url;
+    document.getElementById('prodImgPreview').style.display = 'block';
+  }
+}
+
+async function toggleProductDispo(id, currentState) {
+  try {
+    await sb.update('produits_boutique', { disponible: !currentState }, { col: 'id', val: 'eq.' + id });
+    showToast(!currentState ? '✅ Produit affiché dans la boutique' : '⏸ Produit masqué de la boutique');
+    loadProducts();
+  } catch(e) { alert('Erreur: ' + e.message); }
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Supprimer ce produit de la boutique ?')) return;
+  try {
+    await sb.del('produits_boutique', { col: 'id', val: 'eq.' + id });
+    showToast('🗑 Produit supprimé');
+    loadProducts();
+  } catch(e) { alert('Erreur: ' + e.message); }
+}
+
+function showCreateTableGuide() {
+  alert('Pour activer la boutique admin, créez la table "produits_boutique" dans Supabase avec les colonnes :\n\nid (int8, primary key, auto-increment)\nnom (text)\ncategorie (text)\nprix (int4)\nunite (text)\ndescription (text)\nemoji (text)\ntags (text)\nimage_url (text)\ncoup_de_coeur (bool, default false)\nnouveau (bool, default false)\ndisponible (bool, default true)\ncree_le (timestamptz)\n\nPuis activez RLS et ajoutez les policies nécessaires.');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — INSCRIPTIONS
+// ═══════════════════════════════════════════════════════════
+
+async function loadInscriptions() {
+  const container = document.getElementById('inscriptionsList');
+  if (!container) return;
+  const typeFilter = document.getElementById('insc-filter-type')?.value || '';
+  container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Chargement...</div>';
+  try {
+    const filters = typeFilter ? [{ col: 'type_inscription', val: 'eq.' + typeFilter }] : [];
+    const inscriptions = await sb.select('inscriptions', {
+      order: 'created_at.desc',
+      limit: 50,
+      filters
+    });
+    if (!inscriptions || inscriptions.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Aucune demande d\'inscription pour le moment.</div>';
+      // Update badge
+      const badge = document.getElementById('inscBadge');
+      if (badge) badge.textContent = '0';
+      return;
+    }
+    // Count new
+    const newCount = inscriptions.filter(i => i.statut === 'nouveau').length;
+    const badge = document.getElementById('inscBadge');
+    if (badge) badge.textContent = newCount > 0 ? newCount : '0';
+
+    const typeLabels = { diplomante:'🎓 Diplômante', courte:'📜 Courte', enligne:'💻 En ligne' };
+    const statusColors = { nouveau:'#e53935', 'en_cours':'#f57c00', traite:'var(--primary)', annule:'#999' };
+    const statusLabels = { nouveau:'Nouveau', en_cours:'En cours', traite:'Traité', annule:'Annulé' };
+
+    container.innerHTML = inscriptions.map(i => `
+      <div class="s-card" style="margin-bottom:10px;padding:14px 16px">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+              <strong style="font-size:14px">${i.prenom || ''} ${i.nom || ''}</strong>
+              <span style="background:${statusColors[i.statut] || '#999'};color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">${statusLabels[i.statut] || i.statut}</span>
+              <span style="background:var(--bg2);color:var(--text2);font-size:10px;padding:2px 8px;border-radius:10px">${typeLabels[i.type_inscription] || i.type_inscription}</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">📞 ${i.telephone || '—'} ${i.email ? '· ✉️ '+i.email : ''}</div>
+            <div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">${i.resume || ''}</div>
+            ${i.ville ? `<div style="font-size:11.5px;color:var(--text3)">📍 ${i.ville}</div>` : ''}
+            ${i.message ? `<div style="font-size:11.5px;color:var(--text3);margin-top:4px;font-style:italic">"${i.message.substring(0,80)}${i.message.length>80?'...':''}"</div>` : ''}
+            <div style="font-size:10.5px;color:var(--text3);margin-top:5px">Réf: ${i.reference || '—'} · ${i.created_at ? new Date(i.created_at).toLocaleDateString('fr-FR') : ''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+            <a href="tel:${i.telephone}" style="background:var(--primary);color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">📞 Appeler</a>
+            <a href="https://wa.me/${(i.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227')}?text=${encodeURIComponent('Bonjour '+i.prenom+', nous avons bien reçu votre demande d\'inscription EPPRIDAD (Réf: '+(i.reference||'')+'). Pouvez-vous nous confirmer votre disponibilité pour un entretien ?')}" target="_blank" style="background:#25D366;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">💬 WhatsApp</a>
+            <select onchange="updateInscriptionStatus(${i.id},this.value)" style="font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg)">
+              <option ${i.statut==='nouveau'?'selected':''} value="nouveau">Nouveau</option>
+              <option ${i.statut==='en_cours'?'selected':''} value="en_cours">En cours</option>
+              <option ${i.statut==='traite'?'selected':''} value="traite">Traité</option>
+              <option ${i.statut==='annule'?'selected':''} value="annule">Annulé</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(err) {
+    container.innerHTML = `<div style="color:#e53935;padding:16px;font-size:13px">Erreur: ${err.message}<br>La table "inscriptions" doit être créée dans Supabase.</div>`;
+  }
+}
+
+async function updateInscriptionStatus(id, status) {
+  try {
+    await sb.update('inscriptions', { statut: status }, { col: 'id', val: 'eq.' + id });
+    showToast('Statut mis à jour → ' + status);
+  } catch(e) { alert('Erreur: ' + e.message); }
+}
+
+// Hook into existing aPanel function to load data when switching
+const _origAPanel = typeof aPanel === 'function' ? aPanel : null;
+function aPanel(id, el) {
+  if (_origAPanel) _origAPanel(id, el);
+  if (id === 'marketplace') setTimeout(loadProducts, 100);
+  if (id === 'inscriptions') setTimeout(loadInscriptions, 100);
+}
+
+// Load inscription badge on admin login
+document.addEventListener('eppridad-admin-ready', async function() {
+  try {
+    const inscriptions = await sb.select('inscriptions', {
+      filters: [{ col: 'statut', val: 'eq.nouveau' }], limit: 99
+    });
+    const badge = document.getElementById('inscBadge');
+    if (badge && inscriptions) badge.textContent = inscriptions.length || '0';
+  } catch(e) {}
+});
+

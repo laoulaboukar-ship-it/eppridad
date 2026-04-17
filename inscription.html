@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>S'inscrire — EPPRIDAD | Formation Diplômante, Courte ou En Ligne</title>
+<meta name="description" content="Inscrivez-vous à EPPRIDAD : formation diplômante (CAP, BEP, Bac Pro, TDR), formation courte certifiante ou formation en ligne. Niamey, Niger.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a5d1a">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+/* ═══════════════════════════════════════════
+   PAGE INSCRIPTION EPPRIDAD — PREMIUM v1
+═══════════════════════════════════════════ */
+
+/* HERO */
+.insc-hero {
+  min-height: 46vh;
+  background: linear-gradient(150deg, #050c05 0%, #0a1f0a 55%, #112810 100%);
+  display: flex; align-items: center;
+  padding: 100px 5% 56px;
+  position: relative; overflow: hidden;
+}
+.insc-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 50% 70% at 90% 30%, rgba(26,93,26,.3) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 40% at 10% 80%, rgba(212,175,55,.05) 0%, transparent 55%);
+}
+.insc-grid-bg {
+  position: absolute; inset: 0; opacity: .035;
+  background-image: linear-gradient(rgba(212,175,55,.6) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(212,175,55,.6) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+.insc-hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+.insc-hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(212,175,55,.12); border: 1px solid rgba(212,175,55,.3);
+  color: var(--gold); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 20px; font-family: 'Outfit', sans-serif; margin-bottom: 18px;
+}
+.insc-hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 5.5vw, 62px); color: #fff; line-height: 1.05; margin-bottom: 14px;
+}
+.insc-hero h1 em { color: var(--gold); font-style: normal; }
+.insc-hero-desc {
+  color: rgba(255,255,255,.6); font-size: 15px; line-height: 1.8;
+  max-width: 560px; font-family: 'Outfit', sans-serif;
+}
+
+/* TYPE SELECTOR */
+.type-selector-section {
+  background: var(--off-white);
+  padding: 0 5% 0;
+  position: sticky; top: 68px; z-index: 400;
+  border-bottom: 1px solid var(--border);
+}
+.type-tabs {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; gap: 0; overflow-x: auto;
+  scrollbar-width: none;
+}
+.type-tabs::-webkit-scrollbar { display: none; }
+.type-tab {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 18px 28px; cursor: pointer; border: none; background: none;
+  font-family: 'Outfit', sans-serif; position: relative; white-space: nowrap;
+  transition: all .25s; border-bottom: 3px solid transparent; flex: 1; min-width: 160px;
+}
+.type-tab:hover { background: rgba(26,93,26,.04); }
+.type-tab.active { border-bottom-color: var(--green); }
+.type-tab-icon { font-size: 24px; transition: transform .2s; }
+.type-tab.active .type-tab-icon { transform: scale(1.15); }
+.type-tab-label {
+  font-size: 13px; font-weight: 700; color: var(--text-light); transition: color .2s;
+}
+.type-tab.active .type-tab-label { color: var(--green); }
+.type-tab-sub { font-size: 11px; color: var(--text-light); opacity: .7; }
+.type-tab-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: var(--gold); color: var(--dark); font-size: 9px; font-weight: 800;
+  padding: 2px 6px; border-radius: 10px; letter-spacing: .5px; text-transform: uppercase;
+}
+
+/* CONTENT PANELS */
+.insc-panels { max-width: 1100px; margin: 0 auto; padding: 0 5%; }
+.insc-panel { display: none; }
+.insc-panel.active { display: block; }
+
+/* PANEL LAYOUT */
+.panel-layout {
+  display: grid; grid-template-columns: 1fr 1.1fr;
+  gap: 56px; align-items: start; padding: 56px 0;
+}
+.panel-info {}
+.panel-form {}
+
+/* DIPLOME CARDS */
+.diplome-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+.dip-card {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 16px 18px; cursor: pointer; transition: all .2s; display: flex; gap: 14px;
+  align-items: center; position: relative;
+}
+.dip-card:hover { border-color: var(--green); box-shadow: 0 4px 18px rgba(26,93,26,.08); }
+.dip-card.selected { border-color: var(--green); background: var(--green-pale); }
+.dip-card-badge {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px; font-weight: 700; color: var(--gold);
+  min-width: 64px; text-align: center;
+  background: var(--dark); border-radius: 8px; padding: 6px 10px; line-height: 1;
+}
+.dip-card-info { flex: 1; }
+.dip-card-title { font-size: 14px; font-weight: 700; color: var(--dark); margin-bottom: 2px; font-family: 'Outfit', sans-serif; }
+.dip-card-sub { font-size: 12px; color: var(--text-light); font-family: 'Outfit', sans-serif; }
+.dip-card-dur {
+  background: rgba(212,175,55,.15); color: #7d5a00; font-size: 11px; font-weight: 700;
+  padding: 3px 9px; border-radius: 10px; font-family: 'Outfit', sans-serif;
+}
+.dip-radio { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: none; }
+.dip-card.selected .dip-radio { display: block; color: var(--green); font-size: 18px; }
+
+/* FILIERES GRID */
+.filiere-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.filiere-chip {
+  border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 10px;
+  cursor: pointer; transition: all .18s; text-align: center; background: #fff;
+  font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--text-light);
+}
+.filiere-chip:hover { border-color: var(--green); color: var(--green); }
+.filiere-chip.selected { border-color: var(--green); background: var(--green-pale); color: var(--green); font-weight: 700; }
+.filiere-chip-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+
+/* FORMATIONS COURTES */
+.fc-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.fc-card {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 13px 16px; cursor: pointer; transition: all .2s; display: flex; gap: 12px; align-items: center;
+}
+.fc-card:hover { border-color: var(--gold); }
+.fc-card.selected { border-color: var(--gold); background: var(--gold-pale); }
+.fc-icon { font-size: 22px; }
+.fc-info { flex: 1; }
+.fc-title { font-size: 13.5px; font-weight: 700; color: var(--dark); font-family: 'Outfit', sans-serif; }
+.fc-meta { font-size: 11.5px; color: var(--text-light); font-family: 'Outfit', sans-serif; margin-top: 1px; }
+.fc-price { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 700; color: var(--gold); }
+.fc-check { display: none; color: var(--gold); font-size: 18px; }
+.fc-card.selected .fc-check { display: block; }
+
+/* EN LIGNE */
+.online-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.ol-card {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 12px; cursor: pointer; transition: all .2s; text-align: center;
+}
+.ol-card:hover { border-color: var(--green); }
+.ol-card.selected { border-color: var(--green); background: var(--green-pale); }
+.ol-card-icon { font-size: 24px; margin-bottom: 5px; }
+.ol-card-title { font-size: 12.5px; font-weight: 700; color: var(--dark); font-family: 'Outfit', sans-serif; line-height: 1.35; }
+.ol-card-price { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: var(--green); font-weight: 700; margin-top: 4px; }
+.ol-card-dur { font-size: 10.5px; color: var(--text-light); font-family: 'Outfit', sans-serif; }
+
+/* FORM */
+.insc-form-box {
+  background: linear-gradient(145deg, #050c05, #0f2a0f);
+  border: 1px solid rgba(212,175,55,.2); border-radius: 18px; padding: 36px;
+  position: sticky; top: 160px;
+}
+.insc-form-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 24px; color: #fff;
+  margin-bottom: 6px;
+}
+.insc-form-sub { font-size: 13px; color: rgba(255,255,255,.45); margin-bottom: 24px; font-family: 'Outfit', sans-serif; }
+.form-selection-preview {
+  background: rgba(212,175,55,.08); border: 1px solid rgba(212,175,55,.2);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 18px;
+  font-size: 13px; color: var(--gold-light); font-family: 'Outfit', sans-serif; line-height: 1.6;
+  min-height: 44px;
+}
+.fg-dark { margin-bottom: 12px; }
+.fg-dark label {
+  display: block; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.4);
+  text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; font-family: 'Outfit', sans-serif;
+}
+.fg-dark input, .fg-dark select, .fg-dark textarea {
+  width: 100%; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 9px; padding: 11px 14px; font-size: 14px; color: #fff;
+  font-family: 'Outfit', sans-serif; outline: none; transition: border-color .2s;
+}
+.fg-dark input:focus, .fg-dark select:focus, .fg-dark textarea:focus {
+  border-color: rgba(212,175,55,.5); background: rgba(255,255,255,.09);
+}
+.fg-dark input::placeholder, .fg-dark textarea::placeholder { color: rgba(255,255,255,.3); }
+.fg-dark select option { background: #0a1f0a; color: #fff; }
+.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-submit-insc {
+  width: 100%; background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: var(--dark); border: none; border-radius: 10px; padding: 15px;
+  font-size: 15px; font-weight: 800; cursor: pointer; font-family: 'Outfit', sans-serif;
+  transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+  letter-spacing: .3px; margin-top: 16px;
+}
+.btn-submit-insc:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(212,175,55,.3); }
+.btn-submit-insc:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.send-info {
+  margin-top: 14px; display: flex; flex-direction: column; gap: 6px;
+  padding-top: 14px; border-top: 1px solid rgba(255,255,255,.08);
+}
+.send-info-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: rgba(255,255,255,.45); font-family: 'Outfit', sans-serif;
+}
+
+/* CONFIRMATION */
+.insc-confirm {
+  display: none; text-align: center; padding: 40px 20px;
+}
+.insc-confirm.show { display: block; }
+.confirm-anim {
+  width: 80px; height: 80px; background: linear-gradient(135deg, var(--green), var(--green-mid));
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 36px; margin: 0 auto 20px; animation: pop-in .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop-in { from{transform:scale(0)} to{transform:scale(1)} }
+.confirm-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: #fff; margin-bottom: 12px; }
+.confirm-text { font-size: 14px; color: rgba(255,255,255,.6); line-height: 1.75; font-family: 'Outfit', sans-serif; }
+.confirm-ref {
+  display: inline-block; background: rgba(212,175,55,.12); border: 1px solid rgba(212,175,55,.25);
+  color: var(--gold); padding: 8px 18px; border-radius: 8px; font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 700; margin: 16px 0; letter-spacing: 1px;
+}
+
+/* AVANTAGES */
+.avantages-strip {
+  background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 32px 5%;
+}
+.avantages-strip-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 24px;
+}
+.av-item { display: flex; align-items: flex-start; gap: 12px; }
+.av-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+.av-title { font-size: 13px; font-weight: 700; color: var(--dark); font-family: 'Outfit', sans-serif; }
+.av-sub { font-size: 12px; color: var(--text-light); font-family: 'Outfit', sans-serif; line-height: 1.5; margin-top: 2px; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .panel-layout { grid-template-columns: 1fr; gap: 36px; }
+  .insc-form-box { position: static; }
+  .avantages-strip-inner { grid-template-columns: 1fr 1fr; }
+  .filiere-grid { grid-template-columns: 1fr 1fr; }
+  .online-cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 580px) {
+  .type-tab { padding: 14px 16px; min-width: 120px; }
+  .type-tab-sub { display: none; }
+  .insc-form-box { padding: 22px 18px; }
+  .avantages-strip-inner { grid-template-columns: 1fr; }
+  .fg-row { grid-template-columns: 1fr; }
+  .filiere-grid { grid-template-columns: 1fr 1fr; }
+  .online-cards { grid-template-columns: 1fr 1fr; }
+  .diplome-cards .dip-card-badge { font-size: 18px; min-width: 50px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon"><img src="images/logo.png" alt="Logo EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0;padding:2px"></div>
+    <div><div class="nav-brand-name">EPPRIDAD</div><div class="nav-brand-sub">Est. 2024 · Niamey, Niger</div></div>
+  </a>
+  <ul class="nav-menu">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="ecole.html">L'École <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="ecole.html#histoire">Notre Histoire</a><a href="ecole.html#vision">Vision &amp; Missions</a><a href="ecole.html#valeurs">Nos Valeurs</a><a href="ecole.html#pourquoi">Pourquoi EPPRIDAD ?</a></div>
+    </li>
+    <li><a href="filieres.html">Filières <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="filieres.html#environnement">Environnement &amp; Eaux-Forêts</a><a href="filieres.html#elevage">Élevage &amp; Santé Animale</a><a href="filieres.html#genie">Génie Rural</a><a href="filieres.html#agroalimentaire">Transformation Agroalimentaire</a><a href="filieres.html#socioeconomie">Socio-Économie Rurale</a><a href="filieres.html#agriculture">Agriculture &amp; Productions Végétales</a></div>
+    </li>
+    <li><a href="services.html">Services <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="services.html#academique">Formation Académique</a><a href="services.html#courtes">Formations Courtes</a><a href="services.html#accompagnement">Accompagnement Technique</a></div>
+    </li>
+    <li><a href="formations-en-ligne.html" style="color:var(--gold-light);font-weight:600;">🎓 Cours en ligne</a></li>
+    <li><a href="marketplace.html" style="color:var(--gold-light);font-weight:600;">🛒 Boutique</a></li>
+    <li><a href="inscription.html" class="active" style="color:var(--gold);font-weight:700;">✍️ S'inscrire <span class="arrow">▾</span></a>
+      <div class="dropdown">
+        <a href="inscription.html#diplomante">🎓 Formation diplômante</a>
+        <a href="inscription.html#courte">📜 Formation courte certifiante</a>
+        <a href="inscription.html#enligne">💻 Formation en ligne</a>
+        <a href="contact.html">📞 Contact &amp; Localisation</a>
+        <a href="galerie.html">📸 Galerie &amp; Infos</a>
+      </div>
+    </li>
+    <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="lang-btn">EN</button>
+    <a href="inscription.html" class="nav-cta">S'inscrire</a>
+    <div class="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="insc-hero">
+  <div class="insc-grid-bg"></div>
+  <div class="insc-hero-inner">
+    <div class="insc-hero-tag">📋 Inscriptions ouvertes · Rentrée 2026–2027</div>
+    <h1>Choisissez votre <em>formation</em>,<br>construisez votre <em>avenir.</em></h1>
+    <p class="insc-hero-desc">Formation diplômante sur campus, certification courte week-end, ou apprentissage en ligne à distance — EPPRIDAD vous accompagne selon votre rythme et vos objectifs.</p>
+  </div>
+</section>
+
+<!-- AVANTAGES -->
+<div class="avantages-strip">
+  <div class="avantages-strip-inner">
+    <div class="av-item"><div class="av-icon">🌾</div><div><div class="av-title">Ferme-école 8 ha</div><div class="av-sub">100% pratique sur le terrain au Niger</div></div></div>
+    <div class="av-item"><div class="av-icon">📞</div><div><div class="av-title">Réponse sous 48h</div><div class="av-sub">Notre équipe vous contacte rapidement</div></div></div>
+    <div class="av-item"><div class="av-icon">🏅</div><div><div class="av-title">Certificats officiels</div><div class="av-sub">CAP · BEP · Bac Pro · TDR · Certificats courts</div></div></div>
+    <div class="av-item"><div class="av-icon">🇳🇪</div><div><div class="av-title">Ancré au Niger</div><div class="av-sub">Formation adaptée aux réalités du Sahel</div></div></div>
+  </div>
+</div>
+
+<!-- TYPE TABS -->
+<div class="type-selector-section">
+  <div class="type-tabs" id="type-tabs">
+    <button class="type-tab active" id="tab-diplomante" onclick="switchType('diplomante')">
+      <span class="type-tab-icon">🎓</span>
+      <span class="type-tab-label">Formation Diplômante</span>
+      <span class="type-tab-sub">CAP · BEP · Bac Pro · TDR</span>
+    </button>
+    <button class="type-tab" id="tab-courte" onclick="switchType('courte')">
+      <span class="type-tab-icon">📜</span>
+      <span class="type-tab-label">Formation Courte</span>
+      <span class="type-tab-sub">Certifiante · 1 mois · Week-end</span>
+      <span class="type-tab-badge">Populaire</span>
+    </button>
+    <button class="type-tab" id="tab-enligne" onclick="switchType('enligne')">
+      <span class="type-tab-icon">💻</span>
+      <span class="type-tab-label">Formation en Ligne</span>
+      <span class="type-tab-sub">À distance · Votre rythme · Certifiante</span>
+      <span class="type-tab-badge" style="background:var(--green-mid);color:#fff">New</span>
+    </button>
+  </div>
+</div>
+
+<!-- PANELS -->
+<div class="insc-panels">
+
+  <!-- ═══ PANEL 1 : DIPLÔMANTE ═══ -->
+  <div class="insc-panel active" id="panel-diplomante">
+    <div class="panel-layout">
+      <!-- INFO CÔTÉ GAUCHE -->
+      <div class="panel-info">
+        <div class="section-tag">Formation académique complète</div>
+        <h2 class="section-title">Formation <span class="gold">Diplômante</span></h2>
+        <p style="color:var(--text-light);font-size:14px;line-height:1.75;margin:12px 0 28px;font-family:'Outfit',sans-serif;">
+          Intégrez notre campus à Niamey et suivez une formation complète théorique et pratique sur notre ferme-école de 8 hectares. Choisissez votre niveau et votre filière ci-dessous.
+        </p>
+
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-light);margin-bottom:12px;font-family:'Outfit',sans-serif;">1 · Choisissez votre niveau</div>
+        <div class="diplome-cards" id="diplome-cards">
+          <div class="dip-card" onclick="selectDiplome(this,'CAP')" data-value="CAP">
+            <div class="dip-card-badge">CAP</div>
+            <div class="dip-card-info">
+              <div class="dip-card-title">Certificat d'Aptitude Professionnelle</div>
+              <div class="dip-card-sub">Classe de 5e, 4e ou 3e · Sans BEPC requis</div>
+            </div>
+            <div class="dip-card-dur">2 ans</div>
+            <span class="dip-radio">✓</span>
+          </div>
+          <div class="dip-card" onclick="selectDiplome(this,'BEP')" data-value="BEP">
+            <div class="dip-card-badge">BEP</div>
+            <div class="dip-card-info">
+              <div class="dip-card-title">Brevet d'Études Professionnelles</div>
+              <div class="dip-card-sub">Classe de 4e, 3e ou titulaire du BEPC</div>
+            </div>
+            <div class="dip-card-dur">2–3 ans</div>
+            <span class="dip-radio">✓</span>
+          </div>
+          <div class="dip-card" onclick="selectDiplome(this,'BAC PRO')" data-value="BAC PRO">
+            <div class="dip-card-badge" style="font-size:18px">Bac Pro</div>
+            <div class="dip-card-info">
+              <div class="dip-card-title">Baccalauréat Professionnel</div>
+              <div class="dip-card-sub">BEPC minimum · Ouvre l'accès BTS / Licence Pro</div>
+            </div>
+            <div class="dip-card-dur">1–3 ans</div>
+            <span class="dip-radio">✓</span>
+          </div>
+          <div class="dip-card" onclick="selectDiplome(this,'TDR')" data-value="TDR">
+            <div class="dip-card-badge" style="font-size:18px">TDR</div>
+            <div class="dip-card-info">
+              <div class="dip-card-title">Technicien de Développement Rural</div>
+              <div class="dip-card-sub">Bac ou équivalent · Formation spécialisée avancée</div>
+            </div>
+            <div class="dip-card-dur">1–2 ans</div>
+            <span class="dip-radio">✓</span>
+          </div>
+        </div>
+
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-light);margin:24px 0 12px;font-family:'Outfit',sans-serif;">2 · Choisissez votre filière</div>
+        <div class="filiere-grid" id="filiere-grid-dip">
+          <div class="filiere-chip" onclick="selectFiliere(this,'dip','Environnement &amp; Eaux-Forêts')"><span class="filiere-chip-icon">🌿</span>Environnement &amp; Eaux-Forêts</div>
+          <div class="filiere-chip" onclick="selectFiliere(this,'dip','Élevage &amp; Santé Animale')"><span class="filiere-chip-icon">🐄</span>Élevage &amp; Santé Animale</div>
+          <div class="filiere-chip" onclick="selectFiliere(this,'dip','Génie Rural')"><span class="filiere-chip-icon">🏗️</span>Génie Rural</div>
+          <div class="filiere-chip" onclick="selectFiliere(this,'dip','Transformation Agroalimentaire')"><span class="filiere-chip-icon">🫙</span>Transformation Agroalim.</div>
+          <div class="filiere-chip" onclick="selectFiliere(this,'dip','Socio-Économie Rurale')"><span class="filiere-chip-icon">📊</span>Socio-Économie Rurale</div>
+          <div class="filiere-chip" onclick="selectFiliere(this,'dip','Agriculture &amp; Productions Végétales')"><span class="filiere-chip-icon">🌾</span>Agriculture &amp; Productions</div>
+        </div>
+
+        <div style="background:var(--green-pale);border:1px solid rgba(26,93,26,.18);border-radius:10px;padding:14px 16px;margin-top:20px">
+          <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px;font-family:'Outfit',sans-serif;">📋 Documents à préparer</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:5px">
+            <li style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green)">→</span>Copie du dernier diplôme ou relevé de notes</li>
+            <li style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green)">→</span>Copie de la carte d'identité ou acte de naissance</li>
+            <li style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green)">→</span>2 photos d'identité</li>
+            <li style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green)">→</span>À apporter lors de l'entretien</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- FORMULAIRE -->
+      <div class="panel-form" id="form-diplomante-wrap">
+        <div class="insc-form-box">
+          <div class="insc-form-title">Demande d'inscription</div>
+          <div class="insc-form-sub">Notre équipe vous contacte dans les 48h pour organiser votre entretien.</div>
+          <div class="form-selection-preview" id="preview-dip">
+            Sélectionnez un niveau et une filière pour personnaliser votre demande ↑
+          </div>
+          <div id="confirm-dip" class="insc-confirm">
+            <div class="confirm-anim">✅</div>
+            <div class="confirm-title">Demande envoyée !</div>
+            <div class="confirm-text">Votre demande d'inscription a été transmise à l'équipe EPPRIDAD par email et WhatsApp. Vous serez contacté(e) dans les 48 heures.</div>
+            <div class="confirm-ref" id="ref-dip"></div>
+            <button onclick="resetForm('dip')" style="background:var(--green);color:#fff;border:none;border-radius:9px;padding:11px 24px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:10px">Nouvelle demande</button>
+          </div>
+          <form id="form-dip" onsubmit="submitInscription(event,'diplomante')">
+            <div class="fg-row">
+              <div class="fg-dark"><label>Prénom *</label><input name="prenom" placeholder="Votre prénom" required></div>
+              <div class="fg-dark"><label>Nom *</label><input name="nom" placeholder="Votre nom" required></div>
+            </div>
+            <div class="fg-dark"><label>Téléphone *</label><input name="telephone" type="tel" placeholder="+227 XX XX XX XX" required></div>
+            <div class="fg-dark"><label>Email (optionnel)</label><input name="email" type="email" placeholder="votre@email.com"></div>
+            <div class="fg-dark"><label>Date de naissance</label><input name="dob" type="date"></div>
+            <div class="fg-dark"><label>Ville de résidence</label><input name="ville" placeholder="Ex: Niamey, Agadez, Dosso..."></div>
+            <div class="fg-dark"><label>Questions / Informations</label><textarea name="message" rows="3" placeholder="Questions sur les horaires, frais de scolarité, hébergement..."></textarea></div>
+            <button type="submit" class="btn-submit-insc" id="btn-dip">
+              <span>📤 Envoyer ma demande d'inscription</span>
+            </button>
+            <div class="send-info">
+              <div class="send-info-row">📧 Envoyé à eppridad@gmail.com</div>
+              <div class="send-info-row">💬 Notification WhatsApp à l'école</div>
+              <div class="send-info-row">⏱ Réponse sous 48 heures</div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL 2 : FORMATION COURTE ═══ -->
+  <div class="insc-panel" id="panel-courte">
+    <div class="panel-layout">
+      <div class="panel-info">
+        <div class="section-tag">Formations certifiantes week-end</div>
+        <h2 class="section-title">Formations <span class="gold">Courtes</span></h2>
+        <p style="color:var(--text-light);font-size:14px;line-height:1.75;margin:12px 0 24px;font-family:'Outfit',sans-serif;">
+          Acquérez une compétence professionnelle en 4 week-ends (samedi + dimanche). Certificat officiel EPPRIDAD à la fin. Ouvertes à tous, sans conditions de diplôme.
+        </p>
+
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-light);margin-bottom:12px;font-family:'Outfit',sans-serif;">Sélectionnez votre formation</div>
+        <div class="fc-grid" id="fc-grid">
+          <div class="fc-card" onclick="selectFC(this,'Maraîchage intensif & irrigation')">
+            <div class="fc-icon">🥬</div>
+            <div class="fc-info">
+              <div class="fc-title">Maraîchage intensif &amp; irrigation</div>
+              <div class="fc-meta">4 week-ends · Pratique terrain · Niamey</div>
+            </div>
+            <div style="text-align:right"><div class="fc-price">25 000 FCFA</div><div class="fc-check">✓</div></div>
+          </div>
+          <div class="fc-card" onclick="selectFC(this,'Aviculture pratique rentable')">
+            <div class="fc-icon">🐔</div>
+            <div class="fc-info">
+              <div class="fc-title">Aviculture pratique rentable</div>
+              <div class="fc-meta">4 week-ends · Construction poulailler incluse</div>
+            </div>
+            <div style="text-align:right"><div class="fc-price">30 000 FCFA</div><div class="fc-check">✓</div></div>
+          </div>
+          <div class="fc-card" onclick="selectFC(this,'Transformation agroalimentaire (fromages, huiles, jus)')">
+            <div class="fc-icon">🧀</div>
+            <div class="fc-info">
+              <div class="fc-title">Transformation agroalimentaire</div>
+              <div class="fc-meta">Fromages · Huiles · Jus · 4 week-ends</div>
+            </div>
+            <div style="text-align:right"><div class="fc-price">28 000 FCFA</div><div class="fc-check">✓</div></div>
+          </div>
+          <div class="fc-card" onclick="selectFC(this,'Reboisement & techniques RNA')">
+            <div class="fc-icon">🌳</div>
+            <div class="fc-info">
+              <div class="fc-title">Reboisement &amp; techniques RNA</div>
+              <div class="fc-meta">Régénération naturelle assistée · 3 week-ends</div>
+            </div>
+            <div style="text-align:right"><div class="fc-price">20 000 FCFA</div><div class="fc-check">✓</div></div>
+          </div>
+          <div class="fc-card" onclick="selectFC(this,'Gestion d\'exploitation agricole')">
+            <div class="fc-icon">📊</div>
+            <div class="fc-info">
+              <div class="fc-title">Gestion d'exploitation agricole</div>
+              <div class="fc-meta">Business plan · Comptabilité · 4 week-ends</div>
+            </div>
+            <div style="text-align:right"><div class="fc-price">22 000 FCFA</div><div class="fc-check">✓</div></div>
+          </div>
+          <div class="fc-card" onclick="selectFC(this,'Soins vétérinaires de base (petits ruminants)')">
+            <div class="fc-icon">🐐</div>
+            <div class="fc-info">
+              <div class="fc-title">Soins vétérinaires de base</div>
+              <div class="fc-meta">Caprins &amp; ovins · 3 week-ends</div>
+            </div>
+            <div style="text-align:right"><div class="fc-price">24 000 FCFA</div><div class="fc-check">✓</div></div>
+          </div>
+          <div class="fc-card" onclick="selectFC(this,'Construction digue filtrante & génie rural')">
+            <div class="fc-icon">🏗️</div>
+            <div class="fc-info">
+              <div class="fc-title">Génie rural — Digue filtrante</div>
+              <div class="fc-meta">Récupération eaux de pluie · 3 week-ends</div>
+            </div>
+            <div style="text-align:right"><div class="fc-price">20 000 FCFA</div><div class="fc-check">✓</div></div>
+          </div>
+          <div class="fc-card" onclick="selectFC(this,'Apiculture & production de miel')">
+            <div class="fc-icon">🍯</div>
+            <div class="fc-info">
+              <div class="fc-title">Apiculture &amp; production de miel</div>
+              <div class="fc-meta">Ruches kenyanes · 4 week-ends</div>
+            </div>
+            <div style="text-align:right"><div class="fc-price">28 000 FCFA</div><div class="fc-check">✓</div></div>
+          </div>
+        </div>
+
+        <div style="background:var(--gold-pale);border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:14px 16px;margin-top:4px">
+          <div style="font-size:13px;font-weight:700;color:#7d5a00;margin-bottom:6px;font-family:'Outfit',sans-serif;">💳 Paiement</div>
+          <p style="font-size:12.5px;color:var(--text-light);line-height:1.6;font-family:'Outfit',sans-serif;">Paiement en une fois ou en deux tranches. MyNita, Amanata, virement ou cash à l'école. Un reçu officiel vous est remis à l'inscription.</p>
+        </div>
+      </div>
+
+      <div class="panel-form" id="form-courte-wrap">
+        <div class="insc-form-box">
+          <div class="insc-form-title">Réserver ma place</div>
+          <div class="insc-form-sub">Les formations démarrent le 1er week-end de chaque mois.</div>
+          <div class="form-selection-preview" id="preview-fc">
+            Sélectionnez une formation ci-contre pour voir les détails ↑
+          </div>
+          <div id="confirm-fc" class="insc-confirm">
+            <div class="confirm-anim">✅</div>
+            <div class="confirm-title">Réservation envoyée !</div>
+            <div class="confirm-text">Votre demande de réservation a été transmise. L'équipe EPPRIDAD vous confirmera les dates et modalités de paiement dans les 24 heures.</div>
+            <div class="confirm-ref" id="ref-fc"></div>
+            <button onclick="resetForm('fc')" style="background:var(--green);color:#fff;border:none;border-radius:9px;padding:11px 24px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:10px">Nouvelle demande</button>
+          </div>
+          <form id="form-fc" onsubmit="submitInscription(event,'courte')">
+            <div class="fg-row">
+              <div class="fg-dark"><label>Prénom *</label><input name="prenom" placeholder="Votre prénom" required></div>
+              <div class="fg-dark"><label>Nom *</label><input name="nom" placeholder="Votre nom" required></div>
+            </div>
+            <div class="fg-dark"><label>Téléphone *</label><input name="telephone" type="tel" placeholder="+227 XX XX XX XX" required></div>
+            <div class="fg-dark"><label>Email (optionnel)</label><input name="email" type="email" placeholder="votre@email.com"></div>
+            <div class="fg-dark"><label>Ville de résidence</label><input name="ville" placeholder="Ex: Niamey, Agadez..."></div>
+            <div class="fg-dark"><label>Disponibilité week-end</label>
+              <select name="disponibilite">
+                <option value="">Quand pouvez-vous commencer ?</option>
+                <option>Dès le prochain week-end disponible</option>
+                <option>Dans 2 à 4 semaines</option>
+                <option>Dans 1 à 2 mois</option>
+                <option>En planification</option>
+              </select>
+            </div>
+            <div class="fg-dark"><label>Questions / Message</label><textarea name="message" rows="2" placeholder="Questions sur le planning, les tarifs, le contenu..."></textarea></div>
+            <button type="submit" class="btn-submit-insc" id="btn-fc" style="background:linear-gradient(135deg,var(--gold),var(--gold-light))">
+              <span>📤 Réserver ma place</span>
+            </button>
+            <div class="send-info">
+              <div class="send-info-row">📧 Envoyé à eppridad@gmail.com</div>
+              <div class="send-info-row">💬 Notification WhatsApp à l'école</div>
+              <div class="send-info-row">⏱ Confirmation sous 24 heures</div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL 3 : FORMATION EN LIGNE ═══ -->
+  <div class="insc-panel" id="panel-enligne">
+    <div class="panel-layout">
+      <div class="panel-info">
+        <div class="section-tag">Formation à distance · Certifiante</div>
+        <h2 class="section-title">Formations <span class="gold">en ligne</span></h2>
+        <p style="color:var(--text-light);font-size:14px;line-height:1.75;margin:12px 0 24px;font-family:'Outfit',sans-serif;">
+          Apprenez depuis votre téléphone ou ordinateur à votre propre rythme. Chaque formation inclut des vidéos terrain, des guides pratiques, des évaluations et un certificat officiel EPPRIDAD.
+        </p>
+
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-light);margin-bottom:12px;font-family:'Outfit',sans-serif;">Choisissez votre formation</div>
+        <div class="online-cards" id="ol-cards">
+          <div class="ol-card" onclick="selectOL(this,'Maîtriser l\'irrigation goutte-à-goutte',12000)">
+            <div class="ol-card-icon">💧</div>
+            <div class="ol-card-title">Irrigation goutte-à-goutte</div>
+            <div class="ol-card-dur">⏱ 8h · Débutant</div>
+            <div class="ol-card-price">12 000 FCFA</div>
+          </div>
+          <div class="ol-card" onclick="selectOL(this,'Maraîchage en saison sèche au Niger',15000)">
+            <div class="ol-card-icon">🥬</div>
+            <div class="ol-card-title">Maraîchage saison sèche</div>
+            <div class="ol-card-dur">⏱ 10h · Débutant</div>
+            <div class="ol-card-price">15 000 FCFA</div>
+          </div>
+          <div class="ol-card" onclick="selectOL(this,'Élevage avicole rentable',18000)">
+            <div class="ol-card-icon">🐔</div>
+            <div class="ol-card-title">Élevage avicole rentable</div>
+            <div class="ol-card-dur">⏱ 12h · Débutant</div>
+            <div class="ol-card-price">18 000 FCFA</div>
+          </div>
+          <div class="ol-card" onclick="selectOL(this,'Santé et soins des petits ruminants',14000)">
+            <div class="ol-card-icon">🐐</div>
+            <div class="ol-card-title">Santé petits ruminants</div>
+            <div class="ol-card-dur">⏱ 8h · Intermédiaire</div>
+            <div class="ol-card-price">14 000 FCFA</div>
+          </div>
+          <div class="ol-card" onclick="selectOL(this,'Fabrication du fromage artisanal',10000)">
+            <div class="ol-card-icon">🧀</div>
+            <div class="ol-card-title">Fromage artisanal</div>
+            <div class="ol-card-dur">⏱ 6h · Débutant</div>
+            <div class="ol-card-price">10 000 FCFA</div>
+          </div>
+          <div class="ol-card" onclick="selectOL(this,'Transformation des céréales locales',10000)">
+            <div class="ol-card-icon">🌾</div>
+            <div class="ol-card-title">Transformation céréales</div>
+            <div class="ol-card-dur">⏱ 7h · Débutant</div>
+            <div class="ol-card-price">10 000 FCFA</div>
+          </div>
+          <div class="ol-card" onclick="selectOL(this,'Reboisement et RNA',12000)">
+            <div class="ol-card-icon">🌳</div>
+            <div class="ol-card-title">Reboisement &amp; RNA</div>
+            <div class="ol-card-dur">⏱ 9h · Débutant</div>
+            <div class="ol-card-price">12 000 FCFA</div>
+          </div>
+          <div class="ol-card" onclick="selectOL(this,'Gérer une exploitation agricole',15000)">
+            <div class="ol-card-icon">📊</div>
+            <div class="ol-card-title">Gestion exploitation</div>
+            <div class="ol-card-dur">⏱ 10h · Débutant</div>
+            <div class="ol-card-price">15 000 FCFA</div>
+          </div>
+        </div>
+
+        <div style="background:var(--green-pale);border:1px solid rgba(26,93,26,.2);border-radius:10px;padding:14px 16px;margin-top:8px">
+          <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px;font-family:'Outfit',sans-serif;">🎓 Comment ça marche ?</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green);font-weight:700">1.</span>Vous payez (MyNita, Amanata, cash ou virement)</div>
+            <div style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green);font-weight:700">2.</span>Accès activé sous 24h dans l'Espace Étudiant</div>
+            <div style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green);font-weight:700">3.</span>Vidéos + guides pratiques à votre rythme</div>
+            <div style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green);font-weight:700">4.</span>Quiz + rapport terrain validés par un expert</div>
+            <div style="font-size:12.5px;color:var(--text-light);display:flex;gap:7px;font-family:'Outfit',sans-serif;"><span style="color:var(--green);font-weight:700">5.</span>Certificat PDF officiel EPPRIDAD envoyé</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-form" id="form-enligne-wrap">
+        <div class="insc-form-box">
+          <div class="insc-form-title">S'inscrire en ligne</div>
+          <div class="insc-form-sub">Votre accès est activé sous 24h après confirmation du paiement.</div>
+          <div class="form-selection-preview" id="preview-ol">
+            Sélectionnez une formation ci-contre ↑
+          </div>
+          <div id="confirm-ol" class="insc-confirm">
+            <div class="confirm-anim">✅</div>
+            <div class="confirm-title">Inscription reçue !</div>
+            <div class="confirm-text">Votre demande a été transmise. Procédez au paiement (MyNita / Amanata / Cash) et envoyez votre reçu à eppridad@gmail.com. Votre accès sera activé sous 24h.</div>
+            <div class="confirm-ref" id="ref-ol"></div>
+            <a href="espace-etudiant.html" style="display:inline-block;margin-top:14px;background:var(--green);color:#fff;border-radius:9px;padding:11px 24px;font-size:13.5px;font-weight:700;text-decoration:none;font-family:'Outfit',sans-serif;">Accéder à mon espace →</a>
+          </div>
+          <form id="form-ol" onsubmit="submitInscription(event,'enligne')">
+            <div class="fg-row">
+              <div class="fg-dark"><label>Prénom *</label><input name="prenom" placeholder="Votre prénom" required></div>
+              <div class="fg-dark"><label>Nom *</label><input name="nom" placeholder="Votre nom" required></div>
+            </div>
+            <div class="fg-dark"><label>Téléphone *</label><input name="telephone" type="tel" placeholder="+227 XX XX XX XX" required></div>
+            <div class="fg-dark"><label>Email (pour recevoir vos accès)</label><input name="email" type="email" placeholder="votre@email.com"></div>
+            <div class="fg-dark">
+              <label>Mode de paiement prévu</label>
+              <select name="paiement">
+                <option value="">Choisir...</option>
+                <option>📱 MyNita — dépôt numérique</option>
+                <option>📲 Amanata — dépôt numérique</option>
+                <option>💵 Cash — en nos locaux (Niamey)</option>
+                <option>🏦 Virement bancaire</option>
+              </select>
+            </div>
+            <div class="fg-dark"><label>Questions</label><textarea name="message" rows="2" placeholder="Questions sur le contenu, l'accès, le certificat..."></textarea></div>
+            <button type="submit" class="btn-submit-insc" id="btn-ol" style="background:linear-gradient(135deg,var(--green),var(--green-mid));color:#fff">
+              <span>🎓 Confirmer mon inscription</span>
+            </button>
+            <div class="send-info">
+              <div class="send-info-row">📧 Envoyé à eppridad@gmail.com</div>
+              <div class="send-info-row">💬 Notification WhatsApp à l'école</div>
+              <div class="send-info-row">🔑 Accès activé sous 24h après paiement</div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /insc-panels -->
+
+<div class="gold-divider"></div>
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#1a5d1a,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #d4af37;padding:2px"><img src="images/logo.png" alt="EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0"></div>
+        <div><div class="footer-brand-name">EPPRIDAD</div></div>
+      </div>
+      <p>École Polytechnique Privée pour le Développement Agricole Durable.</p>
+    </div>
+    <div class="footer-col"><h4>Inscription</h4><ul>
+      <li><a href="inscription.html#diplomante">Formation Diplômante</a></li>
+      <li><a href="inscription.html#courte">Formation Courte</a></li>
+      <li><a href="inscription.html#enligne">Formation en Ligne</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="galerie.html">Galerie &amp; Infos</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Navigation</h4><ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="filieres.html">Filières</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="marketplace.html" style="color:var(--gold)">🛒 Boutique</a></li>
+      <li><a href="formations-en-ligne.html" style="color:var(--gold)">🎓 Cours en ligne</a></li>
+      <li><a href="espace-etudiant.html" style="color:var(--gold)">Espace Étudiant</a></li>
+    </ul></div>
+    <div class="footer-col"><h4>Contact</h4>
+      <div class="footer-contact-item"><span class="icon">📍</span><span>Niamey, Rive Droite — Niger</span></div>
+      <div class="footer-contact-item"><span class="icon">📞</span><a href="tel:+22799851532">+227 99 85 15 32</a></div>
+      <div class="footer-contact-item"><span class="icon">✉️</span><a href="mailto:eppridad@gmail.com">eppridad@gmail.com</a></div>
+    </div>
+  </div>
+  <div class="footer-bottom"><p>© 2025 <span class="gold">EPPRIDAD</span> — Tous droits réservés. Niger.</p><p>Conçu pour former les <span class="gold">bâtisseurs de demain</span></p></div>
+</footer>
+
+<script src="js/supabase.js"></script>
+<script src="js/main.js"></script>
+<script src="js/chatbot.js"></script>
+<script>
+// ═══════════════════════════════════════════
+//  INSCRIPTION LOGIC
+// ═══════════════════════════════════════════
+
+// --- NAVIGATION PAR ANCRE AU CHARGEMENT ---
+(function() {
+  const hash = window.location.hash;
+  if (hash === '#diplomante') switchType('diplomante');
+  else if (hash === '#courte') switchType('courte');
+  else if (hash === '#enligne') switchType('enligne');
+})();
+
+// --- STATE ---
+let selNiveau = '', selFiliere = '', selFC = '', selOLTitle = '', selOLPrix = 0;
+
+// --- SWITCH PANEL ---
+function switchType(type) {
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.insc-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + type).classList.add('active');
+  document.getElementById('panel-' + type).classList.add('active');
+  window.location.hash = type;
+  window.scrollTo({ top: document.querySelector('.type-selector-section').offsetTop - 70, behavior: 'smooth' });
+}
+
+// --- SÉLECTION DIPLÔME ---
+function selectDiplome(el, val) {
+  document.querySelectorAll('.dip-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selNiveau = val;
+  updatePreviewDip();
+}
+
+// --- SÉLECTION FILIÈRE ---
+function selectFiliere(el, ctx, val) {
+  const grid = document.getElementById('filiere-grid-' + ctx);
+  grid.querySelectorAll('.filiere-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selFiliere = val;
+  updatePreviewDip();
+}
+
+function updatePreviewDip() {
+  const p = document.getElementById('preview-dip');
+  if (selNiveau && selFiliere) {
+    p.innerHTML = '🎓 <strong>' + selNiveau + '</strong> · ' + selFiliere;
+  } else if (selNiveau) {
+    p.innerHTML = '🎓 Niveau : <strong>' + selNiveau + '</strong> · Sélectionnez une filière ↑';
+  } else if (selFiliere) {
+    p.innerHTML = '🌿 Filière : <strong>' + selFiliere + '</strong> · Sélectionnez un niveau ↑';
+  } else {
+    p.innerHTML = 'Sélectionnez un niveau et une filière pour personnaliser votre demande ↑';
+  }
+}
+
+// --- SÉLECTION FORMATION COURTE ---
+function selectFC(el, val) {
+  document.querySelectorAll('.fc-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selFC = val;
+  const price = el.querySelector('.fc-price').textContent;
+  document.getElementById('preview-fc').innerHTML = '📜 <strong>' + val + '</strong><br><span style="font-size:11.5px;color:rgba(212,175,55,.7)">' + price + '</span>';
+}
+
+// --- SÉLECTION EN LIGNE ---
+function selectOL(el, title, prix) {
+  document.querySelectorAll('.ol-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selOLTitle = title; selOLPrix = prix;
+  document.getElementById('preview-ol').innerHTML = '💻 <strong>' + title + '</strong><br><span style="font-size:11.5px;color:rgba(212,175,55,.7)">' + prix.toLocaleString('fr-FR') + ' FCFA · Accès à vie + certificat inclus</span>';
+}
+
+// --- SOUMISSION ---
+async function submitInscription(e, type) {
+  e.preventDefault();
+  const form = e.target;
+  const data = {};
+  new FormData(form).forEach((v,k) => data[k] = v);
+
+  // Validation sélection
+  if (type === 'diplomante' && (!selNiveau || !selFiliere)) {
+    alert('Veuillez sélectionner un niveau ET une filière avant d\'envoyer.');
+    return;
+  }
+  if (type === 'courte' && !selFC) {
+    alert('Veuillez sélectionner une formation courte.');
+    return;
+  }
+  if (type === 'enligne' && !selOLTitle) {
+    alert('Veuillez sélectionner une formation en ligne.');
+    return;
+  }
+
+  const btnId = {diplomante:'btn-dip', courte:'btn-fc', enligne:'btn-ol'}[type];
+  const btn = document.getElementById(btnId);
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px"><span style="width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--dark);border-radius:50%;animation:spin-i .7s linear infinite;display:inline-block"></span>Envoi en cours...</span>';
+
+  if (!document.getElementById('spin-i-css')) {
+    const s = document.createElement('style'); s.id = 'spin-i-css';
+    s.textContent = '@keyframes spin-i{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+
+  // Construire le résumé
+  let resume = '';
+  if (type === 'diplomante') resume = 'Formation : ' + selNiveau + ' — ' + selFiliere;
+  if (type === 'courte') resume = 'Formation courte : ' + selFC;
+  if (type === 'enligne') resume = 'Formation en ligne : ' + selOLTitle + ' (' + selOLPrix.toLocaleString('fr-FR') + ' FCFA)';
+
+  const ref = 'INSC-' + type.toUpperCase().slice(0,3) + '-' + Date.now().toString().slice(-6);
+  const fullName = (data.prenom || '') + ' ' + (data.nom || '');
+  const tel = data.telephone || '';
+
+  // Supabase
+  try {
+    await sb.query('inscriptions', {
+      method: 'POST',
+      body: {
+        prenom: data.prenom, nom: data.nom,
+        telephone: tel, email: data.email || null,
+        type_inscription: type, resume,
+        filiere: selFiliere || selFC || selOLTitle || null,
+        niveau: selNiveau || null,
+        ville: data.ville || null,
+        message: data.message || null,
+        paiement: data.paiement || null,
+        reference: ref, statut: 'nouveau', lu: false
+      }
+    });
+  } catch(err) { console.warn('Supabase inscription:', err); }
+
+  // Email via mailto (ouvre le client email)
+  const emailSubject = encodeURIComponent('Nouvelle inscription EPPRIDAD — ' + resume);
+  const emailBody = encodeURIComponent(
+    'Nouvelle demande d\'inscription EPPRIDAD\n\n' +
+    'Référence : ' + ref + '\n' +
+    'Type : ' + type + '\n' +
+    resume + '\n\n' +
+    'Nom : ' + fullName + '\n' +
+    'Téléphone : ' + tel + '\n' +
+    'Email : ' + (data.email || 'Non renseigné') + '\n' +
+    'Ville : ' + (data.ville || 'Non renseignée') + '\n' +
+    (data.paiement ? 'Paiement prévu : ' + data.paiement + '\n' : '') +
+    (data.disponibilite ? 'Disponibilité : ' + data.disponibilite + '\n' : '') +
+    '\nMessage : ' + (data.message || 'Aucun') + '\n\n' +
+    '— Envoyé depuis le site EPPRIDAD'
+  );
+
+  // WhatsApp message
+  const waMsg = encodeURIComponent(
+    '🎓 *Nouvelle inscription EPPRIDAD*\n' +
+    '📋 Réf. : ' + ref + '\n\n' +
+    '👤 *' + fullName + '*\n' +
+    '📞 ' + tel + '\n' +
+    '🏫 ' + resume + '\n' +
+    (data.ville ? '📍 ' + data.ville + '\n' : '') +
+    (data.paiement ? '💳 ' + data.paiement + '\n' : '') +
+    '\n— Site EPPRIDAD'
+  );
+
+  // Ouvrir email en arrière-plan
+  const mailLink = document.createElement('a');
+  mailLink.href = 'mailto:eppridad@gmail.com?subject=' + emailSubject + '&body=' + emailBody;
+  mailLink.style.display = 'none';
+  document.body.appendChild(mailLink);
+  mailLink.click();
+  setTimeout(() => mailLink.remove(), 1000);
+
+  // Afficher confirmation
+  const confirmId = {diplomante:'confirm-dip', courte:'confirm-fc', enligne:'confirm-ol'}[type];
+  const refId = {diplomante:'ref-dip', courte:'ref-fc', enligne:'ref-ol'}[type];
+  form.style.display = 'none';
+  document.getElementById(confirmId).classList.add('show');
+  document.getElementById(refId).textContent = '📋 Réf. : ' + ref;
+
+  // Proposer WhatsApp après 2 secondes
+  setTimeout(() => {
+    const waDiv = document.createElement('div');
+    waDiv.style.cssText = 'margin-top:14px';
+    waDiv.innerHTML = '<a href="https://wa.me/22799851532?text=' + waMsg + '" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;border-radius:9px;padding:11px 20px;font-size:13px;font-weight:700;text-decoration:none;font-family:Outfit,sans-serif">💬 Notifier l\'école sur WhatsApp</a>';
+    document.getElementById(confirmId).appendChild(waDiv);
+  }, 1500);
+}
+
+function resetForm(ctx) {
+  const map = {
+    dip: { form:'form-dip', confirm:'confirm-dip' },
+    fc:  { form:'form-fc',  confirm:'confirm-fc'  },
+    ol:  { form:'form-ol',  confirm:'confirm-ol'  }
+  };
+  const m = map[ctx];
+  document.getElementById(m.form).reset();
+  document.getElementById(m.form).style.display = '';
+  document.getElementById(m.confirm).classList.remove('show');
+  // Reset state
+  selNiveau = ''; selFiliere = ''; selFC = ''; selOLTitle = ''; selOLPrix = 0;
+  document.querySelectorAll('.dip-card,.filiere-chip,.fc-card,.ol-card').forEach(el => el.classList.remove('selected'));
+  if (ctx === 'dip') document.getElementById('preview-dip').innerHTML = 'Sélectionnez un niveau et une filière ↑';
+  if (ctx === 'fc') document.getElementById('preview-fc').innerHTML = 'Sélectionnez une formation ci-contre ↑';
+  if (ctx === 'ol') document.getElementById('preview-ol').innerHTML = 'Sélectionnez une formation ci-contre ↑';
+  const btnId = {dip:'btn-dip',fc:'btn-fc',ol:'btn-ol'}[ctx];
+  const btn = document.getElementById(btnId);
+  btn.disabled = false;
+  const labels = {dip:'📤 Envoyer ma demande d\'inscription',fc:'📤 Réserver ma place',ol:'🎓 Confirmer mon inscription'};
+  btn.innerHTML = '<span>' + labels[ctx] + '</span>';
+}
+
+// Surcharger selectFiliere pour passer le bon contexte
+document.querySelectorAll('#filiere-grid-dip .filiere-chip').forEach(chip => {
+  chip.addEventListener('click', () => {});
+});
+</script>
+
+  <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a5d1a,#0d3d0d);color:#fff;padding:12px 16px;align-items:center;gap:10px;z-index:99999;box-shadow:0 -4px 18px rgba(0,0,0,.3);font-family:sans-serif;">
+    <img src="/web-app-manifest-192x192.png" style="width:42px;height:42px;border-radius:9px;flex-shrink:0;" alt="EPPRIDAD">
+    <div style="flex:1;"><div style="font-size:13px;font-weight:700;">Installer l'app EPPRIDAD</div><div style="font-size:11px;opacity:.7;">Accès rapide · Fonctionne hors ligne</div></div>
+    <button onclick="installPWA()" style="background:#d4af37;color:#0a150a;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Installer</button>
+    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:7px;padding:8px 10px;font-size:13px;cursor:pointer;">✕</button>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          reg.addEventListener('updatefound', function() {
+            var nw = reg.installing;
+            nw.addEventListener('statechange', function() {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('Nouvelle version disponible. Recharger ?')) location.reload();
+              }
+            });
+          });
+        }).catch(function(e) { console.error('SW:', e); });
+      });
+    }
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault(); deferredPrompt = e;
+      var b = document.getElementById('pwa-banner');
+      if (b) b.style.display = 'flex';
+    });
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(r) {
+        if (r.outcome === 'accepted') document.getElementById('pwa-banner').style.display = 'none';
+        deferredPrompt = null;
+      });
+    }
+  </script>
+</body>
+</html>

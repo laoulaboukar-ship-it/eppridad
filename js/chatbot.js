@@ -65,7 +65,7 @@ STYLE DE RÉPONSE :
     const css = document.createElement('style');
     css.textContent = `
       #eppridad-chat-btn {
-        position:fixed; bottom:24px; right:24px; z-index:9998;
+        position:fixed; bottom:92px; right:24px; z-index:9998;
         width:58px; height:58px; border-radius:50%;
         background:linear-gradient(135deg,#1a5d1a,#2e7d2e);
         border:2px solid #d4af37; cursor:pointer;
@@ -84,7 +84,7 @@ STYLE DE RÉPONSE :
       @keyframes pulse-dot { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
 
       #eppridad-chat-box {
-        position:fixed; bottom:96px; right:24px; z-index:9999;
+        position:fixed; bottom:164px; right:24px; z-index:9999;
         width:360px; max-width:calc(100vw - 32px);
         background:#0d1f0d; border:1px solid rgba(212,175,55,.3);
         border-radius:16px; display:flex; flex-direction:column;
