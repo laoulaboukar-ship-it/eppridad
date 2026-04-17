@@ -671,6 +671,19 @@ function closePdfModal(){document.getElementById('pdfModal').style.display='none
 // ════════════════════════════════════════════════════════════
 //  ADMIN — CHARGEMENT DEPUIS SUPABASE
 // ════════════════════════════════════════════════════════════
+function showToast(msg, color) {
+  color = color || 'var(--primary)';
+  let t = document.getElementById('_eppr_toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = '_eppr_toast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:99999;transition:opacity .3s;pointer-events:none;font-family:inherit;color:#fff';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.background = color; t.style.opacity = '1';
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
+
 async function loadAdminDashboard(){
   showLoadingOverlay(true,'Chargement administration…');
   try{
@@ -714,6 +727,7 @@ function renderAdminDashboard(data){
   loadAdminStudents();
   loadAdminMessages();
   loadAdminLibrary_admin();
+  loadInscriptionsBadge();
 }
 
 // ── Étudiants admin ───────────────────────────────────────────
@@ -935,6 +949,124 @@ function changeAdminPwd(){
   showSuccess('✅ Mot de passe admin mis à jour.');
   document.getElementById('newAdminPwd').value='';
 }
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — PUBLICATIONS (panel infos)
+// ════════════════════════════════════════════════════════════
+let _adminPostType = 'actu';
+let _adminPostImgFile = null;
+
+function selPostType(btn, type) {
+  _adminPostType = type;
+  document.querySelectorAll('.ptype-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  const mf = document.getElementById('majorPostFields');
+  if (mf) mf.style.display = type === 'major' ? 'block' : 'none';
+}
+
+function previewPostImg(input) {
+  const file = input.files[0]; if (!file) return;
+  _adminPostImgFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('postImgPreview');
+    if (img) { img.src = e.target.result; img.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function publishPost() {
+  const title = document.getElementById('postTitle').value.trim();
+  const text  = document.getElementById('postText').value.trim();
+  if (!title) { alert('Veuillez saisir un titre.'); return; }
+  const btn = document.querySelector('#ap-infos .btn-block.btn-green-block');
+  if (btn) { btn.disabled = true; btn.textContent = 'Publication…'; }
+  try {
+    let imageUrl = null;
+    if (_adminPostImgFile) {
+      try {
+        const ext  = _adminPostImgFile.name.split('.').pop();
+        const path = `posts/${Date.now()}.${ext}`;
+        imageUrl   = await sbUpload('media', path, _adminPostImgFile);
+      } catch(e) {
+        imageUrl = await new Promise((res, rej) => {
+          const r = new FileReader(); r.onload = ev => res(ev.target.result); r.onerror = rej;
+          r.readAsDataURL(_adminPostImgFile);
+        });
+      }
+    }
+    await sb.insert('actualites', {
+      titre:           title,
+      contenu:         text,
+      categorie:       _adminPostType === 'major' ? 'resultat' : _adminPostType === 'results' ? 'resultat' : 'info',
+      type_post:       _adminPostType,
+      image_url:       imageUrl,
+      epingle:         document.getElementById('postPinned')?.checked || false,
+      publie:          true,
+      auteur:          'Administration EPPRIDAD',
+      major_nom:       document.getElementById('postMajorName')?.value.trim() || null,
+      major_filiere:   document.getElementById('postMajorFi')?.value.trim()   || null,
+      major_moy:       document.getElementById('postMajorMoy')?.value.trim()  || null,
+    });
+    // Reset form
+    ['postTitle','postText','postMajorName','postMajorFi','postMajorMoy'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    const pp = document.getElementById('postPinned'); if (pp) pp.checked = false;
+    const prev = document.getElementById('postImgPreview'); if (prev) { prev.style.display = 'none'; prev.src = ''; }
+    _adminPostImgFile = null;
+    await loadAdminPosts();
+    showSuccess('✅ Publication publiée !');
+  } catch(e) {
+    showError('Erreur publication: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📤 Publier'; }
+  }
+}
+
+async function loadAdminPosts() {
+  const list = document.getElementById('postsList'); if (!list) return;
+  try {
+    const posts = await sb.select('actualites', { select: '*', order: 'created_at.desc', limit: 30 });
+    if (!posts || !posts.length) {
+      list.innerHTML = '<p style="color:var(--text3);font-size:13px">Aucune publication.</p>'; return;
+    }
+    const typeIcons = { actu:'📢', major:'🏆', results:'📊', photo:'📸', video:'🎬', info:'ℹ️' };
+    list.innerHTML = posts.map(p => `
+      <div class="s-card" style="margin-bottom:10px;padding:12px 14px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="font-size:22px">${typeIcons[p.type_post] || typeIcons[p.categorie] || '📢'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:13.5px;color:var(--text1)">${p.epingle ? '📌 ' : ''}${p.titre}</div>
+            <div style="font-size:11.5px;color:var(--text3);margin-top:2px">${new Date(p.created_at).toLocaleDateString('fr-FR')} · ${p.auteur || 'Admin'}</div>
+            ${p.contenu ? `<div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">${(p.contenu||'').substring(0,100)}${(p.contenu||'').length>100?'...':''}</div>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+            <button class="btn-sm" onclick="togglePinPost('${p.id}',${p.epingle})" style="font-size:11px">${p.epingle ? '📌 Désépingler' : '📌 Épingler'}</button>
+            <button class="btn-sm btn-danger-sm" onclick="deleteAdminPost('${p.id}')" style="font-size:11px">🗑 Supprimer</button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) { list.innerHTML = `<p style="color:var(--danger);font-size:13px">Erreur: ${e.message}</p>`; }
+}
+
+async function togglePinPost(id, pinned) {
+  try {
+    await sb.update('actualites', { epingle: !pinned }, { col: 'id', val: `eq.${id}` });
+    await loadAdminPosts();
+    showSuccess(!pinned ? '📌 Publication épinglée' : 'Publication désépinglée');
+  } catch(e) { showError('Erreur: ' + e.message); }
+}
+
+async function deleteAdminPost(id) {
+  if (!confirm('Supprimer cette publication ?')) return;
+  try {
+    await sb.del('actualites', { col: 'id', val: `eq.${id}` });
+    await loadAdminPosts();
+    showSuccess('Publication supprimée.');
+  } catch(e) { showError('Erreur: ' + e.message); }
+}
+
 
 // ── Impersonate ───────────────────────────────────────────────
 async function impersonateStudent(matricule){
@@ -1457,22 +1589,12 @@ async function updateInscriptionStatus(id, status) {
   } catch(e) { alert('Erreur: ' + e.message); }
 }
 
-// Hook into existing aPanel function to load data when switching
-const _origAPanel = typeof aPanel === 'function' ? aPanel : null;
-function aPanel(id, el) {
-  if (_origAPanel) _origAPanel(id, el);
-  if (id === 'marketplace') setTimeout(loadProducts, 100);
-  if (id === 'inscriptions') setTimeout(loadInscriptions, 100);
+// Badge inscriptions chargé au démarrage admin
+async function loadInscriptionsBadge(){
+  try{
+    const inscriptions=await sb.select('inscriptions',{filters:[{col:'statut',val:'eq.nouveau'}],limit:99}).catch(()=>[]);
+    const badge=document.getElementById('inscBadge');
+    if(badge)badge.textContent=(inscriptions||[]).length||'0';
+  }catch(e){}
 }
-
-// Load inscription badge on admin login
-document.addEventListener('eppridad-admin-ready', async function() {
-  try {
-    const inscriptions = await sb.select('inscriptions', {
-      filters: [{ col: 'statut', val: 'eq.nouveau' }], limit: 99
-    });
-    const badge = document.getElementById('inscBadge');
-    if (badge && inscriptions) badge.textContent = inscriptions.length || '0';
-  } catch(e) {}
-});
 

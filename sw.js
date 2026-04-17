@@ -1,6 +1,6 @@
 // EPPRIDAD Service Worker v5 — Full Offline + IA ready
-const CACHE = 'eppridad-v5';
-const CACHE_IMG = 'eppridad-img-v5';
+const CACHE = 'eppridad-v6';
+const CACHE_IMG = 'eppridad-img-v6';
 
 const CORE = [
   '/index.html', '/ecole.html', '/filieres.html', '/services.html',

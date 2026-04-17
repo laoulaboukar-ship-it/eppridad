@@ -85,6 +85,7 @@ async function sbUpload(bucket, path, file) {
 // Toasts
 function showSuccess(msg) { _toast(msg,'#1a6644','✅'); }
 function showError(msg)   { _toast(msg,'#7a1a1a','❌'); }
+function showToast(msg,color){ _toast(msg, color||'#1a5d1a', 'ℹ️'); }
 function _toast(msg,bg,icon) {
   const t=document.createElement('div');
   t.style.cssText=`position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:${bg};color:white;padding:14px 22px;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;z-index:999999;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center`;
