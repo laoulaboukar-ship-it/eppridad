@@ -408,6 +408,11 @@
       <div class="admin-nav-item" onclick="aPanel('inscriptions',this)">✍️ Demandes <span class="admin-badge" id="inscBadge">0</span></div>
       <div class="admin-nav-item" onclick="aPanel('contacts',this)">📩 Contacts reçus</div>
 
+      <div class="admin-nav-section">Formations en ligne</div>
+      <div class="admin-nav-item" onclick="aPanel('formations_el',this)">🎓 Formations & Modules</div>
+      <div class="admin-nav-item" onclick="aPanel('acces_el',this)">🔑 Accès apprenants</div>
+      <div class="admin-nav-item" onclick="aPanel('exercices_el',this)">📋 Exercices soumis</div>
+
       <div class="admin-nav-section">Commerce</div>
       <div class="admin-nav-item" onclick="aPanel('marketplace',this)">🌿 Boutique produits</div>
       <div class="admin-nav-item" onclick="aPanel('commandes',this)">🛒 Commandes <span class="admin-badge" id="cmdBadge">0</span></div>
@@ -690,6 +695,77 @@
         </div>
         <div id="contactsList">
           <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- FORMATIONS EN LIGNE — GESTION CONTENU -->
+      <div id="ap-formations_el" class="ap">
+        <div class="s-title-row">
+          <div class="s-title">🎓 Formations en ligne</div>
+          <button class="btn-sm" onclick="aPanel('acces_el',null)" style="background:var(--primary);color:#fff;border:none">🔑 Gérer les accès</button>
+        </div>
+        <div id="elFormationsList">
+          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement…</div>
+        </div>
+      </div>
+
+      <!-- ACCÈS APPRENANTS -->
+      <div id="ap-acces_el" class="ap">
+        <div class="s-title-row">
+          <div class="s-title">🔑 Accès apprenants</div>
+          <button class="btn-sm" onclick="showGiveAccesForm()" style="background:var(--primary);color:#fff;border:none">+ Donner un accès</button>
+        </div>
+        <!-- Formulaire donner accès -->
+        <div id="giveAccesForm" style="display:none" class="s-card">
+          <div class="s-title" style="font-size:16px;margin-bottom:16px">🎓 Activer l'accès d'un apprenant</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="admin-form-group">
+              <label class="admin-form-label">Matricule / Identifiant *</label>
+              <input class="admin-form-input" id="acces-matricule" placeholder="Ex: ENL-2025-AGR-001">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">Mot de passe initial</label>
+              <input class="admin-form-input" id="acces-pwd" placeholder="eppridad2025" value="eppridad2025">
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Formation *</label>
+            <select class="admin-form-select" id="acces-formation">
+              <option value="">-- Choisir une formation --</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Durée d'accès</label>
+            <select class="admin-form-select" id="acces-duree">
+              <option value="90">3 mois</option>
+              <option value="180" selected>6 mois</option>
+              <option value="365">1 an</option>
+              <option value="">Illimité</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Note (optionnel)</label>
+            <input class="admin-form-input" id="acces-note" placeholder="Réf paiement, nom complet…">
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-block btn-green-block" onclick="giveAcces()" style="flex:1">✅ Activer l'accès</button>
+            <button onclick="document.getElementById('giveAccesForm').style.display='none'" style="padding:12px 18px;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:inherit">✕</button>
+          </div>
+        </div>
+        <!-- Liste des accès -->
+        <div id="acesList">
+          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement…</div>
+        </div>
+      </div>
+
+      <!-- EXERCICES SOUMIS -->
+      <div id="ap-exercices_el" class="ap">
+        <div class="s-title-row">
+          <div class="s-title">📋 Exercices à corriger</div>
+          <button class="btn-sm" onclick="loadExercicesSoumis()" style="font-size:12px">🔄 Actualiser</button>
+        </div>
+        <div id="exercicesSoumisList">
+          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement…</div>
         </div>
       </div>
 

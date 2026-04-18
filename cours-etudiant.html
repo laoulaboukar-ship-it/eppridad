@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mon Cours — EPPRIDAD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16503f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+/* ══════════════════════════════════════════════════════
+   COURS ÉTUDIANT — Espace apprentissage premium
+══════════════════════════════════════════════════════ */
+:root{
+  --g:#16503f;--gl:#1e6b54;--gd:#0b2f25;--gp:#e8f5f0;
+  --acc:#C9A84C;--acl:#e4c06a;--acp:#fdf6e3;
+  --dk:#07120e;--dk2:#0d1f17;
+  --sf:#fff;--sf2:#f4f8f6;--sf3:#eaf2ee;
+  --bdr:rgba(22,80,63,.1);--bdr2:rgba(22,80,63,.2);
+  --txt:#091f17;--tx2:#2a5c44;--tx3:#5a8a72;
+  --err:#e53935;--ok:#2e7d52;--warn:#f59e0b;
+  --sh:0 4px 20px rgba(0,0,0,.08);--shl:0 16px 48px rgba(0,0,0,.14);
+  --r:14px;--rl:22px;--rx:28px;
+  --tr:.22s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;font-size:15px}
+body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--txt);background:var(--sf2);overflow-x:hidden;min-height:100vh;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+a{text-decoration:none;color:inherit}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes confetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(-120px) rotate(720deg);opacity:0}}
+
+/* ══ PAGE LOGIN ══ */
+#login-page{
+  min-height:100vh;display:none;align-items:stretch;
+  background:var(--dk);
+}
+#login-page.active{display:flex}
+.lp-left{
+  flex:0 0 54%;
+  background:linear-gradient(148deg,#060e0a 0%,#0b2f25 35%,#16503f 65%,#0d3d2e 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:60px 50px;position:relative;overflow:hidden;
+}
+.lp-left::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 25% 75%,rgba(201,168,76,.08),transparent 55%),
+             radial-gradient(ellipse at 75% 25%,rgba(22,80,63,.4),transparent 55%)}
+.lp-left-orb{position:absolute;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,.06),transparent 65%);
+  top:-150px;right:-150px;pointer-events:none}
+.lp-left-content{position:relative;z-index:1;max-width:420px}
+.lp-logo-row{display:flex;align-items:center;gap:16px;margin-bottom:48px}
+.lp-logo-circle{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.06);
+  border:2px solid rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.lp-logo-circle img{width:44px;height:44px;object-fit:contain}
+.lp-brand{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--acc)}
+.lp-sub{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2.5px;text-transform:uppercase;margin-top:2px}
+.lp-left h1{font-family:'Playfair Display',serif;font-size:clamp(32px,3.5vw,44px);
+  font-weight:700;color:#fff;line-height:1.08;margin-bottom:16px}
+.lp-left h1 em{color:var(--acc);font-style:normal}
+.lp-left p{font-size:14px;color:rgba(255,255,255,.5);line-height:1.85;margin-bottom:36px}
+.lp-features{display:flex;flex-direction:column;gap:12px}
+.lp-feat{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px}
+.lp-feat-icon{font-size:22px;flex-shrink:0}
+.lp-feat-text{font-size:13px;color:rgba(255,255,255,.65)}
+.lp-feat-text strong{display:block;color:#fff;font-size:13.5px;margin-bottom:2px}
+.lp-right{
+  flex:1;background:#0f1c15;display:flex;align-items:center;
+  justify-content:center;padding:40px 32px;position:relative;
+}
+.lp-right::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(22,80,63,.2),transparent 60%);pointer-events:none}
+.lp-box{width:100%;max-width:400px;position:relative;z-index:1}
+.lp-box-logo{display:none;text-align:center;margin-bottom:24px}
+.form-heading{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:6px}
+.form-sub{font-size:13px;color:rgba(255,255,255,.38);margin-bottom:22px;line-height:1.6}
+.form-label{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:7px}
+.form-input{width:100%;padding:13px 16px;border:1.5px solid rgba(255,255,255,.1);border-radius:12px;
+  font-size:15px;font-weight:500;color:#fff;background:rgba(255,255,255,.07);
+  transition:all .2s;outline:none;font-family:inherit}
+.form-input::placeholder{color:rgba(255,255,255,.22);font-weight:400}
+.form-input:focus{border-color:var(--acc);background:rgba(255,255,255,.11);box-shadow:0 0 0 3px rgba(201,168,76,.12)}
+.form-group{margin-bottom:18px}
+.form-err{display:none;background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.3);
+  color:#ff7070;font-size:13px;padding:11px 14px;border-radius:10px;margin-bottom:14px}
+.form-err.show{display:block}
+.btn-login{display:block;width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--gl),#22865a);color:#fff;
+  border-radius:13px;font-size:15px;font-weight:700;transition:all .2s;border:none;
+  box-shadow:0 4px 18px rgba(22,80,63,.4);letter-spacing:.3px}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 26px rgba(22,80,63,.55)}
+.btn-login:active{transform:translateY(0);box-shadow:none}
+.btn-loading{position:relative;color:transparent!important}
+.btn-loading::after{content:'';position:absolute;inset:0;margin:auto;width:20px;height:20px;
+  border:2.5px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@media(max-width:860px){.lp-left{display:none}.lp-box-logo{display:block}}
+
+/* ══ PAGE COURS ══ */
+#cours-page{display:none;min-height:100vh;flex-direction:column}
+#cours-page.active{display:flex}
+
+/* ── TOPBAR ── */
+.cours-topbar{
+  height:60px;background:var(--dk2);
+  display:flex;align-items:center;padding:0 20px;
+  position:sticky;top:0;z-index:200;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  box-shadow:0 2px 16px rgba(0,0,0,.3);
+}
+.ctb-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;margin-right:20px}
+.ctb-logo-img{width:32px;height:32px;border-radius:8px;border:1px solid rgba(201,168,76,.3);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ctb-logo-img img{width:24px;height:24px;object-fit:contain}
+.ctb-logo-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--acc)}
+.ctb-sep{width:1px;height:28px;background:rgba(255,255,255,.08);flex-shrink:0}
+.ctb-course-name{font-size:13.5px;font-weight:600;color:rgba(255,255,255,.7);margin:0 16px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctb-progress-bar{flex:0 0 160px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-right:10px}
+.ctb-progress-fill{height:100%;border-radius:3px;background:linear-gradient(to right,var(--acc),var(--acl));transition:width .5s ease}
+.ctb-progress-text{font-size:11.5px;color:var(--acc);font-weight:700;white-space:nowrap;margin-right:16px}
+.ctb-user{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.ctb-avatar{width:34px;height:34px;border-radius:10px;background:rgba(201,168,76,.2);border:1.5px solid rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--acc)}
+.ctb-username{font-size:12.5px;color:rgba(255,255,255,.55);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctb-logout{margin-left:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 10px;font-size:12px;color:rgba(255,255,255,.45);transition:all .2s;cursor:pointer}
+.ctb-logout:hover{background:rgba(229,57,53,.15);border-color:rgba(229,57,53,.3);color:#ff7070}
+
+/* ── LAYOUT COURS ── */
+.cours-layout{display:flex;flex:1;min-height:0}
+
+/* ── SIDEBAR COURS ── */
+.cours-sidebar{
+  width:300px;background:var(--sf);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;
+  transition:transform .3s;
+}
+.sidebar-header{
+  padding:16px 18px;border-bottom:1px solid var(--bdr);
+  background:linear-gradient(135deg,var(--gd),var(--g));color:#fff;flex-shrink:0;
+}
+.sidebar-course-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3}
+.sidebar-course-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.sidebar-prog{margin-top:10px}
+.sidebar-prog-bar{height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:5px}
+.sidebar-prog-fill{height:100%;background:var(--acc);border-radius:2px;transition:width .5s}
+.sidebar-prog-text{font-size:11px;color:rgba(255,255,255,.6)}
+.sidebar-modules{flex:1;overflow-y:auto;padding:8px 0}
+.sidebar-modules::-webkit-scrollbar{width:3px}
+.sidebar-modules::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
+.module-group{border-bottom:1px solid var(--bdr)}
+.module-group-header{
+  padding:12px 16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:13px;font-weight:700;color:var(--txt);
+  transition:background .15s;user-select:none;
+}
+.module-group-header:hover{background:var(--sf2)}
+.module-group-header.active{color:var(--g)}
+.module-group-num{width:24px;height:24px;border-radius:6px;background:var(--sf3);
+  font-size:11px;font-weight:700;color:var(--tx2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:10px}
+.module-group-header.done .module-group-num{background:#e8f5e9;color:var(--ok)}
+.module-group-header.active .module-group-num{background:var(--g);color:#fff}
+.module-group-chevron{font-size:11px;color:var(--tx3);transition:transform .2s;flex-shrink:0}
+.module-group-chevron.open{transform:rotate(90deg)}
+.module-items{display:none;padding:4px 0 8px}
+.module-items.open{display:block}
+.module-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px 8px 24px;cursor:pointer;
+  font-size:12.5px;color:var(--tx2);transition:all .15s;
+  border-left:3px solid transparent;margin-left:16px;
+}
+.module-item:hover{background:var(--sf2);color:var(--g)}
+.module-item.active{background:var(--gp);border-left-color:var(--g);color:var(--g);font-weight:600}
+.module-item.done{color:var(--ok)}
+.mi-icon{font-size:14px;flex-shrink:0}
+.mi-check{margin-left:auto;font-size:13px;color:var(--ok);flex-shrink:0}
+.mi-lock{margin-left:auto;font-size:12px;color:var(--tx3);flex-shrink:0}
+
+/* ── CONTENU PRINCIPAL ── */
+.cours-main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.cours-main::-webkit-scrollbar{width:5px}
+.cours-main::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
+
+/* ── PLAYER ZONE ── */
+.player-zone{background:var(--dk);flex-shrink:0;position:relative}
+.video-container{width:100%;aspect-ratio:16/9;background:#000;display:flex;align-items:center;justify-content:center;position:relative;max-height:60vh}
+.video-container iframe{width:100%;height:100%;border:none}
+.video-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.4);font-size:14px;gap:12px}
+.video-placeholder .vp-icon{font-size:60px;opacity:.3}
+.pdf-viewer{width:100%;min-height:400px;background:#f5f5f5;border:none;display:block}
+
+/* ── CONTENT ZONE ── */
+.content-zone{flex:1;padding:28px 32px;max-width:860px;width:100%}
+
+.resource-header{margin-bottom:24px;animation:fadeUp .3s ease}
+.resource-type-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--gp);border:1px solid var(--bdr2);
+  color:var(--g);font-size:11px;font-weight:700;
+  padding:4px 12px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase;
+  margin-bottom:10px;
+}
+.resource-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--txt);margin-bottom:8px;line-height:1.2}
+.resource-meta{display:flex;align-items:center;gap:14px;font-size:12.5px;color:var(--tx3);flex-wrap:wrap}
+.resource-meta span{display:flex;align-items:center;gap:5px}
+
+/* ── TABS ── */
+.content-tabs{display:flex;gap:0;border-bottom:2px solid var(--bdr);margin-bottom:24px;overflow-x:auto}
+.ctab{padding:10px 18px;font-size:13.5px;font-weight:600;color:var(--tx3);border-bottom:2px solid transparent;cursor:pointer;transition:all .18s;white-space:nowrap;margin-bottom:-2px}
+.ctab:hover{color:var(--g)}
+.ctab.active{color:var(--g);border-bottom-color:var(--g)}
+
+/* ── CONTENU TABS ── */
+.tab-pane{display:none;animation:fadeUp .25s ease}
+.tab-pane.active{display:block}
+
+/* Contenu & Description */
+.content-description{font-size:14.5px;color:var(--tx2);line-height:1.85;margin-bottom:20px}
+.content-objetifs{background:var(--gp);border:1px solid var(--bdr2);border-radius:var(--r);padding:18px 20px;margin-bottom:20px}
+.content-objetifs h4{font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.obj-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:13.5px;color:var(--txt)}
+.obj-dot{width:6px;height:6px;border-radius:50%;background:var(--g);flex-shrink:0;margin-top:7px}
+.mark-done-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--g);color:#fff;border:none;border-radius:10px;
+  padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .2s;margin-top:8px;font-family:inherit;
+}
+.mark-done-btn:hover{background:var(--gl);transform:translateY(-1px);box-shadow:0 4px 14px rgba(22,80,63,.3)}
+.mark-done-btn.done-state{background:#e8f5e9;color:var(--ok);border:1px solid rgba(46,125,82,.3)}
+
+/* Exercices */
+.exercise-card{background:var(--sf);border:1px solid var(--bdr);border-radius:var(--rl);padding:22px;margin-bottom:16px;animation:fadeUp .3s ease}
+.exercise-card h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--txt);margin-bottom:10px}
+.exercise-card p{font-size:13.5px;color:var(--tx2);line-height:1.7;margin-bottom:14px}
+.exercise-textarea{width:100%;min-height:120px;padding:12px 14px;border:1.5px solid var(--bdr2);border-radius:10px;font-size:13.5px;color:var(--txt);font-family:inherit;resize:vertical;outline:none;transition:border-color .2s}
+.exercise-textarea:focus{border-color:var(--g);box-shadow:0 0 0 3px var(--gp)}
+.exercise-file-zone{border:2px dashed var(--bdr2);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;background:var(--sf2);margin-bottom:12px}
+.exercise-file-zone:hover{border-color:var(--g);background:var(--gp)}
+.exercise-file-zone .efz-icon{font-size:28px;margin-bottom:6px}
+.exercise-file-zone .efz-text{font-size:13px;font-weight:600;color:var(--tx2)}
+.exercise-file-zone .efz-sub{font-size:11px;color:var(--tx3);margin-top:3px}
+.btn-submit-ex{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--g),var(--gl));color:#fff;
+  border:none;border-radius:10px;padding:12px 22px;
+  font-size:13.5px;font-weight:700;cursor:pointer;
+  transition:all .2s;font-family:inherit;
+}
+.btn-submit-ex:hover{opacity:.92;transform:translateY(-1px)}
+.ex-status{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-top:10px}
+.ex-status.soumis{background:#e3f2fd;color:#0d47a1}
+.ex-status.valide{background:#e8f5e9;color:var(--ok)}
+.ex-status.rejete{background:#ffebee;color:var(--err)}
+
+/* ── QUIZ ── */
+.quiz-container{animation:fadeUp .3s ease}
+.quiz-header{background:linear-gradient(135deg,var(--gd),var(--g));color:#fff;border-radius:var(--rl);padding:22px 26px;margin-bottom:22px}
+.quiz-header h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:6px}
+.quiz-header p{font-size:13px;color:rgba(255,255,255,.65)}
+.quiz-progress{display:flex;align-items:center;gap:12px;margin-top:14px}
+.quiz-bar-bg{flex:1;height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden}
+.quiz-bar-fill{height:100%;background:var(--acc);border-radius:3px;transition:width .3s}
+.quiz-q-num{font-size:12px;color:rgba(255,255,255,.6);white-space:nowrap}
+.question-card{background:var(--sf);border:1px solid var(--bdr);border-radius:var(--rl);padding:24px;margin-bottom:16px}
+.question-text{font-size:15.5px;font-weight:600;color:var(--txt);margin-bottom:18px;line-height:1.55}
+.options-grid{display:flex;flex-direction:column;gap:10px}
+.option-btn{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 16px;border:1.5px solid var(--bdr);border-radius:12px;
+  cursor:pointer;transition:all .18s;background:var(--sf2);
+  text-align:left;font-size:13.5px;color:var(--txt);font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+.option-btn:hover{border-color:var(--g);background:var(--gp);color:var(--g)}
+.option-btn.selected{border-color:var(--g);background:var(--gp);color:var(--g);font-weight:600}
+.option-btn.correct{border-color:var(--ok);background:#e8f5e9;color:var(--ok)}
+.option-btn.wrong{border-color:var(--err);background:#ffebee;color:var(--err)}
+.option-letter{width:30px;height:30px;border-radius:8px;background:var(--bdr);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.option-btn.selected .option-letter{background:var(--g);color:#fff}
+.option-btn.correct .option-letter{background:var(--ok);color:#fff}
+.option-btn.wrong .option-letter{background:var(--err);color:#fff}
+.quiz-explanation{margin-top:12px;padding:12px 14px;border-radius:9px;font-size:13px;color:var(--tx2);line-height:1.6;display:none}
+.quiz-explanation.show{display:block;animation:fadeUp .2s ease}
+.quiz-explanation.ok-exp{background:#e8f5e9;border-left:3px solid var(--ok)}
+.quiz-explanation.err-exp{background:#ffebee;border-left:3px solid var(--err)}
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.btn-quiz-nav{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 22px;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .2s;font-family:inherit;border:none;
+}
+.btn-quiz-prev{background:var(--sf2);border:1px solid var(--bdr);color:var(--tx2)}
+.btn-quiz-prev:hover{background:var(--sf3)}
+.btn-quiz-next{background:var(--g);color:#fff;box-shadow:0 4px 14px rgba(22,80,63,.3)}
+.btn-quiz-next:hover{background:var(--gl);transform:translateY(-1px)}
+.btn-quiz-next:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ── RÉSULTATS QUIZ ── */
+.quiz-result{text-align:center;padding:30px 20px;animation:fadeUp .4s ease}
+.quiz-result-icon{font-size:72px;margin-bottom:16px;display:block}
+.quiz-result-score{font-family:'Playfair Display',serif;font-size:56px;font-weight:700;line-height:1}
+.quiz-result-label{font-size:14px;color:var(--tx3);margin-bottom:20px}
+.quiz-result-badge{display:inline-block;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:700;margin-bottom:24px}
+.qr-pass{background:#e8f5e9;color:var(--ok)}
+.qr-fail{background:#ffebee;color:var(--err)}
+.quiz-result-details{background:var(--sf2);border-radius:var(--r);padding:16px;margin-bottom:20px;font-size:13.5px;color:var(--tx2);line-height:1.8;text-align:left}
+.btn-retry{display:inline-flex;align-items:center;gap:8px;background:var(--sf2);border:1px solid var(--bdr);border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--tx2);font-family:inherit;margin-right:10px}
+.btn-retry:hover{background:var(--sf3)}
+
+/* ── CERTIFICAT ── */
+.cert-unlock{text-align:center;padding:40px 20px;animation:fadeUp .4s ease}
+.cert-unlock-icon{font-size:80px;margin-bottom:20px;display:block}
+.cert-unlock h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--g);margin-bottom:10px}
+.cert-unlock p{font-size:14px;color:var(--tx2);line-height:1.7;max-width:480px;margin:0 auto 24px}
+.cert-card{
+  background:linear-gradient(135deg,#0b2f25 0%,#16503f 50%,#0d3d2e 100%);
+  border:3px solid var(--acc);border-radius:var(--rx);
+  padding:40px;max-width:640px;margin:0 auto 28px;
+  position:relative;overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+.cert-card::before{content:'';position:absolute;top:-30px;right:-30px;width:200px;height:200px;
+  border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.1),transparent 70%)}
+.cert-watermark{position:absolute;bottom:20px;right:20px;font-size:60px;opacity:.04}
+.cert-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.cert-logo-area{display:flex;align-items:center;gap:12px}
+.cert-logo-img{width:48px;height:48px;border-radius:12px;overflow:hidden;border:2px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08)}
+.cert-logo-img img{width:36px;height:36px;object-fit:contain}
+.cert-school{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--acc);letter-spacing:.5px}
+.cert-school-sub{font-size:9.5px;color:rgba(255,255,255,.35);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.cert-number{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px;font-family:monospace}
+.cert-body{text-align:center;position:relative;z-index:1}
+.cert-certifies{font-size:12px;color:rgba(255,255,255,.45);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.cert-name{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--acc);margin-bottom:6px;line-height:1.1}
+.cert-completed{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:8px}
+.cert-formation{font-family:'Playfair Display',serif;font-size:19px;color:#fff;font-weight:600;line-height:1.3;margin-bottom:16px;padding:0 20px}
+.cert-mention-badge{display:inline-block;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.35);color:var(--acc);font-size:12px;font-weight:700;padding:5px 16px;border-radius:20px;margin-bottom:20px}
+.cert-footer{display:flex;align-items:flex-end;justify-content:space-between;padding-top:20px;border-top:1px solid rgba(201,168,76,.2)}
+.cert-sig{text-align:center}
+.cert-sig-line{width:120px;height:1px;background:rgba(255,255,255,.2);margin:6px auto}
+.cert-sig-name{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:2px}
+.cert-sig-title{font-size:9px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1px}
+.cert-qr-area{text-align:center}
+.cert-qr-box{width:48px;height:48px;background:rgba(255,255,255,.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 4px}
+.cert-qr-text{font-size:8px;color:rgba(255,255,255,.25);letter-spacing:.5px}
+.btn-download-cert{
+  display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--acc),var(--acl));
+  color:var(--dk);border:none;border-radius:12px;
+  padding:14px 28px;font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;font-family:inherit;
+  box-shadow:0 6px 20px rgba(201,168,76,.35);
+}
+.btn-download-cert:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(201,168,76,.45)}
+
+/* ── OVERLAY LOADING ── */
+.cours-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(7,18,14,.92);backdrop-filter:blur(4px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+.overlay-spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.1);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite}
+.overlay-text{font-size:14px;color:rgba(255,255,255,.6);font-weight:500}
+
+/* ── TOAST ── */
+.cours-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--dk2);color:#fff;padding:12px 22px;border-radius:12px;
+  font-size:14px;font-weight:600;z-index:9998;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+  transition:opacity .3s;pointer-events:none;white-space:nowrap;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+/* ── MOBILE NAV ── */
+.cours-mobile-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;
+  background:var(--dk2);border-top:1px solid rgba(255,255,255,.08);
+  flex-direction:row;padding:6px 0 max(6px,env(safe-area-inset-bottom));
+  box-shadow:0 -4px 20px rgba(0,0,0,.25);
+}
+.cmn-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;color:rgba(255,255,255,.35);font-size:10px;font-weight:600;
+  padding:6px 4px;cursor:pointer;transition:color .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.cmn-item.active{color:var(--acc)}
+.cmn-icon{font-size:20px;line-height:1}
+
+/* ── MOBILE SIDEBAR OVERLAY ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150}
+.sidebar-overlay.show{display:block}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .cours-sidebar{position:fixed;left:0;top:60px;bottom:0;z-index:200;transform:translateX(-100%)}
+  .cours-sidebar.open{transform:translateX(0);box-shadow:4px 0 30px rgba(0,0,0,.3)}
+  .content-zone{padding:16px}
+  .cours-mobile-nav{display:flex}
+  .cours-main{padding-bottom:70px}
+  .ctb-progress-bar,.ctb-progress-text,.ctb-username{display:none}
+  .cert-card{padding:24px 18px}
+  .cert-name{font-size:24px}
+}
+@media(max-width:600px){
+  .resource-title{font-size:22px}
+  .question-text{font-size:14px}
+  .cert-footer{flex-direction:column;gap:14px;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<!-- OVERLAY CHARGEMENT -->
+<div class="cours-overlay" id="coursOverlay">
+  <div class="overlay-spinner"></div>
+  <div class="overlay-text" id="overlayText">Chargement…</div>
+</div>
+
+<!-- ══ PAGE LOGIN ══ -->
+<div id="login-page" class="active">
+  <div class="lp-left">
+    <div class="lp-left-orb"></div>
+    <div class="lp-left-content">
+      <div class="lp-logo-row">
+        <div class="lp-logo-circle"><img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'"></div>
+        <div>
+          <div class="lp-brand">EPPRIDAD</div>
+          <div class="lp-sub">Portail Formations en Ligne</div>
+        </div>
+      </div>
+      <h1>Votre espace<br><em>d'apprentissage</em><br>personnel</h1>
+      <p>Accédez à vos cours, progressez à votre rythme et obtenez votre certificat EPPRIDAD.</p>
+      <div class="lp-features">
+        <div class="lp-feat">
+          <div class="lp-feat-icon">📹</div>
+          <div class="lp-feat-text"><strong>Vidéos & Guides pratiques</strong>Contenu expert, adapté au contexte sahélien nigérien</div>
+        </div>
+        <div class="lp-feat">
+          <div class="lp-feat-icon">✅</div>
+          <div class="lp-feat-text"><strong>Validation module par module</strong>Quiz de 20 questions · Score minimum 70%</div>
+        </div>
+        <div class="lp-feat">
+          <div class="lp-feat-icon">🏅</div>
+          <div class="lp-feat-text"><strong>Certificat officiel numéroté</strong>PDF téléchargeable · Code de vérification unique</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="lp-right">
+    <div class="lp-box">
+      <div class="lp-box-logo"><img src="images/logo.png" alt="EPPRIDAD" style="height:50px;object-fit:contain"></div>
+      <h2 class="form-heading">Accès à votre cours</h2>
+      <p class="form-sub">Entrez vos identifiants transmis par EPPRIDAD après validation de votre paiement.</p>
+      <div id="loginErr" class="form-err"></div>
+      <div class="form-group">
+        <label class="form-label">Identifiant</label>
+        <input class="form-input" type="text" id="loginId" placeholder="Ex: ENL-2025-AGR-001" autocomplete="username" spellcheck="false" autocapitalize="characters">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input class="form-input" type="password" id="loginPwd" placeholder="Votre mot de passe" autocomplete="current-password">
+      </div>
+      <button class="btn-login" id="loginBtn" onclick="doCoursLogin()">🎓 Accéder à mon cours</button>
+      <p style="font-size:12px;color:rgba(255,255,255,.25);text-align:center;margin-top:18px;line-height:1.6">
+        Vous n'avez pas encore de compte ?<br>
+        <a href="formations-en-ligne.html" style="color:var(--acc)">Découvrir les formations →</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE COURS ══ -->
+<div id="cours-page">
+
+  <!-- TOPBAR -->
+  <div class="cours-topbar">
+    <div class="ctb-logo">
+      <div class="ctb-logo-img"><img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'"></div>
+      <div class="ctb-logo-name">EPPRIDAD</div>
+    </div>
+    <div class="ctb-sep"></div>
+    <div class="ctb-course-name" id="ctbCourseName">—</div>
+    <div class="ctb-progress-bar"><div class="ctb-progress-fill" id="ctbProgressFill" style="width:0%"></div></div>
+    <div class="ctb-progress-text" id="ctbProgressText">0%</div>
+    <div class="ctb-user">
+      <div class="ctb-avatar" id="ctbAvatar">?</div>
+      <div class="ctb-username" id="ctbUsername"></div>
+      <button class="ctb-logout" onclick="doLogout()" title="Déconnexion">Quitter</button>
+    </div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="cours-layout">
+
+    <!-- SIDEBAR MODULES -->
+    <div class="cours-sidebar" id="coursSidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-course-title" id="sidebarTitle">—</div>
+        <div class="sidebar-course-sub" id="sidebarSub">—</div>
+        <div class="sidebar-prog">
+          <div class="sidebar-prog-bar"><div class="sidebar-prog-fill" id="sidebarProgFill" style="width:0%"></div></div>
+          <div class="sidebar-prog-text" id="sidebarProgText">0 / 0 ressources complétées</div>
+        </div>
+      </div>
+      <div class="sidebar-modules" id="sidebarModules">
+        <div style="padding:20px;text-align:center;color:var(--tx3);font-size:13px">Chargement des modules…</div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="cours-main" id="coursMain">
+      <!-- Content injected by JS -->
+      <div style="display:flex;align-items:center;justify-content:center;flex:1;padding:40px;color:var(--tx3);font-size:14px;text-align:center">
+        <div>
+          <div style="font-size:48px;margin-bottom:14px">👈</div>
+          <div style="font-weight:600;margin-bottom:6px">Choisissez une ressource</div>
+          <div style="font-size:13px">Sélectionnez un module dans le menu latéral pour commencer</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MOBILE NAV -->
+  <nav class="cours-mobile-nav">
+    <div class="cmn-item active" onclick="toggleSidebar()"><div class="cmn-icon">📚</div>Modules</div>
+    <div class="cmn-item" onclick="showTab('content')"><div class="cmn-icon">📖</div>Contenu</div>
+    <div class="cmn-item" onclick="showTab('exercices')"><div class="cmn-icon">✏️</div>Exercices</div>
+    <div class="cmn-item" onclick="showTab('quiz')"><div class="cmn-icon">❓</div>Quiz</div>
+    <div class="cmn-item" onclick="showCertificat()"><div class="cmn-icon">🏅</div>Certificat</div>
+  </nav>
+
+</div>
+
+<!-- SIDEBAR OVERLAY MOBILE -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- TOAST -->
+<div class="cours-toast" id="coursToast" style="display:none"></div>
+
+<script src="js/supabase.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════
+//  EPPRIDAD — Plateforme Cours en Ligne
+//  Système d'apprentissage complet
+// ════════════════════════════════════════════════════════════
+
+const COURS_SESSION_KEY = 'eppr_enligne_v1';
+let _session = null;
+let _formation = null;
+let _modules = [];
+let _progression = {};    // ressource_id → boolean
+let _quizResults = {};    // module_id → {score, pct, reussi}
+let _currentResource = null;
+let _currentModule = null;
+let _quizState = null;    // état en cours du quiz
+
+// ── UTILITAIRES ───────────────────────────────────────────
+
+function showOverlay(msg = 'Chargement…'){
+  document.getElementById('coursOverlay').style.display='flex';
+  document.getElementById('overlayText').textContent=msg;
+}
+function hideOverlay(){document.getElementById('coursOverlay').style.display='none'}
+
+function showToast(msg, ms=3000){
+  const t=document.getElementById('coursToast');
+  t.textContent=msg;t.style.display='block';t.style.opacity='1';
+  clearTimeout(t._to);
+  t._to=setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.style.display='none',300)},ms);
+}
+
+function setPage(id){
+  document.getElementById('login-page').classList.toggle('active',id==='login');
+  const cp=document.getElementById('cours-page');
+  cp.style.display=id==='cours'?'flex':'none';
+}
+
+function toggleSidebar(){
+  const sb=document.getElementById('coursSidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  const open=sb.classList.toggle('open');
+  ov.classList.toggle('show',open);
+}
+function closeSidebar(){
+  document.getElementById('coursSidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+// ── AUTH ──────────────────────────────────────────────────
+
+function loadSession(){
+  try{const v=localStorage.getItem(COURS_SESSION_KEY);return v?JSON.parse(v):null}catch{return null}
+}
+function saveSession(s){localStorage.setItem(COURS_SESSION_KEY,JSON.stringify(s))}
+function clearSession(){localStorage.removeItem(COURS_SESSION_KEY)}
+
+async function doCoursLogin(){
+  const id=document.getElementById('loginId').value.trim().toUpperCase();
+  const pwd=document.getElementById('loginPwd').value;
+  const err=document.getElementById('loginErr');
+  const btn=document.getElementById('loginBtn');
+  err.classList.remove('show');
+  if(!id||!pwd){err.textContent='Veuillez remplir tous les champs.';err.classList.add('show');return}
+  btn.classList.add('btn-loading');btn.disabled=true;
+  try{
+    // Vérifier le compte dans portail_comptes
+    const rows=await sb.select('portail_comptes',{
+      select:'matricule,pwd_hash,statut,role,expiry_date',
+      filters:[{col:'matricule',val:`eq.${id}`}],limit:1
+    });
+    if(!rows||!rows.length) throw new Error('Identifiant introuvable. Contactez EPPRIDAD.');
+    const acc=rows[0];
+    if(acc.statut!=='actif') throw new Error(acc.statut==='pending'?'Votre accès est en cours d\'activation.':'Compte non actif. Contactez EPPRIDAD.');
+    if(acc.role!=='enligne'&&acc.role!=='etudiant')
+      throw new Error('Ce compte n\'a pas accès aux formations en ligne. Utilisez le portail étudiant.');
+    if(typeof simpleHash!=='undefined'&&acc.pwd_hash!==simpleHash(pwd))
+      throw new Error('Mot de passe incorrect.');
+    if(acc.expiry_date&&new Date(acc.expiry_date)<new Date())
+      throw new Error('Votre accès a expiré. Renouvelez votre inscription.');
+
+    // Vérifier accès formation(s)
+    const acces=await sb.select('acces_formations',{
+      select:'formation_id,actif,date_fin',
+      filters:[{col:'matricule',val:`eq.${id}`},{col:'actif',val:'eq.true'}]
+    });
+    if(!acces||!acces.length) throw new Error('Aucune formation active. Vérifiez votre paiement ou contactez EPPRIDAD.');
+
+    saveSession({matricule:id,acces:acces.map(a=>a.formation_id)});
+    _session={matricule:id,acces:acces.map(a=>a.formation_id)};
+    await initCours();
+  }catch(e){
+    err.textContent=e.message;err.classList.add('show');
+  }finally{
+    btn.classList.remove('btn-loading');btn.disabled=false;
+  }
+}
+
+function doLogout(){
+  clearSession();_session=null;_formation=null;_modules=[];
+  _progression={};_quizResults={};_currentResource=null;
+  setPage('login');
+  document.getElementById('loginId').value='';
+  document.getElementById('loginPwd').value='';
+}
+
+// ── INIT & CHARGEMENT ─────────────────────────────────────
+
+async function initCours(){
+  showOverlay('Chargement de votre espace formation…');
+  setPage('cours');
+  try{
+    // Si 1 seule formation → charger directement
+    // Si plusieurs → afficher le choix (pour l'avenir)
+    const formId=_session.acces[0];
+    await loadFormation(formId);
+  }catch(e){
+    hideOverlay();
+    showToast('❌ Erreur: '+e.message,5000);
+  }
+}
+
+async function loadFormation(formId){
+  showOverlay('Chargement de la formation…');
+  try{
+    // Charger la formation
+    const fRows=await sb.select('formations_enligne',{
+      filters:[{col:'id',val:`eq.${formId}`}],limit:1
+    });
+    if(!fRows||!fRows.length) throw new Error('Formation introuvable.');
+    _formation=fRows[0];
+
+    // Charger modules
+    const mRows=await sb.select('modules_cours',{
+      filters:[{col:'formation_id',val:`eq.${formId}`}],
+      order:'ordre.asc'
+    });
+    _modules=mRows||[];
+
+    // Charger toutes les ressources
+    const rRows=await sb.select('ressources_module',{
+      filters:[{col:'formation_id',val:`eq.${formId}`}],
+      order:'ordre.asc'
+    });
+    // Grouper par module
+    _modules.forEach(m=>{m.ressources=(rRows||[]).filter(r=>r.module_id===m.id)});
+
+    // Charger progression
+    const progRows=await sb.select('progression_apprenant',{
+      select:'ressource_id,complete',
+      filters:[{col:'matricule',val:`eq.${_session.matricule}`},{col:'formation_id',val:`eq.${formId}`}]
+    }).catch(()=>[]);
+    _progression={};
+    (progRows||[]).forEach(p=>{if(p.complete)_progression[p.ressource_id]=true});
+
+    // Charger résultats quiz
+    const qRows=await sb.select('resultats_quiz',{
+      select:'module_id,score,score_max,pourcentage,reussi,tentative',
+      filters:[{col:'matricule',val:`eq.${_session.matricule}`},{col:'formation_id',val:`eq.${formId}`}],
+      order:'tentative.desc'
+    }).catch(()=>[]);
+    _quizResults={};
+    (qRows||[]).forEach(q=>{if(!_quizResults[q.module_id])_quizResults[q.module_id]=q});
+
+    // Vérifier certificat existant
+    const certRows=await sb.select('certificats',{
+      select:'numero,mention,score_final,date_emission',
+      filters:[{col:'matricule',val:`eq.${_session.matricule}`},{col:'formation_id',val:`eq.${formId}`}],limit:1
+    }).catch(()=>[]);
+    _session.certificat=certRows&&certRows.length?certRows[0]:null;
+
+    renderInterface();
+    hideOverlay();
+
+    // Ouvrir automatiquement la première ressource non complétée
+    let opened=false;
+    for(const m of _modules){
+      for(const r of m.ressources||[]){
+        if(!_progression[r.id]){openResource(r,m);opened=true;break}
+      }
+      if(opened)break;
+    }
+    if(!opened&&_modules.length)openResource(_modules[0].ressources?.[0],_modules[0]);
+
+  }catch(e){
+    hideOverlay();
+    throw e;
+  }
+}
+
+// ── INTERFACE ─────────────────────────────────────────────
+
+function renderInterface(){
+  const f=_formation;
+  if(!f)return;
+
+  // Topbar
+  document.getElementById('ctbCourseName').textContent=f.emoji+' '+f.titre;
+  const parts=_session.matricule.split('-');
+  document.getElementById('ctbAvatar').textContent=parts[0]?.[0]||'E';
+  document.getElementById('ctbUsername').textContent=_session.matricule;
+
+  // Sidebar header
+  document.getElementById('sidebarTitle').textContent=f.emoji+' '+f.titre;
+  document.getElementById('sidebarSub').textContent=f.filiere+' · '+f.niveau+' · '+f.duree_heures+'h';
+
+  updateProgress();
+  renderSidebar();
+}
+
+function updateProgress(){
+  const totalRes=_modules.reduce((s,m)=>s+(m.ressources?.length||0),0);
+  const done=Object.keys(_progression).length;
+  const pct=totalRes>0?Math.round(done/totalRes*100):0;
+  document.getElementById('ctbProgressFill').style.width=pct+'%';
+  document.getElementById('ctbProgressText').textContent=pct+'%';
+  document.getElementById('sidebarProgFill').style.width=pct+'%';
+  document.getElementById('sidebarProgText').textContent=done+' / '+totalRes+' ressources complétées';
+}
+
+function renderSidebar(){
+  const container=document.getElementById('sidebarModules');
+  if(!_modules.length){container.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3);font-size:13px">Aucun contenu disponible.<br>L\'administration ajoutera les modules bientôt.</div>';return}
+
+  const isModuleDone=m=>(m.ressources||[]).every(r=>_progression[r.id]);
+  const isModuleCurrent=m=>_currentModule?.id===m.id;
+
+  container.innerHTML=_modules.map((m,mi)=>{
+    const done=isModuleDone(m);
+    const cur=isModuleCurrent(m);
+    const qRes=_quizResults[m.id];
+    const resHTML=(m.ressources||[]).map(r=>{
+      const rDone=_progression[r.id];
+      const isCur=_currentResource?.id===r.id;
+      const typeIcons={video:'📹',pdf:'📄',exercice:'✏️',lien:'🔗'};
+      return `<div class="module-item${isCur?' active':''}${rDone?' done':''}" onclick="openResource(${JSON.stringify(r).replace(/"/g,'&quot;')},${JSON.stringify(m).replace(/"/g,'&quot;')})">
+        <span class="mi-icon">${typeIcons[r.type]||'📋'}</span>
+        <span style="flex:1;font-size:12px">${r.titre}</span>
+        ${rDone?'<span class="mi-check">✓</span>':''}
+      </div>`;
+    }).join('');
+
+    const quizItem=`<div class="module-item${qRes?.reussi?' done':''}" onclick="openQuiz('${m.id}')">
+      <span class="mi-icon">❓</span>
+      <span style="flex:1;font-size:12px">Quiz de validation</span>
+      ${qRes?.reussi?'<span class="mi-check">✓</span>':qRes?`<span style="font-size:10px;color:var(--err)">${Math.round(qRes.pourcentage)}%</span>`:''}
+    </div>`;
+
+    return `<div class="module-group">
+      <div class="module-group-header${done?' done':''}${cur?' active':''}" onclick="toggleModuleGroup(this,'mgroup-${mi}')">
+        <span class="module-group-num">${done?'✓':mi+1}</span>
+        <span style="flex:1;font-size:13px">${m.titre}</span>
+        <span style="font-size:11px;color:var(--tx3);margin-right:6px">${m.duree_min}min</span>
+        <span class="module-group-chevron${cur?' open':''}" id="chevron-${mi}">›</span>
+      </div>
+      <div class="module-items${cur?' open':''}" id="mgroup-${mi}">
+        ${resHTML}
+        ${quizItem}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleModuleGroup(header,id){
+  const items=document.getElementById(id);
+  const chevrons=header.querySelectorAll('.module-group-chevron');
+  const open=items.classList.toggle('open');
+  chevrons.forEach(c=>c.classList.toggle('open',open));
+}
+
+// ── RESSOURCES ────────────────────────────────────────────
+
+async function openResource(r, m){
+  if(!r){showToast('ℹ️ Aucune ressource disponible dans ce module.');return}
+  _currentResource=r;
+  _currentModule=m;
+  closeSidebar();
+  renderSidebar();
+
+  const main=document.getElementById('coursMain');
+  const typeLabels={video:'Vidéo','pdf':'Guide PDF',exercice:'Exercice pratique',lien:'Ressource externe'};
+  const typeColors={video:'#e3f2fd',pdf:'#fce4ec',exercice:'#e8f5e9',lien:'#fff3e0'};
+  const typeTextColors={video:'#0d47a1',pdf:'#880e4f',exercice:'var(--ok)',lien:'#e65100'};
+
+  const isDone=_progression[r.id];
+
+  let mediaHTML='';
+  if(r.type==='video'&&r.contenu_url){
+    const ytId=extractYTId(r.contenu_url);
+    if(ytId){
+      mediaHTML=`<div class="player-zone"><div class="video-container">
+        <iframe src="https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1" allowfullscreen allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"></iframe>
+      </div></div>`;
+    } else {
+      mediaHTML=`<div class="player-zone"><div class="video-container">
+        <video controls style="width:100%;height:100%;max-height:60vh;background:#000"><source src="${r.contenu_url}"><p style="color:rgba(255,255,255,.5);padding:20px">Votre navigateur ne supporte pas ce format vidéo.</p></video>
+      </div></div>`;
+    }
+  } else if(r.type==='pdf'&&r.contenu_url){
+    const pdfSrc=r.contenu_url.includes('drive.google.com')?r.contenu_url.replace('/view','/preview'):r.contenu_url;
+    mediaHTML=`<div class="player-zone"><iframe class="pdf-viewer" src="${pdfSrc}" style="height:70vh"></iframe></div>`;
+  }
+
+  // Vérifier exercice déjà soumis
+  let exStatus='';
+  if(r.type==='exercice'){
+    const soumRows=await sb.select('soumissions_exercices',{
+      select:'statut,note_admin',
+      filters:[{col:'matricule',val:`eq.${_session.matricule}`},{col:'ressource_id',val:`eq.${r.id}`}],
+      limit:1
+    }).catch(()=>[]);
+    if(soumRows&&soumRows.length){
+      const s=soumRows[0];
+      const statusMap={soumis:{cls:'soumis',text:'⏳ Soumis — En attente de correction'},valide:{cls:'valide',text:'✅ Validé par l\'instructeur'},rejete:{cls:'rejete',text:'❌ À corriger'},corrige:{cls:'valide',text:'✅ Corrigé'}};
+      const st=statusMap[s.statut]||{cls:'soumis',text:s.statut};
+      exStatus=`<div class="ex-status ${st.cls}">${st.text}${s.note_admin?`<br><small>${s.note_admin}</small>`:''}</div>`;
+    }
+  }
+
+  // Contenu texte de l'exercice / description
+  const descContent=r.contenu_texte||'Ce module sera bientôt enrichi par l\'équipe pédagogique EPPRIDAD.';
+
+  main.innerHTML=`
+    ${mediaHTML}
+    <div class="content-zone">
+      <div class="resource-header">
+        <div class="resource-type-badge" style="background:${typeColors[r.type]||'var(--gp)'};color:${typeTextColors[r.type]||'var(--g)'};border-color:transparent">
+          ${r.type==='video'?'▶':r.type==='pdf'?'📄':r.type==='exercice'?'✏️':'🔗'} ${typeLabels[r.type]||r.type}
+        </div>
+        <h1 class="resource-title">${r.titre}</h1>
+        <div class="resource-meta">
+          <span>📚 ${m.titre}</span>
+          <span>⏱ ${m.duree_min||30} min estimées</span>
+          ${isDone?'<span style="color:var(--ok)">✅ Complété</span>':''}
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="content-tabs" id="contentTabs">
+        <div class="ctab active" onclick="showTab('content',this)">📖 Contenu</div>
+        ${r.type==='exercice'?'<div class="ctab" onclick="showTab(\'exercice\',this)">✏️ Exercice</div>':''}
+        <div class="ctab" onclick="openQuiz('${m.id}')">❓ Quiz module</div>
+        <div class="ctab" onclick="showCertificat()">🏅 Certificat</div>
+      </div>
+
+      <!-- TAB: CONTENU -->
+      <div class="tab-pane active" id="tab-content">
+        ${r.type!=='exercice'?`<p class="content-description">${escHtml(descContent)}</p>`:''}
+        ${r.type!=='pdf'&&r.type!=='video'&&r.contenu_url?`<div style="margin-bottom:16px"><a href="${r.contenu_url}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:var(--gp);border:1px solid var(--bdr2);color:var(--g);border-radius:10px;padding:10px 18px;font-size:13.5px;font-weight:600;">🔗 Ouvrir la ressource</a></div>`:''}
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px">
+          <button class="mark-done-btn${isDone?' done-state':''}" onclick="markDone('${r.id}')" id="markDoneBtn">
+            ${isDone?'✅ Déjà complété':'✓ Marquer comme terminé'}
+          </button>
+          <button onclick="openQuiz('${m.id}')" style="display:inline-flex;align-items:center;gap:8px;background:var(--acp);border:1px solid rgba(201,168,76,.3);color:#7d5a00;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+            ❓ Valider avec le quiz →
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB: EXERCICE -->
+      ${r.type==='exercice'?`
+      <div class="tab-pane" id="tab-exercice">
+        <div class="exercise-card">
+          <h3>📋 Consigne de l'exercice</h3>
+          <p>${escHtml(descContent)}</p>
+          ${exStatus}
+          ${!exStatus?`
+          <div class="admin-form-group" style="margin-top:14px">
+            <label style="font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Votre réponse</label>
+            <textarea class="exercise-textarea" id="exReponse" placeholder="Rédigez votre réponse ici…"></textarea>
+          </div>
+          <div class="exercise-file-zone" onclick="document.getElementById('exFile').click()">
+            <div class="efz-icon">📎</div>
+            <div class="efz-text">Joindre un fichier (optionnel)</div>
+            <div class="efz-sub">Photo, document PDF · Max 5 MB</div>
+            <div id="exFileName" style="margin-top:8px;font-size:12px;color:var(--g);font-weight:600;display:none"></div>
+          </div>
+          <input type="file" id="exFile" style="display:none" onchange="document.getElementById('exFileName').textContent=this.files[0]?.name||'';document.getElementById('exFileName').style.display=this.files[0]?'block':'none'">
+          <button class="btn-submit-ex" onclick="submitExercice('${r.id}','${m.id}')">📤 Soumettre l'exercice</button>
+          `:''}
+        </div>
+      </div>`:''}
+    </div>`;
+
+  // Scroll haut
+  document.getElementById('coursMain').scrollTo({top:0,behavior:'smooth'});
+}
+
+function showTab(id, btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));
+  const pane=document.getElementById('tab-'+id);
+  if(pane)pane.classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+
+async function markDone(resId){
+  const btn=document.getElementById('markDoneBtn');
+  if(btn&&btn.classList.contains('done-state'))return;
+  try{
+    await sb.upsert('progression_apprenant',{
+      matricule:_session.matricule,
+      formation_id:_formation.id,
+      module_id:_currentModule.id,
+      ressource_id:resId,
+      complete:true,
+      date_completion:new Date().toISOString()
+    },'matricule,ressource_id');
+    _progression[resId]=true;
+    updateProgress();
+    renderSidebar();
+    if(btn){btn.textContent='✅ Déjà complété';btn.classList.add('done-state')}
+    showToast('✅ Ressource marquée comme terminée !');
+  }catch(e){showToast('❌ Erreur: '+e.message,4000)}
+}
+
+async function submitExercice(resId,modId){
+  const texte=document.getElementById('exReponse')?.value.trim()||'';
+  if(!texte){showToast('⚠️ Rédigez votre réponse avant de soumettre.');return}
+  try{
+    await sb.insert('soumissions_exercices',{
+      matricule:_session.matricule,
+      formation_id:_formation.id,
+      module_id:modId,
+      ressource_id:resId,
+      reponse_texte:texte,
+      statut:'soumis'
+    });
+    await markDone(resId);
+    showToast('📤 Exercice soumis ! Vous serez notifié de la correction.',5000);
+    // Recharger la ressource
+    openResource(_currentResource,_currentModule);
+  }catch(e){showToast('❌ Erreur: '+e.message,4000)}
+}
+
+// ── QUIZ ──────────────────────────────────────────────────
+
+async function openQuiz(moduleId){
+  closeSidebar();
+  const m=_modules.find(mod=>mod.id===moduleId);
+  if(!m){showToast('Module introuvable.');return}
+  const main=document.getElementById('coursMain');
+  main.innerHTML=`<div class="content-zone"><div style="text-align:center;padding:40px;color:var(--tx3)"><div class="overlay-spinner" style="margin:0 auto 14px;border-color:var(--bdr2);border-top-color:var(--g)"></div>Chargement du quiz…</div></div>`;
+
+  try{
+    const questions=await sb.select('quiz_questions',{
+      filters:[{col:'module_id',val:`eq.${moduleId}`}],
+      order:'ordre.asc'
+    });
+    if(!questions||!questions.length){
+      main.innerHTML=`<div class="content-zone"><div style="text-align:center;padding:60px 20px">
+        <div style="font-size:56px;margin-bottom:14px">🔜</div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:22px;color:var(--txt);margin-bottom:8px">Quiz en préparation</h3>
+        <p style="color:var(--tx2);font-size:14px;line-height:1.7">Le quiz de ce module sera disponible prochainement.<br>En attendant, complétez les autres ressources du module.</p>
+        <button onclick="openResource(${JSON.stringify(_currentResource||_modules[0]?.ressources?.[0]).replace(/"/g,"'")},${JSON.stringify(_currentModule||_modules[0]).replace(/"/g,"'")})" style="margin-top:20px;background:var(--g);color:#fff;border:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">← Retour au cours</button>
+      </div></div>`;
+      return;
+    }
+    const prevRes=_quizResults[moduleId];
+    const tentative=(prevRes?.tentative||0)+1;
+    if(prevRes?.reussi){
+      renderQuizResult({score:prevRes.score,scoreMax:prevRes.score_max,pct:prevRes.pourcentage,reussi:true,tentative:prevRes.tentative,questions,m,alreadyDone:true});
+      return;
+    }
+    _quizState={questions,moduleId,m,tentative,current:0,answers:{},revealed:false};
+    renderQuizQuestion();
+  }catch(e){showToast('❌ '+e.message,4000)}
+}
+
+function renderQuizQuestion(){
+  const {questions,current,answers,m}=_quizState;
+  const q=questions[current];
+  const pct=Math.round((current/questions.length)*100);
+  const selected=answers[q.id];
+  const revealed=_quizState.revealed;
+
+  const opts=['a','b','c','d'];
+  const optTexts={a:q.option_a,b:q.option_b,c:q.option_c,d:q.option_d};
+  const optionsHTML=opts.filter(o=>optTexts[o]).map(o=>{
+    let cls='';
+    if(revealed){
+      if(o===q.reponse_correcte)cls=' correct';
+      else if(o===selected&&o!==q.reponse_correcte)cls=' wrong';
+    } else if(o===selected)cls=' selected';
+    return `<button class="option-btn${cls}" onclick="${revealed?'':` selectOption('${q.id}','${o}')`}" ${revealed?'disabled':''}>
+      <span class="option-letter">${o.toUpperCase()}</span>
+      <span>${escHtml(optTexts[o])}</span>
+    </button>`;
+  }).join('');
+
+  const expHTML=revealed&&q.explication?`<div class="quiz-explanation ${selected===q.reponse_correcte?'ok-exp':'err-exp'} show">
+    ${selected===q.reponse_correcte?'✅':'❌'} ${escHtml(q.explication)}
+  </div>`:'';
+
+  const isLast=current>=questions.length-1;
+
+  document.getElementById('coursMain').innerHTML=`
+  <div class="content-zone" style="max-width:760px">
+    <div class="quiz-header">
+      <h2>❓ Quiz — ${m.titre}</h2>
+      <p>Score minimum requis : <strong>70%</strong> · ${_quizState.tentative>1?`Tentative ${_quizState.tentative}`:'Première tentative'} · ${questions.length} questions</p>
+      <div class="quiz-progress">
+        <div class="quiz-bar-bg"><div class="quiz-bar-fill" style="width:${pct}%"></div></div>
+        <div class="quiz-q-num">${current+1} / ${questions.length}</div>
+      </div>
+    </div>
+    <div class="question-card">
+      <div class="question-text">${current+1}. ${escHtml(q.question)}</div>
+      <div class="options-grid">${optionsHTML}</div>
+      ${expHTML}
+    </div>
+    <div class="quiz-nav">
+      <button class="btn-quiz-nav btn-quiz-prev" onclick="quizNav(-1)" ${current===0?'disabled':''}>← Précédent</button>
+      ${revealed?
+        isLast?`<button class="btn-quiz-nav btn-quiz-next" onclick="submitQuiz()">📊 Voir les résultats →</button>`:
+                `<button class="btn-quiz-nav btn-quiz-next" onclick="quizNav(1)">Suivant →</button>`:
+        `<button class="btn-quiz-nav btn-quiz-next" onclick="validateAnswer()" ${!selected?'disabled':''} id="btnValidate">Valider</button>`
+      }
+    </div>
+  </div>`;
+}
+
+function selectOption(qId,opt){
+  _quizState.answers[qId]=opt;
+  renderQuizQuestion();
+}
+
+function validateAnswer(){
+  _quizState.revealed=true;
+  renderQuizQuestion();
+}
+
+function quizNav(dir){
+  _quizState.current=Math.max(0,Math.min(_quizState.questions.length-1,_quizState.current+dir));
+  _quizState.revealed=false;
+  renderQuizQuestion();
+}
+
+async function submitQuiz(){
+  const {questions,answers,moduleId,m,tentative}=_quizState;
+  let score=0;
+  let scoreMax=0;
+  questions.forEach(q=>{
+    scoreMax+=q.points||1;
+    if(answers[q.id]===q.reponse_correcte)score+=q.points||1;
+  });
+  const pct=Math.round(score/scoreMax*100);
+  const reussi=pct>=70;
+
+  try{
+    await sb.insert('resultats_quiz',{
+      matricule:_session.matricule,
+      formation_id:_formation.id,
+      module_id:moduleId,
+      score,score_max:scoreMax,
+      pourcentage:pct,reussi,tentative,
+      reponses:answers
+    });
+    _quizResults[moduleId]={score,score_max:scoreMax,pourcentage:pct,reussi,tentative};
+
+    // Si réussi → marquer toutes les ressources du module comme complétées
+    if(reussi){
+      const mod=_modules.find(mm=>mm.id===moduleId);
+      if(mod){
+        for(const r of mod.ressources||[]){
+          if(!_progression[r.id]){
+            await sb.upsert('progression_apprenant',{
+              matricule:_session.matricule,formation_id:_formation.id,
+              module_id:moduleId,ressource_id:r.id,
+              complete:true,date_completion:new Date().toISOString()
+            },'matricule,ressource_id').catch(()=>{});
+            _progression[r.id]=true;
+          }
+        }
+      }
+      updateProgress();
+      renderSidebar();
+      // Vérifier si toute la formation est terminée → générer certificat
+      await checkFormationComplete();
+    }
+    renderQuizResult({score,scoreMax,pct,reussi,tentative,questions,m});
+  }catch(e){showToast('❌ Erreur sauvegarde quiz: '+e.message,4000)}
+}
+
+function renderQuizResult({score,scoreMax,pct,reussi,tentative,questions,m,alreadyDone}){
+  const mention=pct>=90?'Excellence':pct>=80?'Très Bien':pct>=70?'Bien':'Insuffisant';
+  const icon=reussi?'🎉':'😔';
+  const color=reussi?'var(--ok)':'var(--err)';
+
+  document.getElementById('coursMain').innerHTML=`
+  <div class="content-zone" style="max-width:640px">
+    <div class="quiz-result">
+      <span class="quiz-result-icon">${icon}</span>
+      <div class="quiz-result-score" style="color:${color}">${Math.round(pct)}%</div>
+      <div class="quiz-result-label">${score} / ${scoreMax} points · ${questions?.length||0} questions</div>
+      <div class="quiz-result-badge ${reussi?'qr-pass':'qr-fail'}">${reussi?'✅ Validé — '+mention:'❌ Non validé — Score insuffisant (minimum 70%)'}</div>
+      <div class="quiz-result-details">
+        ${reussi?`🎓 Félicitations ! Vous avez validé le module <strong>${m.titre}</strong>.<br>
+          ${alreadyDone?'Votre résultat a été conservé.':'Votre progression a été enregistrée automatiquement.'}<br>
+          <span style="color:var(--ok)">→ Passez au module suivant ou consultez votre certificat si la formation est terminée.</span>`
+          :`📚 Vous devez obtenir au moins <strong>70%</strong> pour valider ce module.<br>
+          Tentative ${tentative}/3 · Relisez le contenu du module avant de réessayer.<br>
+          ${tentative>=3?'<span style="color:var(--err)">Nombre maximum de tentatives atteint. Contactez EPPRIDAD.</span>':''}`}
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        ${!reussi&&tentative<3?`<button class="btn-retry" onclick="openQuiz('${m.id}')">🔄 Réessayer (${3-tentative} restantes)</button>`:''}
+        ${reussi?`<button onclick="showCertificat()" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--acc),var(--acl));color:var(--dk);border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🏅 Voir mon certificat</button>`:''}
+        <button class="btn-retry" onclick="openResource(${JSON.stringify(_currentResource||'').replace(/"/g,'&quot;')},${JSON.stringify(m).replace(/"/g,'&quot;')})">← Retour au cours</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── CERTIFICAT ────────────────────────────────────────────
+
+async function checkFormationComplete(){
+  const totalRes=_modules.reduce((s,m)=>s+(m.ressources?.length||0),0);
+  const totalMods=_modules.length;
+  const doneRes=Object.keys(_progression).length;
+  const doneMods=_modules.filter(m=>_quizResults[m.id]?.reussi).length;
+  if(doneRes>=totalRes&&doneMods>=totalMods&&!_session.certificat){
+    await generateCertificat();
+  }
+}
+
+async function generateCertificat(){
+  try{
+    const scores=Object.values(_quizResults).map(q=>q.pourcentage);
+    const avgScore=scores.length?scores.reduce((a,b)=>a+b)/scores.length:0;
+    const mention=avgScore>=90?'Excellence':avgScore>=80?'Très Bien':avgScore>=70?'Bien':'Passable';
+    const num=`CERT-${new Date().getFullYear()}-${_formation.filiere?.toUpperCase().replace(/\s/g,'').slice(0,3)}-${Date.now().toString(36).toUpperCase().slice(-5)}`;
+    const nom=_session.matricule;
+    await sb.insert('certificats',{
+      matricule:_session.matricule,
+      formation_id:_formation.id,
+      numero:num,
+      nom_apprenant:nom,
+      score_final:Math.round(avgScore*10)/10,
+      mention,valide:true
+    });
+    _session.certificat={numero:num,mention,score_final:Math.round(avgScore*10)/10,date_emission:new Date().toISOString()};
+    saveSession(_session);
+    showToast('🏅 Félicitations ! Votre certificat EPPRIDAD est prêt !',6000);
+  }catch(e){console.error('generateCertificat',e)}
+}
+
+function showCertificat(){
+  closeSidebar();
+  const main=document.getElementById('coursMain');
+  const cert=_session?.certificat;
+  const allDone=_modules.length>0&&_modules.every(m=>_quizResults[m.id]?.reussi);
+
+  if(!allDone&&!cert){
+    const doneCount=_modules.filter(m=>_quizResults[m.id]?.reussi).length;
+    const total=_modules.length;
+    main.innerHTML=`
+    <div class="content-zone" style="max-width:640px">
+      <div class="cert-unlock">
+        <span class="cert-unlock-icon">🔐</span>
+        <h2>Certificat verrouillé</h2>
+        <p>Vous devez valider <strong>tous les modules</strong> (quiz ≥ 70%) pour débloquer votre certificat EPPRIDAD.</p>
+        <div style="background:var(--gp);border:1px solid var(--bdr2);border-radius:var(--r);padding:18px;max-width:400px;margin:0 auto 24px;text-align:left">
+          <div style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px">Progression des modules :</div>
+          ${_modules.map(m=>{
+            const done=_quizResults[m.id]?.reussi;
+            return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--bdr);font-size:13px">
+              <span>${done?'✅':'⏳'}</span>
+              <span style="flex:1;color:var(--tx2)">${m.titre}</span>
+              ${done?`<span style="color:var(--ok);font-weight:700">${Math.round(_quizResults[m.id].pourcentage)}%</span>`:'<span style="color:var(--tx3)">—</span>'}
+            </div>`;
+          }).join('')}
+          <div style="margin-top:10px;font-size:13px;font-weight:600;color:var(--g)">${doneCount}/${total} modules validés</div>
+        </div>
+        <div style="background:linear-gradient(135deg,var(--g),var(--gl));border-radius:var(--r);padding:18px;max-width:400px;margin:0 auto;color:#fff;font-size:13.5px;line-height:1.7">
+          <strong>💡 Pour chaque module :</strong><br>1. Lisez le contenu et regardez les vidéos<br>2. Faites les exercices pratiques<br>3. Passez le quiz (score min 70%)<br>4. Le certificat se génère automatiquement !
+        </div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  if(!cert){main.innerHTML='<div class="content-zone"><div style="text-align:center;padding:40px;color:var(--tx3)">Génération du certificat…</div></div>';checkFormationComplete().then(showCertificat);return}
+
+  const dateEmission=cert.date_emission?new Date(cert.date_emission).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'—';
+
+  main.innerHTML=`
+  <div class="content-zone" style="max-width:720px">
+    <div class="cert-unlock">
+      <span class="cert-unlock-icon">🏅</span>
+      <h2>Votre certificat EPPRIDAD</h2>
+      <p>Félicitations ! Vous avez complété la formation avec succès. Voici votre certificat officiel.</p>
+
+      <div class="cert-card" id="certCard">
+        <div class="cert-watermark">🌿</div>
+        <div class="cert-header-row">
+          <div class="cert-logo-area">
+            <div class="cert-logo-img"><img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'"></div>
+            <div>
+              <div class="cert-school">EPPRIDAD</div>
+              <div class="cert-school-sub">École Polytechnique Privée · Niamey, Niger</div>
+            </div>
+          </div>
+          <div class="cert-number">N° ${escHtml(cert.numero)}</div>
+        </div>
+        <div class="cert-body">
+          <div class="cert-certifies">Certifie que</div>
+          <div class="cert-name">${escHtml(_session.matricule)}</div>
+          <div class="cert-completed">a complété avec succès la formation</div>
+          <div class="cert-formation">« ${escHtml(_formation.titre)} »</div>
+          <div class="cert-mention-badge">🏆 Mention : ${cert.mention} · Score moyen : ${cert.score_final}%</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:20px">Délivré le ${dateEmission}</div>
+        </div>
+        <div class="cert-footer">
+          <div class="cert-sig">
+            <div style="font-size:11px;color:rgba(255,255,255,.4)">Le Directeur Pédagogique</div>
+            <div class="cert-sig-line"></div>
+            <div class="cert-sig-name">EPPRIDAD</div>
+            <div class="cert-sig-title">École Polytechnique Privée</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">Vérifiable sur</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.25);font-family:monospace">eppridad.github.io</div>
+          </div>
+          <div class="cert-qr-area">
+            <div class="cert-qr-box">🔍</div>
+            <div class="cert-qr-text">Code vérification</div>
+            <div style="font-size:8px;color:rgba(255,255,255,.2);font-family:monospace;margin-top:2px">${cert.numero.slice(-8)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+        <button class="btn-download-cert" onclick="printCert()">📄 Télécharger / Imprimer</button>
+        <button onclick="window.open('https://wa.me/22799851532?text='+encodeURIComponent('Bonjour EPPRIDAD, j\\'ai obtenu mon certificat N° ${cert.numero} pour la formation ${_formation.titre}.'),'_blank')" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;border:none;border-radius:12px;padding:14px 22px;font-size:14px;font-weight:700;cursor:pointer">💬 Partager sur WhatsApp</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function printCert(){
+  const certEl=document.getElementById('certCard');
+  if(!certEl){showToast('Erreur: certificat non trouvé.');return}
+  const w=window.open('','_blank','width=800,height=600');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificat EPPRIDAD — ${_session.matricule}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>body{margin:0;padding:20px;background:#fff;font-family:'Plus Jakarta+Sans',sans-serif}@media print{@page{size:A4 landscape;margin:10mm}body{padding:0}}</style></head>
+  <body>${certEl.outerHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+// ── UTILITAIRES ───────────────────────────────────────────
+
+function extractYTId(url){
+  if(!url)return null;
+  const m=url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+
+function escHtml(str){
+  if(!str)return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+// ── DÉMARRAGE ─────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded',async()=>{
+  hideOverlay();
+  const sess=loadSession();
+  if(sess){
+    _session=sess;
+    setPage('cours');
+    await initCours();
+  } else {
+    setPage('login');
+    document.getElementById('loginPwd').addEventListener('keydown',e=>{if(e.key==='Enter')doCoursLogin()});
+  }
+});
+</script>
+</body>
+</html>

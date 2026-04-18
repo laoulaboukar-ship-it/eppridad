@@ -1793,3 +1793,429 @@ window.renderAdminDashboard = function(data){
     cmdBadge.textContent=n||'0';
   }
 };
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — FORMATIONS EN LIGNE — GESTION COMPLÈTE
+// ════════════════════════════════════════════════════════════
+
+// ── Charger et afficher les formations ──
+async function loadElFormations(){
+  const container=document.getElementById('elFormationsList');
+  if(!container)return;
+  container.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Chargement…</div>';
+  try{
+    const formations=await sb.select('formations_enligne',{order:'ordre.asc'});
+    if(!formations||!formations.length){
+      container.innerHTML=`<div style="text-align:center;padding:40px">
+        <div style="font-size:40px;margin-bottom:14px">🎓</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:8px">Aucune formation créée</div>
+        <div style="font-size:13px;color:var(--text3)">Exécutez le SQL de mise à jour pour ajouter les formations initiales.</div>
+      </div>`;
+      return;
+    }
+
+    // Charger stats: modules et apprenants par formation
+    const [allModules,allAcces]=await Promise.all([
+      sb.select('modules_cours',{select:'id,formation_id,titre'}).catch(()=>[]),
+      sb.select('acces_formations',{select:'id,formation_id,actif'}).catch(()=>[])
+    ]);
+
+    container.innerHTML=formations.map(f=>{
+      const mods=(allModules||[]).filter(m=>m.formation_id===f.id).length;
+      const apprenants=(allAcces||[]).filter(a=>a.formation_id===f.id&&a.actif).length;
+      return `
+      <div class="s-card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <div style="font-size:36px;flex-shrink:0">${f.emoji||'🌿'}</div>
+          <div style="flex:1;min-width:200px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+              <strong style="font-size:15px">${f.titre}</strong>
+              <span style="background:${f.publie?'#e8f5e9':'#f5f5f5'};color:${f.publie?'var(--ok)':'#999'};font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">${f.publie?'✓ Publié':'Brouillon'}</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--text3);margin-bottom:6px">${f.filiere} · ${f.niveau} · ${f.duree_heures}h · ${(f.prix_fcfa||0).toLocaleString('fr-FR')} FCFA</div>
+            <div style="display:flex;gap:16px;font-size:12px;color:var(--text2)">
+              <span>📚 ${mods} module${mods!==1?'s':''}</span>
+              <span>👥 ${apprenants} apprenant${apprenants!==1?'s':''}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+            <button onclick="openElFormationDetail('${f.id}','${f.titre.replace(/'/g,'\\'')}')" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">📚 Gérer contenu</button>
+            <button onclick="aPanel('acces_el',null);setTimeout(()=>{document.getElementById('acces-formation').value='${f.id}';document.getElementById('giveAccesForm').style.display='block'},100)" style="background:#25D366;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">🔑 Donner accès</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Peupler le select formations dans le formulaire d'accès
+    const sel=document.getElementById('acces-formation');
+    if(sel){
+      sel.innerHTML='<option value="">-- Choisir une formation --</option>'+
+        formations.map(f=>`<option value="${f.id}">${f.emoji} ${f.titre}</option>`).join('');
+    }
+  }catch(e){
+    container.innerHTML=`<div style="color:var(--danger);padding:16px;font-size:13px">Erreur: ${e.message}<br>Vérifiez que la table "formations_enligne" existe dans Supabase (exécutez le SQL fourni).</div>`;
+  }
+}
+
+// ── Détail d'une formation — gestion modules, ressources, quiz ──
+async function openElFormationDetail(formId, titre){
+  const container=document.getElementById('elFormationsList');
+  if(!container)return;
+  container.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Chargement des modules…</div>';
+  try{
+    const [modules,ressources,questions]=await Promise.all([
+      sb.select('modules_cours',{filters:[{col:'formation_id',val:`eq.${formId}`}],order:'ordre.asc'}),
+      sb.select('ressources_module',{filters:[{col:'formation_id',val:`eq.${formId}`}],order:'ordre.asc'}),
+      sb.select('quiz_questions',{filters:[{col:'formation_id',val:`eq.${formId}`}],order:'ordre.asc'}).catch(()=>[])
+    ]);
+
+    const resMap={};
+    (ressources||[]).forEach(r=>{if(!resMap[r.module_id])resMap[r.module_id]=[];resMap[r.module_id].push(r)});
+    const qMap={};
+    (questions||[]).forEach(q=>{if(!qMap[q.module_id])qMap[q.module_id]=[];qMap[q.module_id].push(q)});
+
+    const typeIcons={video:'📹',pdf:'📄',exercice:'✏️',lien:'🔗'};
+
+    container.innerHTML=`
+    <button onclick="loadElFormations()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit;margin-bottom:16px">← Retour aux formations</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+      <h2 style="font-family:'Playfair Display',serif;font-size:20px;color:var(--text)">🎓 ${titre}</h2>
+      <button onclick="showAddModuleForm('${formId}')" style="background:var(--primary);color:#fff;border:none;border-radius:9px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer">+ Ajouter un module</button>
+    </div>
+    <div id="addModuleFormContainer"></div>
+    ${(modules||[]).length===0?`<div style="text-align:center;padding:40px;border:2px dashed var(--border);border-radius:var(--r);color:var(--text3);font-size:14px">Aucun module créé pour cette formation.<br>Cliquez sur "+ Ajouter un module" pour commencer.</div>`:
+    (modules||[]).map((m,mi)=>`
+      <div class="s-card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+          <div style="width:28px;height:28px;background:var(--primary);color:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${mi+1}</div>
+          <div style="flex:1;font-weight:700;font-size:14px">${m.titre}</div>
+          <div style="font-size:11.5px;color:var(--text3)">${m.duree_min||30} min · ${(resMap[m.id]||[]).length} ressource(s) · ${(qMap[m.id]||[]).length} question(s) quiz</div>
+          <button onclick="showAddRessourceForm('${formId}','${m.id}')" style="background:var(--primary-pale);border:1px solid var(--border2);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--primary)">+ Ressource</button>
+          <button onclick="showAddQuizForm('${formId}','${m.id}')" style="background:var(--accent-pale);border:1px solid rgba(201,168,76,.3);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:#7d5a00">+ Question quiz</button>
+          <button onclick="deleteModule('${m.id}','${formId}','${titre}')" style="background:#ffebee;border:1px solid rgba(229,57,53,.2);border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--danger)">🗑</button>
+        </div>
+        ${(resMap[m.id]||[]).length?`
+        <div style="background:var(--surface2);border-radius:10px;padding:10px;margin-bottom:8px">
+          ${(resMap[m.id]||[]).map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--border);font-size:12.5px">
+            <span>${typeIcons[r.type]||'📋'}</span>
+            <span style="flex:1;color:var(--text2)">${r.titre}</span>
+            <span style="font-size:11px;color:var(--text3)">${r.type}</span>
+            ${r.contenu_url?`<a href="${r.contenu_url}" target="_blank" style="color:var(--primary);font-size:11px">Voir ↗</a>`:''}
+            <button onclick="deleteRessource('${r.id}','${formId}','${titre}')" style="color:var(--danger);font-size:12px;background:none;border:none;cursor:pointer">✕</button>
+          </div>`).join('')}
+        </div>`:''}
+        ${(qMap[m.id]||[]).length?`
+        <div style="font-size:12px;color:var(--text3);padding:4px 8px;background:#fffbef;border-radius:6px">
+          ❓ Quiz: ${(qMap[m.id]||[]).length} question(s) · Score min 70%
+          <span style="float:right;cursor:pointer;color:var(--text3)" onclick="showQuizQuestions('${m.id}','${formId}','${titre}')">Voir questions →</span>
+        </div>`:''}
+        <div id="formContainer-${m.id}"></div>
+      </div>`).join('')}`;
+  }catch(e){
+    container.innerHTML=`<div style="color:var(--danger);padding:16px;font-size:13px">Erreur: ${e.message}</div>`;
+  }
+}
+
+function showAddModuleForm(formId){
+  const c=document.getElementById('addModuleFormContainer');
+  if(!c)return;
+  c.innerHTML=`<div class="s-card" style="margin-bottom:12px;border:2px solid var(--primary)">
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px">📚 Nouveau module</div>
+    <div class="admin-form-group"><label class="admin-form-label">Titre du module *</label><input class="admin-form-input" id="newModTitre" placeholder="Ex: Introduction à l'irrigation"></div>
+    <div class="admin-form-group"><label class="admin-form-label">Description</label><textarea class="admin-form-textarea" id="newModDesc" rows="2" placeholder="Ce que l'apprenant va apprendre dans ce module…"></textarea></div>
+    <div class="admin-form-group"><label class="admin-form-label">Durée estimée (minutes)</label><input class="admin-form-input" id="newModDuree" type="number" value="30" min="5" max="300"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="addModule('${formId}')" style="flex:1;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✅ Créer le module</button>
+      <button onclick="document.getElementById('addModuleFormContainer').innerHTML=''" style="padding:12px 18px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-family:inherit">✕</button>
+    </div>
+  </div>`;
+}
+
+async function addModule(formId){
+  const titre=document.getElementById('newModTitre')?.value.trim();
+  if(!titre){showToast('⚠️ Le titre est obligatoire.');return}
+  try{
+    // Compter modules existants pour l'ordre
+    const existing=await sb.select('modules_cours',{select:'id',filters:[{col:'formation_id',val:`eq.${formId}`}]}).catch(()=>[]);
+    await sb.insert('modules_cours',{
+      formation_id:formId,
+      titre,
+      description:document.getElementById('newModDesc')?.value.trim()||null,
+      duree_min:parseInt(document.getElementById('newModDuree')?.value)||30,
+      ordre:(existing||[]).length
+    });
+    showSuccess('✅ Module créé !');
+    // Recharger la formation
+    const titleEl=document.querySelector('#elFormationsList h2');
+    if(titleEl)openElFormationDetail(formId,titleEl.textContent.replace('🎓 ',''));
+  }catch(e){showError('Erreur: '+e.message)}
+}
+
+function showAddRessourceForm(formId,modId){
+  const c=document.getElementById('formContainer-'+modId);
+  if(!c)return;
+  c.innerHTML=`<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-top:10px">
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px">+ Nouvelle ressource</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="admin-form-group" style="margin-bottom:0"><label class="admin-form-label">Titre *</label><input class="admin-form-input" id="res-titre-${modId}" placeholder="Titre de la ressource"></div>
+      <div class="admin-form-group" style="margin-bottom:0"><label class="admin-form-label">Type *</label>
+        <select class="admin-form-select" id="res-type-${modId}" onchange="toggleResFields('${modId}')">
+          <option value="video">📹 Vidéo (YouTube ou URL)</option>
+          <option value="pdf">📄 Guide PDF</option>
+          <option value="exercice">✏️ Exercice pratique</option>
+          <option value="lien">🔗 Lien externe</option>
+        </select>
+      </div>
+    </div>
+    <div class="admin-form-group" id="res-url-grp-${modId}">
+      <label class="admin-form-label">URL (vidéo YouTube, lien PDF Google Drive, etc.)</label>
+      <input class="admin-form-input" id="res-url-${modId}" placeholder="https://youtube.com/watch?v=... ou https://drive.google.com/...">
+      <p style="font-size:11px;color:var(--text3);margin-top:4px">💡 Google Drive: clic droit → Partager → Toute personne avec le lien → Obtenir le lien</p>
+    </div>
+    <div class="admin-form-group">
+      <label class="admin-form-label">Description / Consigne de l'exercice</label>
+      <textarea class="admin-form-textarea" id="res-texte-${modId}" rows="3" placeholder="Décrivez le contenu, les objectifs ou la consigne de l'exercice…"></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="addRessource('${formId}','${modId}')" style="background:var(--primary);color:#fff;border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Ajouter</button>
+      <button onclick="document.getElementById('formContainer-${modId}').innerHTML=''" style="padding:10px 16px;border:1px solid var(--border);border-radius:9px;cursor:pointer;font-family:inherit">✕ Annuler</button>
+    </div>
+  </div>`;
+}
+
+function toggleResFields(modId){
+  const type=document.getElementById('res-type-'+modId)?.value;
+  const urlGrp=document.getElementById('res-url-grp-'+modId);
+  if(urlGrp)urlGrp.style.display=type==='exercice'?'none':'block';
+}
+
+async function addRessource(formId,modId){
+  const titre=document.getElementById('res-titre-'+modId)?.value.trim();
+  const type=document.getElementById('res-type-'+modId)?.value;
+  const url=document.getElementById('res-url-'+modId)?.value.trim();
+  const texte=document.getElementById('res-texte-'+modId)?.value.trim();
+  if(!titre){showToast('⚠️ Titre obligatoire.');return}
+  try{
+    const existing=await sb.select('ressources_module',{select:'id',filters:[{col:'module_id',val:`eq.${modId}`}]}).catch(()=>[]);
+    await sb.insert('ressources_module',{
+      module_id:modId,formation_id:formId,
+      titre,type,
+      contenu_url:url||null,
+      contenu_texte:texte||null,
+      ordre:(existing||[]).length,
+      obligatoire:true
+    });
+    showSuccess('✅ Ressource ajoutée !');
+    const titleEl=document.querySelector('#elFormationsList h2');
+    if(titleEl)openElFormationDetail(formId,titleEl.textContent.replace('🎓 ',''));
+  }catch(e){showError('Erreur: '+e.message)}
+}
+
+function showAddQuizForm(formId,modId){
+  const c=document.getElementById('formContainer-'+modId);
+  if(!c)return;
+  c.innerHTML=`<div style="background:#fffbef;border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:16px;margin-top:10px">
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:#7d5a00">❓ Nouvelle question de quiz</div>
+    <div class="admin-form-group"><label class="admin-form-label">Question *</label><textarea class="admin-form-textarea" id="qz-question-${modId}" rows="2" placeholder="Formulez la question clairement…"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="admin-form-group" style="margin-bottom:0"><label class="admin-form-label">Option A *</label><input class="admin-form-input" id="qz-a-${modId}" placeholder="Première réponse"></div>
+      <div class="admin-form-group" style="margin-bottom:0"><label class="admin-form-label">Option B *</label><input class="admin-form-input" id="qz-b-${modId}" placeholder="Deuxième réponse"></div>
+      <div class="admin-form-group" style="margin-bottom:0"><label class="admin-form-label">Option C</label><input class="admin-form-input" id="qz-c-${modId}" placeholder="Troisième réponse (optionnel)"></div>
+      <div class="admin-form-group" style="margin-bottom:0"><label class="admin-form-label">Option D</label><input class="admin-form-input" id="qz-d-${modId}" placeholder="Quatrième réponse (optionnel)"></div>
+    </div>
+    <div class="admin-form-group"><label class="admin-form-label">Bonne réponse *</label>
+      <select class="admin-form-select" id="qz-rep-${modId}">
+        <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+      </select>
+    </div>
+    <div class="admin-form-group"><label class="admin-form-label">Explication (affichée après réponse)</label><input class="admin-form-input" id="qz-exp-${modId}" placeholder="Pourquoi c'est la bonne réponse…"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="addQuizQuestion('${formId}','${modId}')" style="background:var(--accent);color:var(--dark);border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Ajouter la question</button>
+      <button onclick="document.getElementById('formContainer-${modId}').innerHTML=''" style="padding:10px 16px;border:1px solid var(--border);border-radius:9px;cursor:pointer;font-family:inherit">✕</button>
+    </div>
+  </div>`;
+}
+
+async function addQuizQuestion(formId,modId){
+  const question=document.getElementById('qz-question-'+modId)?.value.trim();
+  const a=document.getElementById('qz-a-'+modId)?.value.trim();
+  const b=document.getElementById('qz-b-'+modId)?.value.trim();
+  if(!question||!a||!b){showToast('⚠️ Question, options A et B sont obligatoires.');return}
+  try{
+    const existing=await sb.select('quiz_questions',{select:'id',filters:[{col:'module_id',val:`eq.${modId}`}]}).catch(()=>[]);
+    await sb.insert('quiz_questions',{
+      module_id:modId,formation_id:formId,
+      question,
+      option_a:a,option_b:b,
+      option_c:document.getElementById('qz-c-'+modId)?.value.trim()||null,
+      option_d:document.getElementById('qz-d-'+modId)?.value.trim()||null,
+      reponse_correcte:document.getElementById('qz-rep-'+modId)?.value||'a',
+      explication:document.getElementById('qz-exp-'+modId)?.value.trim()||null,
+      points:1,ordre:(existing||[]).length
+    });
+    showSuccess('✅ Question ajoutée !');
+    const titleEl=document.querySelector('#elFormationsList h2');
+    if(titleEl)openElFormationDetail(formId,titleEl.textContent.replace('🎓 ',''));
+  }catch(e){showError('Erreur: '+e.message)}
+}
+
+async function deleteModule(modId,formId,titre){
+  if(!confirm('Supprimer ce module et tout son contenu ?'))return;
+  try{await sb.del('modules_cours',{col:'id',val:`eq.${modId}`});showSuccess('Module supprimé.');openElFormationDetail(formId,titre);}
+  catch(e){showError('Erreur: '+e.message)}
+}
+async function deleteRessource(resId,formId,titre){
+  if(!confirm('Supprimer cette ressource ?'))return;
+  try{await sb.del('ressources_module',{col:'id',val:`eq.${resId}`});showSuccess('Ressource supprimée.');openElFormationDetail(formId,titre);}
+  catch(e){showError('Erreur: '+e.message)}
+}
+
+// ── Accès apprenants ──
+function showGiveAccesForm(){
+  document.getElementById('giveAccesForm').style.display='block';
+  loadElFormations(); // Peupler le select formations
+  document.getElementById('giveAccesForm').scrollIntoView({behavior:'smooth'});
+}
+
+async function giveAcces(){
+  const matricule=document.getElementById('acces-matricule')?.value.trim().toUpperCase();
+  const pwd=document.getElementById('acces-pwd')?.value.trim();
+  const formId=document.getElementById('acces-formation')?.value;
+  const duree=parseInt(document.getElementById('acces-duree')?.value)||null;
+  const note=document.getElementById('acces-note')?.value.trim();
+  if(!matricule||!formId){showToast('⚠️ Matricule et formation obligatoires.');return}
+
+  const expiry=duree?new Date(Date.now()+duree*86400000):null;
+
+  try{
+    // Créer/mettre à jour le compte portail avec rôle enligne
+    const hashPwd=typeof simpleHash!=='undefined'?simpleHash(pwd||'eppridad2025'):(pwd||'eppridad2025');
+    await sb.upsert('portail_comptes',{
+      matricule,
+      pwd_hash:hashPwd,
+      statut:'actif',
+      role:'enligne',
+      expiry_date:expiry?expiry.toISOString().split('T')[0]:null,
+      date_creation:new Date().toISOString()
+    },'matricule');
+
+    // Créer l'accès formation
+    await sb.upsert('acces_formations',{
+      matricule,formation_id:formId,
+      actif:true,
+      date_fin:expiry?expiry.toISOString():null,
+      note_admin:note||null
+    },'matricule,formation_id');
+
+    showSuccess(`✅ Accès activé pour ${matricule} !`);
+    document.getElementById('giveAccesForm').style.display='none';
+    document.getElementById('acces-matricule').value='';
+    loadAcesList();
+  }catch(e){showError('Erreur: '+e.message)}
+}
+
+async function loadAcesList(){
+  const container=document.getElementById('acesList');
+  if(!container)return;
+  container.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Chargement…</div>';
+  try{
+    const [acces,formations]=await Promise.all([
+      sb.select('acces_formations',{order:'created_at.desc',limit:100}),
+      sb.select('formations_enligne',{select:'id,titre,emoji'})
+    ]);
+    const fMap={};(formations||[]).forEach(f=>{fMap[f.id]=f});
+
+    if(!acces||!acces.length){
+      container.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Aucun accès accordé pour le moment.</div>';
+      return;
+    }
+    container.innerHTML=acces.map(a=>{
+      const f=fMap[a.formation_id]||{titre:'Formation inconnue',emoji:'❓'};
+      const expired=a.date_fin&&new Date(a.date_fin)<new Date();
+      return `<div class="s-card" style="margin-bottom:8px;padding:12px 16px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:22px;flex-shrink:0">${f.emoji}</div>
+          <div style="flex:1;min-width:150px">
+            <div style="font-weight:700;font-size:13.5px">${a.matricule}</div>
+            <div style="font-size:12px;color:var(--text3)">${f.titre}</div>
+            ${a.date_fin?`<div style="font-size:11px;color:${expired?'var(--danger)':'var(--text3)'}">Expire le ${new Date(a.date_fin).toLocaleDateString('fr-FR')}</div>`:'<div style="font-size:11px;color:var(--text3)">Accès illimité</div>'}
+            ${a.note_admin?`<div style="font-size:11px;color:var(--text3);font-style:italic">${a.note_admin}</div>`:''}
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            <span style="background:${a.actif&&!expired?'#e8f5e9':'#ffebee'};color:${a.actif&&!expired?'var(--ok)':'var(--danger)'};font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">${a.actif&&!expired?'Actif':expired?'Expiré':'Inactif'}</span>
+            <button onclick="revokeAcces('${a.id}')" style="background:#ffebee;border:1px solid rgba(229,57,53,.2);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--danger)">Révoquer</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    container.innerHTML=`<div style="color:var(--danger);padding:16px;font-size:13px">Erreur: ${e.message}</div>`;
+  }
+}
+
+async function revokeAcces(id){
+  if(!confirm('Révoquer cet accès ?'))return;
+  try{await sb.update('acces_formations',{actif:false},{col:'id',val:`eq.${id}`});showSuccess('Accès révoqué.');loadAcesList();}
+  catch(e){showError('Erreur: '+e.message)}
+}
+
+// ── Exercices soumis ──
+async function loadExercicesSoumis(){
+  const container=document.getElementById('exercicesSoumisList');
+  if(!container)return;
+  container.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Chargement…</div>';
+  try{
+    const soumissions=await sb.select('soumissions_exercices',{order:'created_at.desc',limit:100});
+    if(!soumissions||!soumissions.length){
+      container.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Aucun exercice soumis pour le moment.</div>';
+      return;
+    }
+    const statusColors={soumis:'#f57c00',corrige:'var(--ok)',valide:'var(--ok)',rejete:'var(--danger)'};
+    const statusLabels={soumis:'⏳ À corriger',corrige:'✅ Corrigé',valide:'✅ Validé',rejete:'❌ Rejeté'};
+    container.innerHTML=soumissions.map(s=>`
+      <div class="s-card" style="margin-bottom:10px;padding:14px 16px">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+              <strong>${s.matricule}</strong>
+              <span style="background:${statusColors[s.statut]||'#999'};color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">${statusLabels[s.statut]||s.statut}</span>
+            </div>
+            ${s.reponse_texte?`<div style="font-size:13px;color:var(--text);background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:10px;line-height:1.65;max-height:100px;overflow:hidden">${s.reponse_texte}</div>`:''}
+            ${s.fichier_url?`<a href="${s.fichier_url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--primary);font-weight:600">📎 Voir le fichier joint</a>`:''}
+            <div style="font-size:10.5px;color:var(--text3);margin-top:6px">${s.created_at?new Date(s.created_at).toLocaleString('fr-FR'):''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+            ${s.statut==='soumis'?`
+            <div>
+              <textarea id="note-${s.id}" placeholder="Retour à l'apprenant…" style="width:200px;min-height:60px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;resize:vertical"></textarea>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button onclick="corrigerEx('${s.id}','valide')" style="background:var(--ok);color:#fff;border:none;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">✅ Valider</button>
+              <button onclick="corrigerEx('${s.id}','rejete')" style="background:var(--danger);color:#fff;border:none;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">❌ Rejeter</button>
+            </div>`:''}
+            ${s.note_admin?`<div style="font-size:11px;color:var(--text3);max-width:200px;font-style:italic">"${s.note_admin}"</div>`:''}
+          </div>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    container.innerHTML=`<div style="color:var(--danger);padding:16px;font-size:13px">Erreur: ${e.message}</div>`;
+  }
+}
+
+async function corrigerEx(id,statut){
+  const note=document.getElementById('note-'+id)?.value.trim()||'';
+  try{
+    await sb.update('soumissions_exercices',{statut,note_admin:note||null},{col:'id',val:`eq.${id}`});
+    showSuccess(statut==='valide'?'✅ Exercice validé !':'❌ Exercice rejeté.');
+    loadExercicesSoumis();
+  }catch(e){showError('Erreur: '+e.message)}
+}
+
+// ── Override aPanel pour les nouveaux panels ──
+const __origAPanel = window.aPanel;
+window.aPanel = function(name, btn){
+  __origAPanel(name, btn);
+  if(name==='formations_el') loadElFormations();
+  if(name==='acces_el')     { loadAcesList(); loadElFormations(); }
+  if(name==='exercices_el') loadExercicesSoumis();
+};
