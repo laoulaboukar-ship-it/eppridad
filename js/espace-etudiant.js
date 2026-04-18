@@ -1839,7 +1839,7 @@ async function loadElFormations(){
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-            <button onclick="openElFormationDetail('${f.id}','${f.titre.replace(/'/g,'\\'')}')" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">📚 Gérer contenu</button>
+            <button onclick="openElFormationDetailById('${f.id}')" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">📚 Gérer contenu</button>
             <button onclick="aPanel('acces_el',null);setTimeout(()=>{document.getElementById('acces-formation').value='${f.id}';document.getElementById('giveAccesForm').style.display='block'},100)" style="background:#25D366;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">🔑 Donner accès</button>
           </div>
         </div>
@@ -2211,6 +2211,15 @@ async function corrigerEx(id,statut){
   }catch(e){showError('Erreur: '+e.message)}
 }
 
+
+// Wrapper pour appel depuis onclick (évite les problèmes d'échappement)
+async function openElFormationDetailById(formId){
+  const fRows = await sb.select('formations_enligne',{
+    select:'titre',filters:[{col:'id',val:`eq.${formId}`}],limit:1
+  }).catch(()=>[]);
+  const titre = fRows&&fRows.length ? fRows[0].titre : 'Formation';
+  openElFormationDetail(formId, titre);
+}
 // ── Override aPanel pour les nouveaux panels ──
 const __origAPanel = window.aPanel;
 window.aPanel = function(name, btn){

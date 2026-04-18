@@ -178,8 +178,9 @@
 .enroll-step span{display:block;font-size:14px;margin-bottom:2px;}
 .form-group{margin-bottom:15px;}
 .form-label{display:block;font-size:12px;font-weight:600;color:var(--tl);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
-.form-input{width:100%;background:var(--off);border:1.5px solid var(--bdr);border-radius:10px;padding:11px 14px;font-size:13.5px;color:var(--txt);outline:none;transition:border-color .2s;}
-.form-input:focus{border-color:var(--g);}
+.form-input{width:100%;background:#fff;border:1.5px solid #c8d8cc;border-radius:10px;padding:12px 14px;font-size:13.5px;color:#1a2a1a;outline:none;transition:all .2s;font-family:inherit;}
+.form-input:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(26,93,26,.09);background:#fafcfa;}
+.form-input::placeholder{color:#8aaa96;}
 .pay-methods-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .pay-method{border:2px solid var(--bdr);border-radius:10px;padding:13px;cursor:pointer;transition:all .2s;text-align:center;background:#fff;}
 .pay-method:hover,.pay-method.selected{border-color:var(--g);background:var(--gp);}
@@ -310,7 +311,7 @@
       <div class="ps">
         <div class="ps-circle">📝<span class="ps-num">1</span></div>
         <div class="ps-title">Inscription & Paiement</div>
-        <div class="ps-desc">Vous vous inscrivez, choisissez votre moyen de paiement (Orange Money, Moov, Wave, virement) et recevez un accès immédiat.</div>
+        <div class="ps-desc">Vous vous inscrivez, choisissez votre moyen de paiement (Amana, Nita, Wave ou virement) et recevez un accès immédiat.</div>
       </div>
       <div class="ps">
         <div class="ps-circle">📹<span class="ps-num">2</span></div>
@@ -391,7 +392,7 @@
   <div class="section-inner">
     <div class="section-tag-g">Tarifs transparents</div>
     <h2 class="section-h2">Des prix <span style="color:var(--g)">accessibles</span> pour tous</h2>
-    <p class="section-sub">Paiement sécurisé par Orange Money, Moov Money, Wave ou virement. Pas de frais cachés.</p>
+    <p class="section-sub">Paiement sécurisé par dépôt Amana, Nita, Wave ou virement bancaire. Numéro : +227 99 85 15 32</p>
 
     <div class="pricing-grid">
       <div class="price-card">
@@ -446,10 +447,20 @@
       <div style="font-size:15px;font-weight:700;color:var(--dark);margin-bottom:6px;">💳 Moyens de paiement acceptés</div>
       <div style="font-size:13px;color:var(--tl);margin-bottom:16px;">Paiement 100% sécurisé. Reçu envoyé immédiatement par WhatsApp ou email.</div>
       <div class="pay-grid">
-        <div class="pay-opt"><div class="pay-opt-icon">📱</div><div class="pay-opt-name">Orange Money</div><div class="pay-opt-sub">Niger</div></div>
-        <div class="pay-opt"><div class="pay-opt-icon">📱</div><div class="pay-opt-name">Moov Money</div><div class="pay-opt-sub">Niger</div></div>
-        <div class="pay-opt"><div class="pay-opt-icon">💸</div><div class="pay-opt-name">Wave</div><div class="pay-opt-sub">Afrique de l'Ouest</div></div>
-        <div class="pay-opt"><div class="pay-opt-icon">🏦</div><div class="pay-opt-name">Virement</div><div class="pay-opt-sub">Banque locale</div></div>
+        <div class="pay-opt"><div class="pay-opt-icon">🟢</div><div class="pay-opt-name">Amana Dépôt</div><div class="pay-opt-sub">Dépôt sur compte Amana</div></div>
+        <div class="pay-opt"><div class="pay-opt-icon">🔵</div><div class="pay-opt-name">Nita Dépôt</div><div class="pay-opt-sub">Dépôt sur compte Nita</div></div>
+        <div class="pay-opt"><div class="pay-opt-icon">💸</div><div class="pay-opt-name">Wave Dépôt</div><div class="pay-opt-sub">Envoi Wave</div></div>
+        <div class="pay-opt"><div class="pay-opt-icon">🏦</div><div class="pay-opt-name">Virement Bancaire</div><div class="pay-opt-sub">Banque locale Niger</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(22,80,63,.05),rgba(22,80,63,.02));border:1px solid rgba(22,80,63,.15);border-radius:var(--r);padding:14px 18px;margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="font-size:22px">💬</div>
+        <div style="flex:1">
+          <div style="font-size:13.5px;font-weight:700;color:var(--dark);margin-bottom:2px">Numéro de dépôt : +227 99 85 15 32</div>
+          <div style="font-size:12px;color:var(--tl)">Après paiement, envoyez la preuve par WhatsApp ou uploadez-la lors de l'inscription</div>
+        </div>
+        <a href="https://wa.me/22799851532?text=Bonjour+EPPRIDAD+je+viens+de+payer+ma+formation" target="_blank" style="display:inline-flex;align-items:center;gap:7px;background:#25D366;color:#fff;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:700;white-space:nowrap">
+          💬 WhatsApp
+        </a>
       </div>
     </div>
   </div>
@@ -732,10 +743,17 @@ function renderEnrollStep(){
   } else if(enrollStep===2){
     body.innerHTML=stepsHtml+`
       <div style="font-size:14px;font-weight:700;color:var(--dark);margin-bottom:16px;">Montant à payer : <span style="color:var(--g);font-size:20px;">${c.prix.toLocaleString('fr-FR')} FCFA</span></div>
+      <div style="background:rgba(22,80,63,.06);border:1px solid rgba(22,80,63,.15);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+        <div style="font-size:20px">📞</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--dark)">Numéro de dépôt EPPRIDAD</div>
+          <div style="font-size:15px;font-weight:800;color:var(--g);letter-spacing:.5px">+227 99 85 15 32</div>
+        </div>
+      </div>
       <div class="pay-methods-grid">
-        <div class="pay-method ${selectedPay==='orange'?'selected':''}" onclick="selectPay('orange',this)"><div class="pay-method-icon">📱</div><div class="pay-method-name">Orange Money</div><div class="pay-method-sub">Niger</div></div>
-        <div class="pay-method ${selectedPay==='moov'?'selected':''}" onclick="selectPay('moov',this)"><div class="pay-method-icon">📱</div><div class="pay-method-name">Moov Money</div><div class="pay-method-sub">Niger</div></div>
-        <div class="pay-method ${selectedPay==='wave'?'selected':''}" onclick="selectPay('wave',this)"><div class="pay-method-icon">💸</div><div class="pay-method-name">Wave</div><div class="pay-method-sub">Afrique Ouest</div></div>
+        <div class="pay-method ${selectedPay==='amana'?'selected':''}" onclick="selectPay('amana',this)"><div class="pay-method-icon">🟢</div><div class="pay-method-name">Amana</div><div class="pay-method-sub">Dépôt sur compte</div></div>
+        <div class="pay-method ${selectedPay==='nita'?'selected':''}" onclick="selectPay('nita',this)"><div class="pay-method-icon">🔵</div><div class="pay-method-name">Nita</div><div class="pay-method-sub">Dépôt sur compte</div></div>
+        <div class="pay-method ${selectedPay==='wave'?'selected':''}" onclick="selectPay('wave',this)"><div class="pay-method-icon">💸</div><div class="pay-method-name">Wave</div><div class="pay-method-sub">Envoi Wave</div></div>
         <div class="pay-method ${selectedPay==='virement'?'selected':''}" onclick="selectPay('virement',this)"><div class="pay-method-icon">🏦</div><div class="pay-method-name">Virement</div><div class="pay-method-sub">Banque locale</div></div>
       </div>
       <div class="pay-instructions" id="pay-instr"></div>
@@ -783,26 +801,40 @@ function selectPay(method,el){
   document.querySelectorAll('.pay-method').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
   const instr=document.getElementById('pay-instr');
+  const montant = currentCourse?.prix?.toLocaleString('fr-FR') || '—';
+  const waLink = `https://wa.me/22799851532?text=${encodeURIComponent('Bonjour EPPRIDAD, je viens d\'effectuer un dépôt pour la formation : '+( currentCourse?.titre||'')+'. Montant : '+montant+' FCFA. Veuillez trouver ma preuve de paiement ci-jointe.')}`;
+  const proofNote = `<div style="margin-top:12px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.25);border-radius:9px;padding:12px 14px;">
+    <div style="font-size:12.5px;font-weight:700;color:#1a7a40;margin-bottom:6px">📤 Envoyer la preuve de paiement</div>
+    <div style="font-size:12px;color:#2a5c44;margin-bottom:8px">Après le dépôt, deux options :</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a href="${waLink}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700">💬 Envoyer sur WhatsApp</a>
+      <span style="font-size:12px;color:#5a8a72;align-self:center">ou joignez la capture ci-dessous</span>
+    </div>
+  </div>`;
   const steps={
-    orange:`<h4 style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;">Paiement Orange Money</h4>
-      <div class="pay-step-row"><div class="pay-step-num">1</div><div class="pay-step-text">Composez <strong>*144#</strong> sur votre téléphone Orange</div></div>
-      <div class="pay-step-row"><div class="pay-step-num">2</div><div class="pay-step-text">Choisissez <strong>Paiement marchand</strong> puis entrez le numéro <strong>+227 99 85 15 32</strong></div></div>
-      <div class="pay-step-row"><div class="pay-step-num">3</div><div class="pay-step-text">Montant : <strong>${currentCourse?.prix.toLocaleString('fr-FR')} FCFA</strong> — Référence : <strong>FORM-${currentCourse?.id}</strong></div></div>
-      <div class="pay-step-row"><div class="pay-step-num">4</div><div class="pay-step-text">Prenez une capture du SMS de confirmation et joignez-la ci-dessous</div></div>`,
-    moov:`<h4 style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;">Paiement Moov Money</h4>
-      <div class="pay-step-row"><div class="pay-step-num">1</div><div class="pay-step-text">Composez <strong>*155#</strong> sur votre téléphone Moov</div></div>
-      <div class="pay-step-row"><div class="pay-step-num">2</div><div class="pay-step-text">Transfert vers <strong>+227 99 85 15 32</strong></div></div>
-      <div class="pay-step-row"><div class="pay-step-num">3</div><div class="pay-step-text">Montant : <strong>${currentCourse?.prix.toLocaleString('fr-FR')} FCFA</strong> — Note : <strong>FORM-${currentCourse?.id}</strong></div></div>
-      <div class="pay-step-row"><div class="pay-step-num">4</div><div class="pay-step-text">Joignez la capture du SMS de confirmation</div></div>`,
-    wave:`<h4 style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;">Paiement Wave</h4>
-      <div class="pay-step-row"><div class="pay-step-num">1</div><div class="pay-step-text">Ouvrez votre application Wave</div></div>
-      <div class="pay-step-row"><div class="pay-step-num">2</div><div class="pay-step-text">Envoyez <strong>${currentCourse?.prix.toLocaleString('fr-FR')} FCFA</strong> au <strong>+227 99 85 15 32</strong></div></div>
-      <div class="pay-step-row"><div class="pay-step-num">3</div><div class="pay-step-text">Dans la note : écrivez <strong>FORM-${currentCourse?.id}</strong></div></div>
-      <div class="pay-step-row"><div class="pay-step-num">4</div><div class="pay-step-text">Joignez la capture de confirmation</div></div>`,
-    virement:`<h4 style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;">Virement bancaire</h4>
-      <div class="pay-step-row"><div class="pay-step-num">1</div><div class="pay-step-text">Contactez-nous par WhatsApp au <strong>+227 99 85 15 32</strong> pour obtenir les coordonnées bancaires</div></div>
-      <div class="pay-step-row"><div class="pay-step-num">2</div><div class="pay-step-text">Effectuez le virement de <strong>${currentCourse?.prix.toLocaleString('fr-FR')} FCFA</strong></div></div>
-      <div class="pay-step-row"><div class="pay-step-num">3</div><div class="pay-step-text">Joignez le reçu de virement ci-dessous</div></div>`
+    amana:`<h4 style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;">🟢 Dépôt Amana</h4>
+      <div class="pay-step-row"><div class="pay-step-num">1</div><div class="pay-step-text">Rendez-vous dans un point de dépôt <strong>Amana</strong> proche de chez vous</div></div>
+      <div class="pay-step-row"><div class="pay-step-num">2</div><div class="pay-step-text">Demandez un dépôt sur le compte <strong>+227 99 85 15 32</strong> (EPPRIDAD)</div></div>
+      <div class="pay-step-row"><div class="pay-step-num">3</div><div class="pay-step-text">Montant : <strong>${montant} FCFA</strong> — Motif : <strong>Formation EPPRIDAD</strong></div></div>
+      <div class="pay-step-row"><div class="pay-step-num">4</div><div class="pay-step-text">Conservez le reçu et envoyez-le ci-dessous ou par WhatsApp</div></div>
+      ${proofNote}`,
+    nita:`<h4 style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;">🔵 Dépôt Nita</h4>
+      <div class="pay-step-row"><div class="pay-step-num">1</div><div class="pay-step-text">Rendez-vous dans un point de dépôt <strong>Nita</strong> proche de chez vous</div></div>
+      <div class="pay-step-row"><div class="pay-step-num">2</div><div class="pay-step-text">Demandez un dépôt sur le compte <strong>+227 99 85 15 32</strong> (EPPRIDAD)</div></div>
+      <div class="pay-step-row"><div class="pay-step-num">3</div><div class="pay-step-text">Montant : <strong>${montant} FCFA</strong> — Motif : <strong>Formation EPPRIDAD</strong></div></div>
+      <div class="pay-step-row"><div class="pay-step-num">4</div><div class="pay-step-text">Conservez le reçu et envoyez-le ci-dessous ou par WhatsApp</div></div>
+      ${proofNote}`,
+    wave:`<h4 style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;">💸 Dépôt Wave</h4>
+      <div class="pay-step-row"><div class="pay-step-num">1</div><div class="pay-step-text">Ouvrez votre application <strong>Wave</strong></div></div>
+      <div class="pay-step-row"><div class="pay-step-num">2</div><div class="pay-step-text">Envoyez <strong>${montant} FCFA</strong> au numéro <strong>+227 99 85 15 32</strong></div></div>
+      <div class="pay-step-row"><div class="pay-step-num">3</div><div class="pay-step-text">Dans la note Wave, écrivez : <strong>Formation EPPRIDAD</strong></div></div>
+      <div class="pay-step-row"><div class="pay-step-num">4</div><div class="pay-step-text">Faites une capture de la confirmation et envoyez-la</div></div>
+      ${proofNote}`,
+    virement:`<h4 style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:10px;">🏦 Virement Bancaire</h4>
+      <div class="pay-step-row"><div class="pay-step-num">1</div><div class="pay-step-text">Contactez-nous sur WhatsApp au <strong>+227 99 85 15 32</strong> pour obtenir les coordonnées bancaires</div></div>
+      <div class="pay-step-row"><div class="pay-step-num">2</div><div class="pay-step-text">Effectuez le virement de <strong>${montant} FCFA</strong> au nom de EPPRIDAD</div></div>
+      <div class="pay-step-row"><div class="pay-step-num">3</div><div class="pay-step-text">Joignez le bordereau de virement ci-dessous</div></div>
+      ${proofNote}`
   };
   instr.innerHTML=steps[method]||'';
   instr.classList.add('show');
