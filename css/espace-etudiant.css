@@ -637,3 +637,163 @@ a{text-decoration:none;color:inherit}
   transition: background-color 5000s ease-in-out 0s;
   caret-color: #fff;
 }
+
+/* ══════════════════════════════════════════════════════════
+   EPPRIDAD V18 — OPTIMISATION MOBILE COMPLÈTE
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Grille 2 colonnes → 1 colonne sur mobile ── */
+@media(max-width:600px){
+  [style*="grid-template-columns:1fr 1fr"]{
+    grid-template-columns:1fr!important;
+  }
+  [style*="grid-template-columns:repeat(2"]{
+    grid-template-columns:1fr!important;
+  }
+}
+
+/* ── Panels admin : padding réduit, cartes pleine largeur ── */
+@media(max-width:768px){
+  .s-card{padding:14px!important;border-radius:12px!important}
+  .s-title{font-size:16px!important}
+  .admin-form-input,.admin-form-select,.admin-form-textarea{
+    font-size:16px!important; /* évite le zoom iOS */
+    padding:11px 13px!important;
+  }
+  .btn-block{padding:13px 14px!important;font-size:14px!important}
+  .btn-sm{padding:7px 12px!important;font-size:12px!important}
+
+  /* Stats : 2 par ligne */
+  .admin-stats-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
+  .stat-card{padding:14px 10px!important}
+  .stat-value{font-size:22px!important}
+  .stat-label{font-size:11px!important}
+
+  /* Tableau étudiants : masquer colonnes non essentielles */
+  .students-table th:nth-child(4),.students-table td:nth-child(4){display:none}
+
+  /* Actions rapides en grille 2×2 */
+  .quick-actions-grid{grid-template-columns:repeat(2,1fr)!important}
+
+  /* Correction exercice : textarea pleine largeur */
+  textarea[id^="note-"]{width:100%!important;box-sizing:border-box}
+
+  /* Formation cards : actions empilées */
+  .s-card [style*="display:flex;flex-direction:column;gap:6px;flex-shrink:0"]{
+    flex-direction:row!important;flex-wrap:wrap!important;
+  }
+}
+
+@media(max-width:480px){
+  .admin-stats-grid{grid-template-columns:repeat(2,1fr)!important}
+  .admin-body{padding:10px!important;padding-bottom:80px!important}
+
+  /* Header admin */
+  .admin-header{padding:0 12px!important}
+  .admin-header-title{font-size:15px!important}
+
+  /* Formulaires : champs pleine largeur */
+  .admin-form-group{margin-bottom:12px!important}
+
+  /* Give acces form */
+  #giveAccesForm .s-card{padding:12px!important}
+
+  /* Boutons paires côte à côte */
+  [style*="display:flex;gap:10px"]{gap:8px!important}
+  [style*="display:flex;gap:6px"]{gap:6px!important}
+}
+
+/* ── Espace étudiant (cours) : login deux colonnes → une ── */
+@media(max-width:768px){
+  .lp-left{display:none}
+  #login-page{flex-direction:column}
+  .lp-right{padding:24px 20px!important;min-height:100vh}
+  .lp-box-logo{display:block!important}
+  .form-heading{font-size:22px!important}
+}
+
+/* ── Sidebar cours étudiant sur mobile ── */
+@media(max-width:768px){
+  .student-sidebar{
+    position:fixed!important;
+    left:-100%!important;
+    z-index:1000;
+    transition:left .25s ease;
+    width:260px!important;
+    box-shadow:4px 0 24px rgba(0,0,0,.5);
+  }
+  .student-sidebar.mobile-open{left:0!important}
+  .student-main{margin-left:0!important}
+  .student-main.shifted{margin-left:0!important}
+
+  /* Overlay pour fermer la sidebar */
+  .sidebar-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.5);z-index:999;
+  }
+  .sidebar-overlay.show{display:block}
+
+  /* Topbar cours */
+  .course-topbar{padding:0 12px!important}
+  .topbar-title{font-size:14px!important;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* Panel contenu cours */
+  .course-content{padding:16px!important}
+  .module-card{padding:14px!important}
+}
+
+/* ── Bottom nav admin : labels visibles ── */
+@media(max-width:360px){
+  .admin-bottom-nav .nav-label{display:none}
+  .admin-bottom-nav .nav-item{padding:8px 6px}
+}
+
+/* ── Formations en ligne page publique ── */
+@media(max-width:600px){
+  .formation-card-grid{grid-template-columns:1fr!important}
+  .formation-hero{padding:40px 16px!important}
+  .formation-hero h1{font-size:clamp(24px,6vw,36px)!important}
+}
+
+/* ── Général : éviter overflow horizontal ── */
+*{max-width:100%;box-sizing:border-box}
+img,video,iframe{max-width:100%;height:auto}
+table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ── Touch targets minimaux (accessibilité mobile) ── */
+button,a,[onclick]{min-height:36px;min-width:36px}
+
+/* ── Amélioration focus pour clavier et accessibilité ── */
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--primary,#16503f);
+  outline-offset:2px;
+}
+
+/* ── Hamburger mobile pour admin (déjà géré en JS, renforcement CSS) ── */
+.admin-mobile-menu-btn{
+  display:none;
+  background:none;border:none;
+  color:var(--text,#1a1a1a);
+  font-size:22px;padding:8px;cursor:pointer;
+  border-radius:8px;
+}
+@media(max-width:768px){
+  .admin-mobile-menu-btn{display:flex;align-items:center;justify-content:center}
+}
+
+/* ── Drawer sidebar admin mobile ── */
+@media(max-width:768px){
+  .admin-sidebar.mobile-open{
+    display:flex!important;
+    position:fixed!important;
+    left:0!important;top:0!important;bottom:0!important;
+    z-index:9999;
+    width:260px!important;
+    box-shadow:4px 0 30px rgba(0,0,0,.4);
+  }
+  .admin-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(0,0,0,.45);z-index:9998;
+  }
+  .admin-overlay.show{display:block}
+}

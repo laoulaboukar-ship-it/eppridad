@@ -728,6 +728,16 @@
               <input class="admin-form-input" id="acces-pwd" placeholder="eppridad2025" value="eppridad2025">
             </div>
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="admin-form-group">
+              <label class="admin-form-label">Nom complet apprenant</label>
+              <input class="admin-form-input" id="acces-nom" placeholder="Ex: Moussa Mahamadou">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">Email (pour notification automatique) 📧</label>
+              <input class="admin-form-input" type="email" id="acces-email" placeholder="apprenant@email.com">
+            </div>
+          </div>
           <div class="admin-form-group">
             <label class="admin-form-label">Formation *</label>
             <select class="admin-form-select" id="acces-formation">
@@ -745,7 +755,7 @@
           </div>
           <div class="admin-form-group">
             <label class="admin-form-label">Note (optionnel)</label>
-            <input class="admin-form-input" id="acces-note" placeholder="Réf paiement, nom complet…">
+            <input class="admin-form-input" id="acces-note" placeholder="Réf paiement, note interne…">
           </div>
           <div style="display:flex;gap:10px">
             <button class="btn-block btn-green-block" onclick="giveAcces()" style="flex:1">✅ Activer l'accès</button>
@@ -838,6 +848,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="js/supabase.js"></script>
 
 <script src="js/espace-etudiant.js"></script>

@@ -2079,25 +2079,37 @@ function showGiveAccesForm(){
 
 async function giveAcces(){
   const matricule=document.getElementById('acces-matricule')?.value.trim().toUpperCase();
-  const pwd=document.getElementById('acces-pwd')?.value.trim();
+  const pwd=document.getElementById('acces-pwd')?.value.trim()||'eppridad2025';
   const formId=document.getElementById('acces-formation')?.value;
   const duree=parseInt(document.getElementById('acces-duree')?.value)||null;
   const note=document.getElementById('acces-note')?.value.trim();
+  const nomComplet=document.getElementById('acces-nom')?.value.trim()||'';
+  const email=document.getElementById('acces-email')?.value.trim()||'';
   if(!matricule||!formId){showToast('⚠️ Matricule et formation obligatoires.');return}
 
   const expiry=duree?new Date(Date.now()+duree*86400000):null;
 
   try{
+    const hashPwd=typeof simpleHash!=='undefined'?simpleHash(pwd):pwd;
+
     // Créer/mettre à jour le compte portail avec rôle enligne
-    const hashPwd=typeof simpleHash!=='undefined'?simpleHash(pwd||'eppridad2025'):(pwd||'eppridad2025');
     await sb.upsert('portail_comptes',{
       matricule,
       pwd_hash:hashPwd,
       statut:'actif',
       role:'enligne',
+      nom_complet:nomComplet||null,
+      email:email||null,
       expiry_date:expiry?expiry.toISOString().split('T')[0]:null,
       date_creation:new Date().toISOString()
     },'matricule');
+
+    // Récupérer le titre de la formation pour l'email
+    let formationTitre='votre formation';
+    try{
+      const fRows=await sb.select('formations_enligne',{select:'titre',filters:[{col:'id',val:`eq.${formId}`}],limit:1});
+      if(fRows&&fRows.length) formationTitre=fRows[0].titre;
+    }catch(_){}
 
     // Créer l'accès formation
     await sb.upsert('acces_formations',{
@@ -2108,8 +2120,18 @@ async function giveAcces(){
     },'matricule,formation_id');
 
     showSuccess(`✅ Accès activé pour ${matricule} !`);
+
+    // Envoyer email de confirmation si une adresse est fournie
+    if(email && typeof emailAccesAccorde==='function'){
+      emailAccesAccorde(email, nomComplet||matricule, matricule, formationTitre, pwd, expiry?expiry.toISOString():null)
+        .then(ok=>{ if(ok) showToast('📧 Email de confirmation envoyé !','#1a5d4a'); })
+        .catch(()=>{});
+    }
+
     document.getElementById('giveAccesForm').style.display='none';
     document.getElementById('acces-matricule').value='';
+    document.getElementById('acces-nom').value='';
+    document.getElementById('acces-email').value='';
     loadAcesList();
   }catch(e){showError('Erreur: '+e.message)}
 }
@@ -2207,8 +2229,30 @@ async function corrigerEx(id,statut){
   try{
     await sb.update('soumissions_exercices',{statut,note_admin:note||null},{col:'id',val:`eq.${id}`});
     showSuccess(statut==='valide'?'✅ Exercice validé !':'❌ Exercice rejeté.');
+
+    // Récupérer les infos pour envoyer l'email
+    try{
+      const rows=await sb.select('soumissions_exercices',{
+        select:'matricule,formation_id',filters:[{col:'id',val:`eq.${id}`}],limit:1});
+      if(rows&&rows.length){
+        const {matricule,formation_id}=rows[0];
+        const [compteRows,fRows]=await Promise.all([
+          sb.select('portail_comptes',{select:'email,nom_complet',filters:[{col:'matricule',val:`eq.${matricule}`}],limit:1}).catch(()=>[]),
+          sb.select('formations_enligne',{select:'titre',filters:[{col:'id',val:`eq.${formation_id}`}],limit:1}).catch(()=>[])
+        ]);
+        const email=compteRows&&compteRows.length?compteRows[0].email:null;
+        const nomComplet=compteRows&&compteRows.length?compteRows[0].nom_complet:matricule;
+        const formTitre=fRows&&fRows.length?fRows[0].titre:'votre formation';
+        if(email && typeof emailCorrectionExercice==='function'){
+          emailCorrectionExercice(email,nomComplet,statut,note,formTitre)
+            .then(ok=>{ if(ok) showToast('📧 Email envoyé à l\'apprenant','#1a5d4a'); });
+        }
+      }
+    }catch(_){}
+
     loadExercicesSoumis();
   }catch(e){showError('Erreur: '+e.message)}
+}
 }
 
 
@@ -2228,3 +2272,124 @@ window.aPanel = function(name, btn){
   if(name==='acces_el')     { loadAcesList(); loadElFormations(); }
   if(name==='exercices_el') loadExercicesSoumis();
 };
+
+// ══════════════════════════════════════════════════════════
+//  EPPRIDAD V18 — MOBILE DRAWER SIDEBAR (Admin & Cours)
+// ══════════════════════════════════════════════════════════
+
+(function initMobileUI(){
+  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded',fn); }
+
+  ready(function(){
+    // ── Admin sidebar mobile drawer ──
+    const adminSidebar = document.querySelector('.admin-sidebar');
+    const adminHeader  = document.querySelector('.admin-header');
+    if(adminSidebar && adminHeader){
+      // Créer l'overlay
+      let overlay = document.getElementById('admin-overlay');
+      if(!overlay){
+        overlay = document.createElement('div');
+        overlay.id = 'admin-overlay';
+        overlay.className = 'admin-overlay';
+        document.body.appendChild(overlay);
+      }
+
+      // Créer le bouton hamburger dans le header
+      let hamburger = document.getElementById('admin-hamburger');
+      if(!hamburger){
+        hamburger = document.createElement('button');
+        hamburger.id = 'admin-hamburger';
+        hamburger.className = 'admin-mobile-menu-btn';
+        hamburger.innerHTML = '☰';
+        hamburger.title = 'Menu';
+        adminHeader.prepend(hamburger);
+      }
+
+      function openAdminSidebar(){
+        adminSidebar.classList.add('mobile-open');
+        overlay.classList.add('show');
+        document.body.style.overflow='hidden';
+      }
+      function closeAdminSidebar(){
+        adminSidebar.classList.remove('mobile-open');
+        overlay.classList.remove('show');
+        document.body.style.overflow='';
+      }
+
+      hamburger.addEventListener('click', openAdminSidebar);
+      overlay.addEventListener('click', closeAdminSidebar);
+
+      // Fermer la sidebar quand on clique sur un item de nav
+      adminSidebar.querySelectorAll('.admin-nav-item,.admin-nav-btn,[onclick]').forEach(el=>{
+        el.addEventListener('click', ()=>{ if(window.innerWidth<=768) closeAdminSidebar(); });
+      });
+      // Observer les mutations pour capturer les nav items ajoutés dynamiquement
+      new MutationObserver(()=>{
+        adminSidebar.querySelectorAll('.admin-nav-item:not([data-mob]),.admin-nav-btn:not([data-mob])').forEach(el=>{
+          el.dataset.mob='1';
+          el.addEventListener('click',()=>{ if(window.innerWidth<=768) closeAdminSidebar(); });
+        });
+      }).observe(adminSidebar, {childList:true,subtree:true});
+    }
+
+    // ── Cours étudiant : sidebar mobile ──
+    const studSidebar = document.querySelector('.student-sidebar');
+    const studMain    = document.querySelector('.student-main');
+    if(studSidebar && studMain){
+      // Overlay
+      let sOverlay = document.getElementById('sidebar-overlay');
+      if(!sOverlay){
+        sOverlay = document.createElement('div');
+        sOverlay.id = 'sidebar-overlay';
+        sOverlay.className = 'sidebar-overlay';
+        document.body.appendChild(sOverlay);
+      }
+
+      // Bouton hamburger dans topbar
+      const topbar = document.querySelector('.course-topbar,.student-topbar');
+      if(topbar && !document.getElementById('cours-hamburger')){
+        const hbtn = document.createElement('button');
+        hbtn.id = 'cours-hamburger';
+        hbtn.style.cssText='background:none;border:none;color:inherit;font-size:22px;padding:6px 10px;cursor:pointer;display:none;margin-right:6px';
+        hbtn.innerHTML='☰';
+        topbar.prepend(hbtn);
+        // Afficher uniquement sur mobile
+        const mq = window.matchMedia('(max-width:768px)');
+        const toggleHbtn = m=>{ hbtn.style.display=m.matches?'block':'none'; };
+        mq.addEventListener('change',toggleHbtn); toggleHbtn(mq);
+
+        hbtn.addEventListener('click',()=>{
+          studSidebar.classList.add('mobile-open');
+          sOverlay.classList.add('show');
+          document.body.style.overflow='hidden';
+        });
+      }
+
+      sOverlay.addEventListener('click',()=>{
+        studSidebar.classList.remove('mobile-open');
+        sOverlay.classList.remove('show');
+        document.body.style.overflow='';
+      });
+
+      // Fermer sidebar cours quand on clique un module
+      studSidebar.querySelectorAll('[onclick]').forEach(el=>{
+        el.addEventListener('click',()=>{
+          if(window.innerWidth<=768){
+            studSidebar.classList.remove('mobile-open');
+            sOverlay.classList.remove('show');
+            document.body.style.overflow='';
+          }
+        });
+      });
+    }
+
+    // ── Fix : champs de formulaire email/nom dans la grille give-access ──
+    const gaf = document.getElementById('giveAccesForm');
+    if(gaf){
+      const grid = gaf.querySelector('[style*="grid-template-columns:1fr 1fr"]');
+      if(grid && window.innerWidth <= 600){
+        grid.style.gridTemplateColumns = '1fr';
+      }
+    }
+  });
+})();

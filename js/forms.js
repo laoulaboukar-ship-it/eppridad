@@ -148,3 +148,28 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 });
+
+// ══════════════════════════════════════════════════════════
+//  EPPRIDAD V18 — Email auto via EmailJS sur soumission formulaire
+// ══════════════════════════════════════════════════════════
+// Patch saveAndSend pour envoyer aussi un email auto de confirmation
+const _origSaveAndSend = window.saveAndSend || saveAndSend;
+async function saveAndSendWithEmail(table, dbData, modalType, whatsappData) {
+  // Sauvegarder en DB + afficher modal WhatsApp (comportement original)
+  await _origSaveAndSend(table, dbData, modalType, whatsappData);
+
+  // Email automatique de confirmation si l'apprenant a fourni un email
+  const email = dbData.email || whatsappData?.email;
+  const prenom = dbData.prenom || whatsappData?.prenom || '';
+  const nom    = dbData.nom    || whatsappData?.nom    || '';
+  const nom_complet = [prenom, nom].filter(Boolean).join(' ');
+
+  if (email && typeof emailConfirmationInscription === 'function') {
+    const ref = dbData.reference || ('REF-' + Date.now().toString(36).toUpperCase());
+    const filiere = dbData.filiere || whatsappData?.formation || whatsappData?.filiere || 'Formation EPPRIDAD';
+    emailConfirmationInscription(email, nom_complet, ref, filiere).catch(() => {});
+  }
+}
+
+// Remplacer saveAndSend par la version avec email dans le scope global
+if (typeof window !== 'undefined') window.saveAndSend = saveAndSendWithEmail;
