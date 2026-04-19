@@ -875,11 +875,24 @@ async function loadAdminLibrary_admin(){
   try{
     const docs=await sb.select('cours_documents',{select:'*',order:'created_at.desc'});
     const list=document.getElementById('adminLibList');if(!list)return;
-    list.innerHTML=(docs||[]).length?(docs||[]).map(d=>`<div class="s-card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
-      <div style="font-size:26px">${d.type_fichier==='pdf'?'📄':d.type_fichier==='xlsx'?'📊':d.type_fichier==='pptx'?'📑':'📝'}</div>
-      <div style="flex:1"><div style="font-weight:700;font-size:14px">${d.titre}</div><div style="font-size:11px;color:var(--text3)">${d.filiere||'—'} · ${d.categorie||d.type_fichier||'—'} · ${d.telechargements||0} téléchargements</div></div>
-      <button class="btn-sm btn-danger-sm" onclick="deleteDocAdmin('${d.id}')">🗑 Supprimer</button>
-    </div>`).join(''):'<p style="color:var(--text3);font-size:13px">Aucun document.</p>';
+    const accesLabels={gratuit:'🌍 Public',etudiant:'🎓 Étudiants',enligne:'💻 En ligne',premium:'⭐ Communauté'};
+    const accesColors={gratuit:'#e3f2fd',etudiant:'#e8f5e9',enligne:'#fdf6e3',premium:'#f3e5f5'};
+    const accesTxt={gratuit:'#0d47a1',etudiant:'var(--ok)',enligne:'#7d5a00',premium:'#7b1fa2'};
+    list.innerHTML=(docs||[]).length?(docs||[]).map(d=>`<div class="s-card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:12px 16px">
+      <div style="font-size:26px;flex-shrink:0">📄</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:14px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.titre}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="background:${accesColors[d.categorie]||'#f5f5f5'};color:${accesTxt[d.categorie]||'#555'};font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">${accesLabels[d.categorie]||d.categorie||'—'}</span>
+          ${d.filiere?`<span style="font-size:11px;color:var(--text3)">${d.filiere}</span>`:''}
+          <span style="font-size:11px;color:var(--text3)">⬇ ${d.telechargements||0}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        ${d.fichier_url?`<a href="${d.fichier_url}" target="_blank" class="btn-sm" style="text-decoration:none">👁</a>`:''}
+        <button class="btn-sm btn-danger-sm" onclick="deleteDocAdmin('${d.id}')">🗑</button>
+      </div>
+    </div>`).join(''):'<p style="color:var(--text3);font-size:13px;padding:16px">Aucun document. Ajoutez-en via le bouton ci-dessus.</p>';
   }catch(e){console.error('loadAdminLibrary_admin',e);}
 }
 
@@ -891,15 +904,18 @@ async function addDoc(){
   else if(_docSrc==='file'){url=_docFileData||'';}
   if(!url){alert('Veuillez ajouter un lien URL ou sélectionner un fichier.');return;}
   try{
+    const docAcces=document.getElementById('docType').value||'etudiant';
+    const docFiliere=document.getElementById('docFiliere').value.trim()||null;
     await sb.insert('cours_documents',{
       titre:title,
-      description:document.getElementById('docDesc').value.trim(),
+      description:document.getElementById('docDesc').value.trim()||null,
       fichier_url:url,
-      type_fichier:document.getElementById('docType').value||'pdf',
-      categorie:document.getElementById('docType').value||'cours',
-      filiere:document.getElementById('docFiliere').value.trim()||null,
+      type_fichier:'pdf',
+      categorie:docAcces,
+      filiere:docFiliere,
+      niveau:null,
       publie:true,telechargements:0,
-      uploaded_by:'Administration',
+      uploaded_by:'Administration EPPRIDAD',
     });
     document.getElementById('addDocForm').style.display='none';
     document.getElementById('docTitle').value='';document.getElementById('docDesc').value='';document.getElementById('docUrl').value='';
@@ -929,6 +945,13 @@ async function loadAdminMessages(){
       </div>
     </div>`).join(''):'<p style="color:var(--text3);font-size:13px">Aucun message.</p>';
   }catch(e){console.error('loadAdminMessages',e);}
+}
+
+function toggleMsgDest(val){
+  const sp=document.getElementById('msgDestSpecific');
+  if(sp)sp.style.display=val==='specific'?'block':'none';
+  const btn=document.querySelector('[onclick="sendMsg()"]');
+  if(btn)btn.textContent=val==='specific'?'📤 Envoyer à cet étudiant':'📤 Envoyer à tous les étudiants';
 }
 
 async function sendMsg(){
@@ -961,18 +984,27 @@ function aPanel(name,btn){
     library:'📚 Bibliothèque & Documents',
     messages:'💬 Messagerie',
     infos:'📢 Publications & Actualités',
-    marketplace:'🛒 Boutique EPPRIDAD',
+    marketplace:'🛒 Boutique produits',
     inscriptions:'✍️ Demandes d\'inscription',
+    commandes:'🛒 Commandes',
+    contacts:'📩 Contacts reçus',
+    formations_el:'🎓 Formations en ligne',
+    acces_el:'🔑 Accès apprenants',
+    exercices_el:'📋 Exercices soumis',
     settings:'⚙️ Paramètres'
   };
   const t=document.getElementById('adminTopbarTitle');if(t)t.textContent=titles[name]||name;
-  // Charger les données du panel sélectionné
-  if(name==='library')    loadAdminLibrary_admin();
-  if(name==='messages')   loadAdminMessages();
-  if(name==='infos')      loadAdminPosts();
-  if(name==='marketplace'){ loadProducts(); }
-  if(name==='inscriptions'){ loadInscriptions(); }
-  if(name==='dashboard')  renderAdminDashboard(window._adminData||{comptes:[],etudiants:[],notes:[]});
+  if(name==='library')      loadAdminLibrary_admin();
+  if(name==='messages')     loadAdminMessages();
+  if(name==='infos')        loadAdminPosts();
+  if(name==='marketplace')  loadProducts();
+  if(name==='inscriptions') loadInscriptions();
+  if(name==='commandes')    loadCommandes();
+  if(name==='contacts')     loadContacts();
+  if(name==='formations_el')loadElFormations();
+  if(name==='acces_el'){loadAcesList();loadElFormations();}
+  if(name==='exercices_el') loadExercicesSoumis();
+  if(name==='dashboard')    renderAdminDashboard(window._adminData||{comptes:[],etudiants:[],notes:[]});
 }
 
 function changeAdminPwd(){
@@ -1756,12 +1788,7 @@ async function markContactLu(id) {
 }
 
 // Fix aPanel to include commandes and contacts
-const _originalAPanel = aPanel;
-window.aPanel = function(name, btn) {
-  _originalAPanel(name, btn);
-  if(name === 'commandes') loadCommandes();
-  if(name === 'contacts')  loadContacts();
-};
+// aPanel unifié — voir fonction principale
 
 // ════════════════════════════════════════════════════════════
 //  ADMIN — HORLOGE TOPBAR
@@ -2289,13 +2316,7 @@ async function openElFormationDetailById(formId){
   openElFormationDetail(formId, titre);
 }
 // ── Override aPanel pour les nouveaux panels ──
-const __origAPanel = window.aPanel;
-window.aPanel = function(name, btn){
-  __origAPanel(name, btn);
-  if(name==='formations_el') loadElFormations();
-  if(name==='acces_el')     { loadAcesList(); loadElFormations(); }
-  if(name==='exercices_el') loadExercicesSoumis();
-};
+// aPanel unifié — voir fonction principale
 
 // ══════════════════════════════════════════════════════════
 //  EPPRIDAD V18 — MOBILE DRAWER SIDEBAR (Admin & Cours)

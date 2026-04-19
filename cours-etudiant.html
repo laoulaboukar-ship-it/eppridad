@@ -650,6 +650,74 @@ async function doCoursLogin(){
   }
 }
 
+function showMonCompte(){
+  closeSidebar();
+  const main=document.getElementById('appMain');
+  main.innerHTML=`
+  <div class="content-body" style="max-width:560px">
+    <div style="margin-bottom:22px">
+      <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--txt);margin-bottom:6px">👤 Mon compte</h1>
+      <p style="font-size:13.5px;color:var(--tx3)">Gérez votre accès et votre sécurité.</p>
+    </div>
+    <div style="background:var(--sf);border:1px solid var(--bdr);border-radius:var(--rl);padding:22px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--g);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px">Informations du compte</div>
+      <div style="display:grid;gap:10px;font-size:14px">
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--bdr)"><span style="color:var(--tx3);min-width:120px">Identifiant</span><strong>${_sess?.matricule||'—'}</strong></div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--bdr)"><span style="color:var(--tx3);min-width:120px">Formation</span><strong>${_formation?.titre||'—'}</strong></div>
+        <div style="display:flex;gap:12px;padding:8px 0"><span style="color:var(--tx3);min-width:120px">Filière</span><strong>${_formation?.filiere||'—'}</strong></div>
+      </div>
+    </div>
+    <div style="background:var(--sf);border:1px solid var(--bdr);border-radius:var(--rl);padding:22px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:800;color:var(--g);text-transform:uppercase;letter-spacing:.7px;margin-bottom:16px">🔐 Changer mon mot de passe</div>
+      <div id="cPwdErr" style="display:none;background:#ffebee;border:1px solid rgba(229,57,53,.3);color:#c62828;font-size:13px;padding:10px 14px;border-radius:9px;margin-bottom:12px"></div>
+      <div id="cPwdOk" style="display:none;background:#e8f5e9;border:1px solid rgba(46,125,82,.3);color:var(--ok);font-size:13px;padding:10px 14px;border-radius:9px;margin-bottom:12px"></div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Mot de passe actuel</label>
+        <input id="cpOld" type="password" placeholder="Votre mot de passe actuel" style="width:100%;padding:12px 14px;border:2px solid var(--bdr2);border-radius:10px;font-size:14px;color:var(--txt);background:var(--sf2);outline:none;font-family:inherit;-webkit-text-fill-color:var(--txt);caret-color:var(--txt)">
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Nouveau mot de passe</label>
+        <input id="cpNew" type="password" placeholder="Minimum 6 caractères" style="width:100%;padding:12px 14px;border:2px solid var(--bdr2);border-radius:10px;font-size:14px;color:var(--txt);background:var(--sf2);outline:none;font-family:inherit;-webkit-text-fill-color:var(--txt);caret-color:var(--txt)">
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:11px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px">Confirmer le nouveau mot de passe</label>
+        <input id="cpNew2" type="password" placeholder="Répétez le nouveau mot de passe" style="width:100%;padding:12px 14px;border:2px solid var(--bdr2);border-radius:10px;font-size:14px;color:var(--txt);background:var(--sf2);outline:none;font-family:inherit;-webkit-text-fill-color:var(--txt);caret-color:var(--txt)">
+      </div>
+      <button onclick="doChangePwdEnligne()" style="display:block;width:100%;padding:13px;background:linear-gradient(135deg,var(--g),var(--gl));color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">🔐 Mettre à jour le mot de passe</button>
+    </div>
+    <div style="background:var(--sf);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="font-size:13.5px;color:var(--tx2)">Besoin d'aide ? Contactez EPPRIDAD</div>
+      <a href="https://wa.me/22799851532?text=Bonjour+EPPRIDAD+j'ai+besoin+d'aide+avec+mon+espace+formation" target="_blank" style="display:inline-flex;align-items:center;gap:7px;background:#25D366;color:#fff;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:700">💬 WhatsApp</a>
+    </div>
+  </div>`;
+  main.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function doChangePwdEnligne(){
+  const old=document.getElementById('cpOld')?.value||'';
+  const nw=document.getElementById('cpNew')?.value||'';
+  const nw2=document.getElementById('cpNew2')?.value||'';
+  const err=document.getElementById('cPwdErr');
+  const ok=document.getElementById('cPwdOk');
+  const showE=(m)=>{err.textContent=m;err.style.display='block';ok.style.display='none'};
+  const showO=(m)=>{ok.textContent=m;ok.style.display='block';err.style.display='none'};
+  if(!old||!nw||!nw2){showE('Remplissez tous les champs.');return}
+  if(nw.length<6){showE('Le nouveau mot de passe doit faire au moins 6 caractères.');return}
+  if(nw!==nw2){showE('Les mots de passe ne correspondent pas.');return}
+  try{
+    // Vérifier l'ancien mot de passe
+    const rows=await sb.select('portail_comptes',{select:'pwd_hash',filters:[{col:'matricule',val:`eq.${_sess.matricule}`}],limit:1});
+    if(!rows||!rows.length){showE('Compte introuvable.');return}
+    if(typeof simpleHash!=='undefined'&&rows[0].pwd_hash!==simpleHash(old)){showE('Mot de passe actuel incorrect.');return}
+    // Mettre à jour
+    await sb.update('portail_comptes',{pwd_hash:simpleHash(nw)},{col:'matricule',val:`eq.${_sess.matricule}`});
+    showO('✅ Mot de passe mis à jour avec succès !');
+    document.getElementById('cpOld').value='';
+    document.getElementById('cpNew').value='';
+    document.getElementById('cpNew2').value='';
+  }catch(e){showE('Erreur: '+e.message)}
+}
+
 function doLogout(){
   clearSession();_session=null;_formation=null;_modules=[];
   _progression={};_quizResults={};_currentResource=null;

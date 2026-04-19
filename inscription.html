@@ -187,9 +187,14 @@
   text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; font-family: 'Outfit', sans-serif;
 }
 .fg-dark input, .fg-dark select, .fg-dark textarea {
-  width: 100%; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15);
-  border-radius: 9px; padding: 11px 14px; font-size: 14px; color: #fff;
+  width: 100%; background: rgba(255,255,255,.1); border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 9px; padding: 12px 15px; font-size: 14px; color: #fff !important;
+  -webkit-text-fill-color: #fff !important; caret-color: #fff;
   font-family: 'Outfit', sans-serif; outline: none; transition: border-color .2s;
+}
+.fg-dark input:-webkit-autofill, .fg-dark input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff !important;
+  -webkit-box-shadow: 0 0 0 100px rgba(22,80,63,.5) inset !important;
 }
 .fg-dark input:focus, .fg-dark select:focus, .fg-dark textarea:focus {
   border-color: rgba(212,175,55,.5); background: rgba(255,255,255,.09);

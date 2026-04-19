@@ -374,6 +374,10 @@
           <span class="mbn-icon">💳</span>
           <span class="mbn-label">Scolarité</span>
         </button>
+        <button class="mbn-item" onclick="window.open('index.html','_blank')" title="Site EPPRIDAD">
+          <span class="mbn-icon">🌐</span>
+          <span class="mbn-label">Site</span>
+        </button>
       </nav>
 
   </div><!-- end student-main -->
@@ -515,8 +519,13 @@
           <div class="admin-form-group"><label class="admin-form-label">Description</label><textarea class="admin-form-textarea" id="docDesc" placeholder="Description courte du document…" rows="2"></textarea></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div class="admin-form-group"><label class="admin-form-label">Icône</label><input class="admin-form-input" id="docIcon" placeholder="📄" value="📄"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Type d'accès</label>
-              <select class="admin-form-select" id="docType"><option value="gratuit">📖 Gratuit</option><option value="etudiant" selected>🎓 Étudiant</option><option value="premium">⭐ Premium</option></select>
+            <div class="admin-form-group"><label class="admin-form-label">Accès réservé à</label>
+              <select class="admin-form-select" id="docType">
+                <option value="gratuit">🌍 Tous (public, site web)</option>
+                <option value="etudiant" selected>🎓 Étudiants diplômants</option>
+                <option value="enligne">💻 Apprenants en ligne</option>
+                <option value="premium">⭐ Toute la communauté EPPRIDAD</option>
+              </select>
             </div>
           </div>
           <div class="admin-form-group"><label class="admin-form-label">Filière concernée</label><input class="admin-form-input" id="docFiliere" placeholder="Toutes les filières"></div>
@@ -549,17 +558,40 @@
 
       <!-- MESSAGES -->
       <div id="ap-messages" class="ap">
-        <div class="s-title" style="margin-bottom:14px">💬 Envoyer un message à tous</div>
+        <div class="s-title-row">
+          <div class="s-title">💬 Messagerie</div>
+          <button class="btn-sm" onclick="loadAdminMessages()">🔄 Actualiser</button>
+        </div>
         <div class="s-card">
-          <div class="admin-form-group"><label class="admin-form-label">Type</label>
-            <select class="admin-form-select" id="msgType"><option value="info">ℹ️ Information</option><option value="important">⚠️ Important</option><option value="success">✅ Félicitations</option><option value="reminder">📅 Rappel</option></select>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <div class="admin-form-group" style="margin-bottom:0">
+              <label class="admin-form-label">Destinataire</label>
+              <select class="admin-form-select" id="msgDest" onchange="toggleMsgDest(this.value)">
+                <option value="all">📢 Tous les étudiants</option>
+                <option value="specific">👤 Un étudiant spécifique</option>
+              </select>
+            </div>
+            <div class="admin-form-group" style="margin-bottom:0">
+              <label class="admin-form-label">Type de message</label>
+              <select class="admin-form-select" id="msgType">
+                <option value="info">ℹ️ Information générale</option>
+                <option value="important">⚠️ Important / Urgent</option>
+                <option value="success">✅ Félicitations</option>
+                <option value="reminder">📅 Rappel / Convocation</option>
+                <option value="conseil_stage">🌾 Conseil stage terrain</option>
+              </select>
+            </div>
           </div>
-          <div class="admin-form-group"><label class="admin-form-label">Titre</label><input class="admin-form-input" id="msgTitle" placeholder="Titre du message"></div>
-          <div class="admin-form-group"><label class="admin-form-label">Contenu</label><textarea class="admin-form-textarea" id="msgBody" placeholder="Contenu du message…"></textarea></div>
-          <button class="btn-block btn-green-block" onclick="sendMsg()">📤 Envoyer à tous les étudiants</button>
+          <div id="msgDestSpecific" style="display:none;margin-bottom:12px">
+            <label class="admin-form-label">Matricule de l'étudiant</label>
+            <input class="admin-form-input" id="msgMatricule" placeholder="Ex: EPPRI25-001" autocomplete="off">
+          </div>
+          <div class="admin-form-group"><label class="admin-form-label">Titre *</label><input class="admin-form-input" id="msgTitle" placeholder="Ex: Convocation examen – Vendredi 25 avril"></div>
+          <div class="admin-form-group"><label class="admin-form-label">Contenu *</label><textarea class="admin-form-textarea" id="msgBody" rows="4" placeholder="Rédigez votre message ici…"></textarea></div>
+          <button class="btn-block btn-green-block" onclick="sendMsg()">📤 Envoyer le message</button>
         </div>
         <div class="s-title" style="margin:20px 0 12px">Messages envoyés</div>
-        <div id="msgList"></div>
+        <div id="msgList"><div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Chargement…</div></div>
       </div>
 
       <!-- INFOS / PUBLICATIONS -->
