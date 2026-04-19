@@ -65,6 +65,12 @@ async function doLogin(){
   btn.disabled=true;btn.textContent='Connexion…';
   try {
     const acc = await sbLogin(id, pwd);
+    if(acc.role==='enligne'){
+      // Apprenant cours en ligne → rediriger vers son espace dédié
+      sessionStorage.setItem('cours_matricule', id);
+      window.location.href = 'cours-etudiant.html';
+      return;
+    }
     setSession({id, role: acc.role||'etudiant'});
     _sessionUser = {id, role: acc.role||'etudiant'};
     await loadStudentDashboard(id);
@@ -1171,12 +1177,27 @@ function showAdminNav(show){const nav=document.getElementById('adminBottomNav');
 //  INIT
 // ════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',async()=>{
+  // ── Reset d'urgence via URL ?reset=1 ──
+  if(new URLSearchParams(window.location.search).get('reset')==='1'){
+    sessionStorage.clear();
+    localStorage.removeItem('eppr_admin_hash_v2');
+    window.history.replaceState({},'',window.location.pathname);
+    showPage('auth-page');
+    showToast('Session réinitialisée. Reconnectez-vous.','#1a5d1a');
+    return;
+  }
   // Restaurer session
   const sess=getSession();
   if(sess){
     _sessionUser=sess;
     if(sess.role==='admin'){await loadAdminDashboard();showPage('admin-page');}
+    else if(sess.role==='enligne'){
+      // Les apprenants en ligne → leur espace est cours-etudiant.html, pas ici
+      clearSession();
+      showPage('auth-page');
+    }
     else if(sess.role==='etudiant'||sess.role==='student'){await loadStudentDashboard(sess.id);showPage('student-page');}
+    else{clearSession();showPage('auth-page');}
   }
   // Clavier
   document.getElementById('loginPwd')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});

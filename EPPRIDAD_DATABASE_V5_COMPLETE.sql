@@ -161,6 +161,7 @@ CREATE TABLE IF NOT EXISTS contacts (
 CREATE TABLE IF NOT EXISTS formations_enligne (
   id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   titre           TEXT NOT NULL,
+  slug            TEXT UNIQUE,
   emoji           TEXT DEFAULT '🌿',
   description     TEXT,
   filiere         TEXT,
@@ -170,7 +171,7 @@ CREATE TABLE IF NOT EXISTS formations_enligne (
   publie          BOOLEAN DEFAULT false,
   ordre           INTEGER DEFAULT 0,
   image_url       TEXT,
-  objectifs       TEXT,   -- JSON array en texte
+  objectifs       TEXT,
   prerequis       TEXT,
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
@@ -332,11 +333,11 @@ END $$;
 -- ══════════════════════════════════════════════════════════
 
 -- Formation de démonstration
-INSERT INTO formations_enligne (titre, emoji, description, filiere, niveau, duree_heures, prix_fcfa, publie, ordre)
+INSERT INTO formations_enligne (titre, slug, emoji, description, filiere, niveau, duree_heures, prix_fcfa, publie, ordre)
 VALUES 
-  ('Agriculture Durable & Maraîchage', '🌱', 'Apprenez les techniques modernes d''agriculture durable adaptées au contexte sahélien du Niger.', 'Agriculture', 'Débutant', 20, 50000, true, 1),
-  ('Élevage Bovin & Ovin Moderne', '🐄', 'Gestion, santé et rentabilité d''un élevage professionnel en zone sahélienne.', 'Élevage', 'Intermédiaire', 15, 45000, true, 2),
-  ('Gestion des Ressources Naturelles', '🌍', 'Conservation, reboisement et gestion durable des ressources naturelles au Sahel.', 'Environnement', 'Avancé', 25, 60000, false, 3)
+  ('Agriculture Durable & Maraîchage', 'agriculture-durable-maraichage', '🌱', 'Apprenez les techniques modernes d''agriculture durable adaptées au contexte sahélien du Niger.', 'Agriculture', 'Débutant', 20, 50000, true, 1),
+  ('Élevage Bovin & Ovin Moderne', 'elevage-bovin-ovin-moderne', '🐄', 'Gestion, santé et rentabilité d''un élevage professionnel en zone sahélienne.', 'Élevage', 'Intermédiaire', 15, 45000, true, 2),
+  ('Gestion des Ressources Naturelles', 'gestion-ressources-naturelles', '🌍', 'Conservation, reboisement et gestion durable des ressources naturelles au Sahel.', 'Environnement', 'Avancé', 25, 60000, false, 3)
 ON CONFLICT DO NOTHING;
 
 -- Compte admin de test pour l'espace apprenant

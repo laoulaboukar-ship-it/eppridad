@@ -75,6 +75,12 @@
         </div>
         <button class="btn-primary" id="loginBtn" onclick="doLogin()">🔓 Se connecter</button>
         <p class="form-link">Pas encore de compte ? <a href="#" onclick="switchTab('register')">Créez-en un</a></p>
+        <p style="text-align:center;margin-top:10px">
+          <a href="?reset=1" style="font-size:12px;color:rgba(255,255,255,.35);text-decoration:none;" 
+             onclick="sessionStorage.clear();localStorage.removeItem('eppr_admin_hash_v2');return true;">
+            🔄 Problème de connexion ? Cliquez ici pour réinitialiser
+          </a>
+        </p>
         <!-- Accès admin discret — triple clic sur le logo ou taper ADMIN comme ID -->
         <div id="adminHint" style="display:none;margin-top:12px;">
           <div class="divider"><span>Administration</span></div>
