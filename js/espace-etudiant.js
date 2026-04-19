@@ -1202,6 +1202,17 @@ function showSendModal(type,message,onDone){
 }
 
 // ── Mobile admin nav ──────────────────────────────────────────
+function toggleAdminMoreMenu(){
+  const m=document.getElementById('adminMoreMenu');
+  if(!m)return;
+  const isOpen=m.style.display!=='none';
+  m.style.display=isOpen?'none':'block';
+}
+function closeAdminMore(){
+  const m=document.getElementById('adminMoreMenu');
+  if(m)m.style.display='none';
+}
+
 function mbnav(btn){document.querySelectorAll('.admin-bnav-item').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
 function showAdminNav(show){const nav=document.getElementById('adminBottomNav');if(nav)nav.style.display=show?'flex':'none';}
 
@@ -2006,33 +2017,80 @@ async function addModule(formId){
 function showAddRessourceForm(formId,modId){
   const c=document.getElementById('formContainer-'+modId);
   if(!c)return;
-  c.innerHTML=`<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-top:10px">
-    <div style="font-size:14px;font-weight:700;margin-bottom:12px">+ Nouvelle ressource</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-      <div class="admin-form-group" style="margin-bottom:0"><label class="admin-form-label">Titre *</label><input class="admin-form-input" id="res-titre-${modId}" placeholder="Titre de la ressource"></div>
-      <div class="admin-form-group" style="margin-bottom:0"><label class="admin-form-label">Type *</label>
-        <select class="admin-form-select" id="res-type-${modId}" onchange="toggleResFields('${modId}')">
-          <option value="video">📹 Vidéo (YouTube ou URL)</option>
-          <option value="pdf">📄 Guide PDF</option>
-          <option value="exercice">✏️ Exercice pratique</option>
-          <option value="lien">🔗 Lien externe</option>
-        </select>
-      </div>
+  c.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-top:10px">
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">📎 Ajouter une ressource au module</div>
+    <!-- Type selector visuel -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+      <button onclick="selectResType('${modId}','video',this)" class="res-type-btn res-type-sel" style="border:2px solid var(--primary);background:var(--primary-pale);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s">
+        <div style="font-size:22px;margin-bottom:4px">📹</div><div style="font-size:11px;font-weight:700;color:var(--primary)">Vidéo</div>
+      </button>
+      <button onclick="selectResType('${modId}','pdf',this)" class="res-type-btn" style="border:2px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s">
+        <div style="font-size:22px;margin-bottom:4px">📄</div><div style="font-size:11px;font-weight:700;color:var(--text2)">PDF / Guide</div>
+      </button>
+      <button onclick="selectResType('${modId}','exercice',this)" class="res-type-btn" style="border:2px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s">
+        <div style="font-size:22px;margin-bottom:4px">✏️</div><div style="font-size:11px;font-weight:700;color:var(--text2)">Exercice</div>
+      </button>
+      <button onclick="selectResType('${modId}','lien',this)" class="res-type-btn" style="border:2px solid var(--border);background:var(--surface);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s">
+        <div style="font-size:22px;margin-bottom:4px">🔗</div><div style="font-size:11px;font-weight:700;color:var(--text2)">Lien</div>
+      </button>
+    </div>
+    <input type="hidden" id="res-type-${modId}" value="video">
+    <div class="admin-form-group"><label class="admin-form-label">Titre de la ressource *</label>
+      <input class="admin-form-input" id="res-titre-${modId}" placeholder="Ex: Introduction à l'irrigation goutte-à-goutte">
     </div>
     <div class="admin-form-group" id="res-url-grp-${modId}">
-      <label class="admin-form-label">URL (vidéo YouTube, lien PDF Google Drive, etc.)</label>
-      <input class="admin-form-input" id="res-url-${modId}" placeholder="https://youtube.com/watch?v=... ou https://drive.google.com/...">
-      <p style="font-size:11px;color:var(--text3);margin-top:4px">💡 Google Drive: clic droit → Partager → Toute personne avec le lien → Obtenir le lien</p>
+      <label class="admin-form-label" id="res-url-label-${modId}">Lien YouTube (copier l'URL de la vidéo)</label>
+      <input class="admin-form-input" id="res-url-${modId}" placeholder="https://youtube.com/watch?v=XXXXXXXXX">
+      <p style="font-size:11px;color:var(--text3);margin-top:5px" id="res-url-hint-${modId}">💡 Copiez simplement l'URL depuis YouTube, Google Drive ou tout autre service</p>
     </div>
     <div class="admin-form-group">
-      <label class="admin-form-label">Description / Consigne de l'exercice</label>
-      <textarea class="admin-form-textarea" id="res-texte-${modId}" rows="3" placeholder="Décrivez le contenu, les objectifs ou la consigne de l'exercice…"></textarea>
+      <label class="admin-form-label" id="res-texte-label-${modId}">Description / Objectifs pédagogiques</label>
+      <textarea class="admin-form-textarea" id="res-texte-${modId}" rows="3" placeholder="Décrivez le contenu ou les objectifs de cette ressource…"></textarea>
     </div>
-    <div style="display:flex;gap:10px">
-      <button onclick="addRessource('${formId}','${modId}')" style="background:var(--primary);color:#fff;border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Ajouter</button>
-      <button onclick="document.getElementById('formContainer-${modId}').innerHTML=''" style="padding:10px 16px;border:1px solid var(--border);border-radius:9px;cursor:pointer;font-family:inherit">✕ Annuler</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button onclick="addRessource('${formId}','${modId}')" style="background:var(--primary);color:#fff;border:none;border-radius:9px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✅ Ajouter la ressource</button>
+      <button onclick="document.getElementById('formContainer-${modId}').innerHTML=''" style="padding:11px 18px;border:1px solid var(--border);border-radius:9px;cursor:pointer;font-family:inherit;color:var(--text2)">✕ Annuler</button>
     </div>
   </div>`;
+}
+
+function selectResType(modId, type, btn){
+  document.getElementById('res-type-'+modId).value = type;
+  // Reset all buttons
+  const btns = btn.closest('div').querySelectorAll('.res-type-btn');
+  btns.forEach(b=>{b.style.border='2px solid var(--border)';b.style.background='var(--surface)';b.querySelector('div:last-child').style.color='var(--text2)';});
+  // Activate selected
+  btn.style.border='2px solid var(--primary)';
+  btn.style.background='var(--primary-pale)';
+  btn.querySelector('div:last-child').style.color='var(--primary)';
+  // Update labels
+  const urlGrp = document.getElementById('res-url-grp-'+modId);
+  const urlLabel = document.getElementById('res-url-label-'+modId);
+  const urlHint = document.getElementById('res-url-hint-'+modId);
+  const texteLabel = document.getElementById('res-texte-label-'+modId);
+  const urlInput = document.getElementById('res-url-'+modId);
+  if(type==='video'){
+    urlGrp.style.display='block';
+    urlLabel.textContent='Lien YouTube *';
+    urlInput.placeholder='https://youtube.com/watch?v=XXXXXXXXX ou https://youtu.be/XXX';
+    if(urlHint)urlHint.textContent='💡 Copiez l\'URL depuis YouTube. La vidéo s\'intègre directement dans l\'espace apprenant.';
+    texteLabel.textContent='Description / Objectifs pédagogiques';
+  } else if(type==='pdf'){
+    urlGrp.style.display='block';
+    urlLabel.textContent='Lien du PDF *';
+    urlInput.placeholder='https://drive.google.com/file/d/.../view';
+    if(urlHint)urlHint.textContent='💡 Google Drive: clic droit → Partager → accès public. Le PDF s\'affiche dans l\'espace apprenant.';
+    texteLabel.textContent='Description du document';
+  } else if(type==='exercice'){
+    urlGrp.style.display='none';
+    texteLabel.textContent='Consigne de l\'exercice * (obligatoire)';
+  } else if(type==='lien'){
+    urlGrp.style.display='block';
+    urlLabel.textContent='URL du lien *';
+    urlInput.placeholder='https://...';
+    if(urlHint)urlHint.textContent='Lien vers une ressource externe (article, outil, vidéo, etc.)';
+    texteLabel.textContent='Description de la ressource';
+  }
 }
 
 function toggleResFields(modId){
