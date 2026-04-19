@@ -2274,7 +2274,6 @@ async function corrigerEx(id,statut){
     loadExercicesSoumis();
   }catch(e){showError('Erreur: '+e.message)}
 }
-}
 
 
 // Wrapper pour appel depuis onclick (évite les problèmes d'échappement)

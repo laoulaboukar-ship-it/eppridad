@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réinitialisation — EPPRIDAD</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:sans-serif;
+    background:linear-gradient(135deg,#0b2f25,#16503f);
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .box{
+    background:white;border-radius:20px;padding:40px 32px;
+    max-width:400px;width:100%;text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  }
+  .icon{font-size:60px;margin-bottom:20px}
+  h1{font-size:22px;color:#0b2f25;margin-bottom:10px}
+  p{color:#666;font-size:14px;line-height:1.6;margin-bottom:24px}
+  .btn{
+    display:block;width:100%;padding:16px;
+    background:linear-gradient(135deg,#16503f,#1e6b54);
+    color:white;border:none;border-radius:12px;
+    font-size:16px;font-weight:700;cursor:pointer;
+    text-decoration:none;margin-bottom:12px;
+  }
+  .status{
+    margin-top:16px;padding:12px;border-radius:10px;
+    font-size:14px;font-weight:600;display:none;
+  }
+  .status.ok{background:#e8f5e9;color:#1b5e20}
+  .status.err{background:#ffebee;color:#b71c1c}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="icon">🔄</div>
+  <h1>Réinitialisation EPPRIDAD</h1>
+  <p>Cette page va effacer votre session bloquée et vous permettre de vous reconnecter normalement en tant qu'administrateur.</p>
+  
+  <button class="btn" onclick="doReset()">🔓 Réinitialiser et accéder à l'espace admin</button>
+  
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+function doReset() {
+  try {
+    // Effacer TOUT
+    sessionStorage.clear();
+    localStorage.clear();
+    
+    var s = document.getElementById('status');
+    s.textContent = '✅ Session effacée ! Redirection vers la page de connexion…';
+    s.className = 'status ok';
+    s.style.display = 'block';
+    
+    // Rediriger vers espace-etudiant après 1.5 secondes
+    setTimeout(function() {
+      window.location.href = 'espace-etudiant.html';
+    }, 1500);
+    
+  } catch(e) {
+    var s = document.getElementById('status');
+    s.textContent = 'Erreur : ' + e.message;
+    s.className = 'status err';
+    s.style.display = 'block';
+  }
+}
+
+// Réinitialiser automatiquement au chargement
+window.onload = function() {
+  doReset();
+};
+</script>
+</body>
+</html>
