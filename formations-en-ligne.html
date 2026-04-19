@@ -772,19 +772,59 @@ function renderEnrollStep(){
         <button class="btn-confirm" onclick="goStep3()">Confirmer mon inscription →</button>
       </div>`;
   } else {
+    const nomAppren = document.getElementById('f-nom')?.value.trim() || '';
+    const prenomAppren = nomAppren.split(' ')[0] || nomAppren;
+    // Message WhatsApp personnalisé à envoyer à EPPRIDAD (côté admin)
+    const waAdminMsg = `🎓 NOUVELLE INSCRIPTION EN LIGNE\n\n`+
+      `Formation : ${c.emoji} ${c.titre}\n`+
+      `Apprenant : ${nomAppren}\n`+
+      `Téléphone : ${document.getElementById('f-tel')?.value||''}\n`+
+      `Email : ${document.getElementById('f-email')?.value||'Non renseigné'}\n`+
+      `Région : ${document.getElementById('f-region')?.value||''}\n`+
+      `Paiement : ${selectedPay?.toUpperCase()} — ${c.prix?.toLocaleString('fr-FR')} FCFA\n`+
+      `Motif : ${document.getElementById('f-motif')?.value||'Non précisé'}\n\n`+
+      `✅ Action requise : vérifier le paiement et activer l'accès dans le panel admin.`;
+
     body.innerHTML=stepsHtml+`
       <div class="confirm-box">
         <div class="confirm-icon">🎉</div>
-        <div class="confirm-title">Inscription enregistrée !</div>
-        <p style="font-size:13.5px;color:var(--tl);line-height:1.7;margin-bottom:20px;">Votre demande d'inscription à <strong>${c.titre}</strong> a bien été reçue.<br><br>Notre équipe va vérifier votre paiement et vous envoyer votre accès aux modules dans les <strong>24 heures</strong> par WhatsApp.</p>
-        <div style="background:var(--gp);border:1px solid rgba(26,93,26,.2);border-radius:10px;padding:14px;margin-bottom:16px;text-align:left;">
-          <div style="font-size:12px;font-weight:700;color:var(--g);margin-bottom:8px;">📲 En attendant :</div>
-          <div style="font-size:12.5px;color:var(--txt);">• Rejoignez le groupe WhatsApp EPPRIDAD Formations</div>
-          <div style="font-size:12.5px;color:var(--txt);">• Enregistrez notre numéro : <strong>+227 99 85 15 32</strong></div>
-          <div style="font-size:12.5px;color:var(--txt);">• Gardez votre preuve de paiement</div>
+        <div class="confirm-title">Félicitations ${prenomAppren} !</div>
+        <div style="background:linear-gradient(135deg,rgba(22,80,63,.08),rgba(201,168,76,.08));border:1.5px solid rgba(22,80,63,.2);border-radius:14px;padding:18px;margin-bottom:18px;text-align:left;">
+          <div style="font-size:13px;font-weight:800;color:var(--g);margin-bottom:10px;">📚 Votre formation : ${c.emoji} ${c.titre}</div>
+          <div style="font-size:12.5px;color:var(--txt);line-height:1.9;">
+            <div>⏱ Durée : <strong>${c.duree}</strong></div>
+            <div>🎯 Niveau : <strong>${c.niveau}</strong></div>
+            <div>🏅 Certification : <strong>Certificat numérique EPPRIDAD</strong></div>
+          </div>
         </div>
-        <button class="btn-gold" style="border:none;width:100%;cursor:pointer;" onclick="window.open('https://wa.me/22799851532?text=Bonjour EPPRIDAD, je viens de m%27inscrire à la formation : ${encodeURIComponent(c.titre)}. Mon nom est '+encodeURIComponent(document.getElementById('f-nom')?.value||''),'_blank');closeEnroll();">
-          💬 Notifier EPPRIDAD sur WhatsApp
+
+        <div style="font-size:13px;color:var(--tl);line-height:1.8;margin-bottom:16px;">
+          Votre inscription a bien été enregistrée. Après vérification de votre paiement sous <strong>24h</strong>, vous recevrez par WhatsApp vos <strong>identifiants de connexion</strong> pour accéder à votre espace apprenant.
+        </div>
+
+        <div style="background:var(--gp);border:1px solid rgba(26,93,26,.2);border-radius:12px;padding:14px;margin-bottom:16px;text-align:left;">
+          <div style="font-size:12px;font-weight:800;color:var(--g);margin-bottom:10px;">🗺️ Votre parcours d'apprentissage :</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="font-size:12px;color:var(--txt);display:flex;align-items:center;gap:8px;"><span style="background:var(--g);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">1</span> Recevoir vos identifiants par WhatsApp (sous 24h)</div>
+            <div style="font-size:12px;color:var(--txt);display:flex;align-items:center;gap:8px;"><span style="background:var(--g);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">2</span> Se connecter sur <strong>cours-etudiant.html</strong> et accéder aux modules vidéo + PDF</div>
+            <div style="font-size:12px;color:var(--txt);display:flex;align-items:center;gap:8px;"><span style="background:var(--g);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">3</span> Compléter les exercices pratiques de chaque module</div>
+            <div style="font-size:12px;color:var(--txt);display:flex;align-items:center;gap:8px;"><span style="background:var(--g);color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">4</span> Réussir le quiz final (score minimum 70%)</div>
+            <div style="font-size:12px;color:var(--txt);display:flex;align-items:center;gap:8px;"><span style="background:#C9A84C;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">🏅</span> <strong>Obtenir votre certificat numérique EPPRIDAD !</strong></div>
+          </div>
+        </div>
+
+        <div style="background:#fff8e1;border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:12px 14px;margin-bottom:16px;text-align:left;">
+          <div style="font-size:11.5px;font-weight:700;color:#8a6d00;margin-bottom:6px;">📲 En attendant vos identifiants :</div>
+          <div style="font-size:12px;color:#5a4200;">• Enregistrez notre numéro : <strong>+227 99 85 15 32</strong></div>
+          <div style="font-size:12px;color:#5a4200;">• Gardez votre preuve de paiement</div>
+          <div style="font-size:12px;color:#5a4200;">• Préparez un espace calme pour votre apprentissage</div>
+        </div>
+
+        <button class="btn-gold" style="border:none;width:100%;cursor:pointer;margin-bottom:10px;" onclick="window.open('https://wa.me/22799851532?text='+encodeURIComponent(waAdminMsg),'_blank');">
+          💬 Envoyer la confirmation à EPPRIDAD
+        </button>
+        <button onclick="closeEnroll()" style="width:100%;padding:12px;background:transparent;border:1.5px solid var(--g);border-radius:10px;color:var(--g);font-weight:700;cursor:pointer;font-size:13px;">
+          ✕ Fermer
         </button>
       </div>`;
   }

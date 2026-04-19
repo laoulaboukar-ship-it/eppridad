@@ -1614,7 +1614,11 @@ async function loadInscriptions() {
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
             <a href="tel:${i.telephone}" style="background:var(--primary);color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">📞 Appeler</a>
-            <a href="https://wa.me/${(i.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227')}?text=${encodeURIComponent('Bonjour '+i.prenom+', nous avons bien reçu votre demande d\'inscription EPPRIDAD (Réf: '+(i.reference||'')+'). Pouvez-vous nous confirmer votre disponibilité pour un entretien ?')}" target="_blank" style="background:#25D366;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">💬 WhatsApp</a>
+            <a href="https://wa.me/${(i.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227')}?text=${encodeURIComponent(
+              i.statut_type==='inscription_enligne'||i.type_inscription==='enligne'||String(i.filiere||'').toLowerCase().includes('ligne')
+                ? 'Bonjour '+i.prenom+', votre inscription à la formation EPPRIDAD a bien été validée !\n\n🔑 Vos identifiants de connexion :\n- Identifiant : '+(i.reference||i.matricule||'ENL-'+Date.now().toString(36).toUpperCase())+'\n- Mot de passe initial : eppridad2025\n\n🔗 Connectez-vous sur : https://eppridad.github.io/cours-etudiant.html\n\nBonne formation ! 🎓 L\'équipe EPPRIDAD — +227 99 85 15 32'
+                : 'Bonjour '+i.prenom+', nous avons bien reçu votre dossier d\'inscription EPPRIDAD (Réf: '+(i.reference||'')+'). Notre équipe vous contactera dans les 48h pour la suite de votre admission. 📞 +227 99 85 15 32'
+            )}" target="_blank" style="background:#25D366;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">💬 WhatsApp</a>
             <select onchange="updateInscriptionStatus(${i.id},this.value)" style="font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg)">
               <option ${i.statut==='nouveau'?'selected':''} value="nouveau">Nouveau</option>
               <option ${i.statut==='en_cours'?'selected':''} value="en_cours">En cours</option>
