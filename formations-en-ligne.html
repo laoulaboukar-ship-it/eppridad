@@ -632,6 +632,9 @@ const COURSES=[
   {id:12,filiere:'agroalim',titre:'Huile de sésame et karité — Extraction artisanale',duree:'5h',niveau:'Débutant',prix:8000,dispo:false,
    emoji:'🫒',desc:'Bientôt — Maîtrisez l\'extraction artisanale des huiles végétales locales.',
    modules:['Sélection et nettoyage des graines','Torréfaction contrôlée','Extraction par presse','Filtration','Conditionnement']},
+  {id:13,filiere:'agriculture',titre:'Pisciculture et aquaculture au Sahel',duree:'10h',niveau:'Débutant',prix:15000,dispo:true,
+   emoji:'🐟',desc:'Créez et gérez un étang piscicole rentable : tilapia, silure africain, gestion de l\'eau et commercialisation. Une diversification innovante pour les exploitations nigériennes.',
+   modules:['Introduction à la pisciculture sahélienne','Construction et aménagement d\'un étang','Empoissonnement et gestion de l\'eau','Alimentation et gestion sanitaire','Récolte, transformation et commercialisation']},
 ];
 
 const FILIERE_LABELS={agriculture:'Agriculture & Productions Végétales',elevage:'Élevage & Santé Animale',agroalim:'Transformation Agroalimentaire',environnement:'Environnement & Eaux-Forêts',genie:'Génie Rural',socioeco:'Socio-Économie Rurale'};
@@ -943,7 +946,7 @@ document.getElementById('enroll-modal').addEventListener('click',e=>{
     if(enrollStep===3){closeEnroll();}  // Étape confirmation → OK fermer
     else{
       // Étapes 1-2 → demander confirmation avant de fermer
-      if(confirm('Quitter l'inscription ? Vos informations saisies seront conservées.')){
+      if(confirm('Quitter l\'inscription ? Vos informations saisies seront conservées.')){
         closeEnroll();
       }
     }
