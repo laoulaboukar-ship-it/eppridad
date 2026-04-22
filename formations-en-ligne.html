@@ -253,7 +253,7 @@
   </ul>
   <div class="nav-right">
     <button class="lang-btn">EN</button>
-        <a href="inscription.html" class="nav-cta">S'inscrire</a>
+        <a href="inscription.html#enligne" class="nav-cta">S'inscrire</a>
     <div class="hamburger"><span></span><span></span><span></span></div>
   </div>
 </nav>
@@ -722,14 +722,21 @@ function renderEnrollStep(){
   </div>`;
 
   if(enrollStep===1){
+    // Restaurer les données sauvegardées
+    setTimeout(()=>{
+      const n=document.getElementById('f-nom');if(n&&!n.value)n.value=localStorage.getItem('enroll_nom')||'';
+      const t=document.getElementById('f-tel');if(t&&!t.value)t.value=localStorage.getItem('enroll_tel')||'';
+      const e=document.getElementById('f-email');if(e&&!e.value)e.value=localStorage.getItem('enroll_email')||'';
+      const r=document.getElementById('f-region');if(r&&!r.value&&localStorage.getItem('enroll_region'))r.value=localStorage.getItem('enroll_region');
+    },50);
     body.innerHTML=stepsHtml+`
       <div style="background:var(--gp);border:1px solid rgba(26,93,26,.2);border-radius:10px;padding:14px;margin-bottom:18px;">
         <div style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:4px;">${c.emoji} ${c.titre}</div>
         <div style="font-size:12px;color:var(--tl);">⏱ ${c.duree} · ${c.niveau} · 🏅 Certifiante · Prix : ${c.prix.toLocaleString('fr-FR')} FCFA</div>
       </div>
-      <div class="form-group"><label class="form-label">Prénom et Nom *</label><input class="form-input" id="f-nom" placeholder="Ex: Aminatou Sidikou" required></div>
-      <div class="form-group"><label class="form-label">Téléphone WhatsApp *</label><input class="form-input" id="f-tel" type="tel" placeholder="+227 XX XX XX XX" required></div>
-      <div class="form-group"><label class="form-label">Email (optionnel)</label><input class="form-input" id="f-email" type="email" placeholder="votre@email.com"></div>
+      <div class="form-group"><label class="form-label">Prénom et Nom *</label><input class="form-input" id="f-nom" placeholder="Ex: Aminatou Sidikou" required oninput="localStorage.setItem('enroll_nom',this.value)" value=""></div>
+      <div class="form-group"><label class="form-label">Téléphone WhatsApp *</label><input class="form-input" id="f-tel" type="tel" placeholder="+227 XX XX XX XX" required oninput="localStorage.setItem('enroll_tel',this.value)" value=""></div>
+      <div class="form-group"><label class="form-label">Email (optionnel)</label><input class="form-input" id="f-email" type="email" placeholder="votre@email.com" oninput="localStorage.setItem('enroll_email',this.value)" value=""></div>
       <div class="form-group"><label class="form-label">Région au Niger</label>
         <select class="form-input" id="f-region">
           <option value="">-- Choisir --</option>
@@ -741,7 +748,7 @@ function renderEnrollStep(){
       <div class="form-group"><label class="form-label">Pourquoi cette formation ? (optionnel)</label>
         <textarea class="form-input" id="f-motif" rows="2" placeholder="Ex: Je veux améliorer mon exploitation maraîchère..."></textarea>
       </div>
-      <button class="btn-confirm" onclick="goStep2()">Continuer vers le paiement →</button>`;
+      <button class="btn-confirm" onclick="saveEnrollData();goStep2()">Continuer vers le paiement →</button>`;
   } else if(enrollStep===2){
     body.innerHTML=stepsHtml+`
       <div style="font-size:14px;font-weight:700;color:var(--dark);margin-bottom:16px;">Montant à payer : <span style="color:var(--g);font-size:20px;">${c.prix.toLocaleString('fr-FR')} FCFA</span></div>
@@ -831,6 +838,18 @@ function renderEnrollStep(){
   }
 }
 
+function saveEnrollData(){
+  // Sauvegarder dans localStorage pour ne pas perdre les données
+  const nom=document.getElementById('f-nom')?.value||'';
+  const tel=document.getElementById('f-tel')?.value||'';
+  const email=document.getElementById('f-email')?.value||'';
+  const region=document.getElementById('f-region')?.value||'';
+  if(nom) localStorage.setItem('enroll_nom',nom);
+  if(tel) localStorage.setItem('enroll_tel',tel);
+  if(email) localStorage.setItem('enroll_email',email);
+  if(region) localStorage.setItem('enroll_region',region);
+}
+
 function goStep2(){
   const nom=document.getElementById('f-nom')?.value.trim();
   const tel=document.getElementById('f-tel')?.value.trim();
@@ -892,25 +911,44 @@ function previewProof(input){
 function goStep3(){
   if(!selectedPay){alert('Veuillez choisir un moyen de paiement.');return;}
   enrollStep=3;renderEnrollStep();
-  // Save to Supabase
+  // Sauvegarder dans la table 'inscriptions' (lue par l'admin)
   if(typeof sb!=='undefined'){
-    const nom=document.getElementById('f-nom')?.value||'';
-    const tel=document.getElementById('f-tel')?.value||'';
-    const email=document.getElementById('f-email')?.value||'';
-    const region=document.getElementById('f-region')?.value||'';
-    sb.insert('admissions',{
-      prenom:nom.split(' ')[0]||nom,
-      nom:nom.split(' ').slice(1).join(' ')||nom,
-      telephone:tel,email:email||null,
-      filiere:`Formation en ligne: ${currentCourse?.titre}`,
-      niveau:`Prix: ${currentCourse?.prix} FCFA · Paiement: ${selectedPay}`,
-      ville:region,statut:'inscription_enligne',lu:false
+    const nom = localStorage.getItem('enroll_nom')||document.getElementById('f-nom')?.value||'';
+    const tel = localStorage.getItem('enroll_tel')||document.getElementById('f-tel')?.value||'';
+    const email = localStorage.getItem('enroll_email')||document.getElementById('f-email')?.value||'';
+    const region = localStorage.getItem('enroll_region')||document.getElementById('f-region')?.value||'';
+    const ref = 'ENL-'+Date.now().toString(36).toUpperCase();
+    sb.insert('inscriptions',{
+      prenom: nom.split(' ')[0]||nom,
+      nom: nom.split(' ').slice(1).join(' ')||nom,
+      telephone: tel,
+      email: email||null,
+      filiere: currentCourse?.titre||'Formation en ligne',
+      niveau: currentCourse?.filiere||'En ligne',
+      ville: region,
+      type_inscription: 'enligne',
+      statut: 'en_attente',
+      note_admin: `Prix: ${(currentCourse?.prix||0).toLocaleString('fr-FR')} FCFA · Paiement via ${selectedPay} · ID formation: ${currentCourse?.id||''}`,
+      lu: false,
+      reference: ref
     }).catch(()=>{});
+    // Nettoyer le localStorage après inscription
+    ['enroll_nom','enroll_tel','enroll_email','enroll_region'].forEach(k=>localStorage.removeItem(k));
   }
 }
 
 document.addEventListener('DOMContentLoaded',renderCourses);
-document.getElementById('enroll-modal').addEventListener('click',e=>{if(e.target===document.getElementById('enroll-modal'))closeEnroll();});
+document.getElementById('enroll-modal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('enroll-modal')){
+    if(enrollStep===3){closeEnroll();}  // Étape confirmation → OK fermer
+    else{
+      // Étapes 1-2 → demander confirmation avant de fermer
+      if(confirm('Quitter l'inscription ? Vos informations saisies seront conservées.')){
+        closeEnroll();
+      }
+    }
+  }
+});
 </script>
 </body>
 </html>

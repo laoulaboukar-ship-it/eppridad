@@ -333,46 +333,175 @@ function toggleSidebar(){
 
 // ── Accueil ───────────────────────────────────────────────────
 function renderAccueil(e){
-  const m=moy(e.nt);
-  const validated=e.nt.filter(n=>n!==null&&n>=10).length;
-  const total=e.nt.filter(n=>n!==null).length;
-  const top3=MATIERES.map((mat,i)=>({mat,n:e.nt[i]})).filter(x=>x.n!==null).sort((a,b)=>b.n-a.n).slice(0,3);
-  const weak=MATIERES.map((mat,i)=>({mat,n:e.nt[i]})).filter(x=>x.n!==null&&x.n<10).sort((a,b)=>a.n-b.n).slice(0,3);
-  const z=document.getElementById('accueilZone');if(!z)return;
-  const tip=DEFAULT_TIP;
-  z.innerHTML=`
-  <div class="welcome-banner">
-    <div class="wb-text">
-      <div class="wb-hello">Bonjour, <strong>${e.prenom||e.nom.split(' ')[0]}</strong> 👋</div>
-      <div class="wb-sub">${e.fi} · ${e.nv} · Classe ${e.cl}</div>
-      ${m?`<div class="wb-moy">Votre moyenne : <strong>${m.toFixed(2)}/20</strong> — <em>${mention(m)}</em></div>`:''}
-    </div>
-    <div class="wb-badge">${m?`<div class="wb-score">${m.toFixed(2)}</div><div class="wb-score-lbl">/ 20</div>`:'<div class="wb-score" style="font-size:20px">—</div>'}</div>
-  </div>
-  <div class="tip-box"><span class="tip-icon">💡</span><span>${tip}</span></div>
-  <div class="accueil-grid">
-    <div class="ac-card">
-      <div class="ac-card-title">📊 Aperçu des notes</div>
-      ${total?`<div style="font-size:13px;color:var(--text2);margin-bottom:10px">${validated}/${total} matières validées (≥10)</div>
-      <div>${MATIERES.map((mat,i)=>{const n=e.nt[i];if(n===null)return'';const col=noteColor(n);return`<div class="sb-row"><div class="sb-lbl" style="font-size:11px">${mat.substring(0,20)}</div><div class="sb-track"><div class="sb-fill" style="width:${(n/20)*100}%;background:${col}"></div></div><div class="sb-num" style="color:${col};font-size:11px">${n}</div></div>`;}).join('')}</div>`
-      :'<p style="color:var(--text3);font-size:13px">Notes non encore disponibles.</p>'}
-    </div>
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="ac-card">
-        <div class="ac-card-title">🏆 Points forts</div>
-        ${top3.length?top3.map(x=>`<div class="ac-row"><span style="color:var(--primary);font-weight:700">${x.n}/20</span> ${x.mat}</div>`).join(''):'<p style="color:var(--text3);font-size:13px">Aucune note disponible.</p>'}
+  if(!e) return;
+
+  // ── Salutation dynamique selon heure ──
+  const h = new Date().getHours();
+  const greeting = h<12?'Bonjour 🌅':h<18?'Bon après-midi ☀️':'Bonsoir 🌙';
+  const gEl = document.getElementById('heroGreeting');
+  if(gEl) gEl.textContent = greeting;
+
+  // ── Nom et identité ──
+  const nameEl = document.getElementById('studName');
+  const matEl  = document.getElementById('studMat');
+  const fiEl   = document.getElementById('studFi');
+  if(nameEl) nameEl.textContent = e.nom || e.id || 'Apprenant';
+  if(matEl)  matEl.textContent  = e.id || '—';
+  if(fiEl)   fiEl.textContent   = e.fi || e.filiere || '—';
+
+  // ── Avatar initiale dans topbar ──
+  const ava = document.getElementById('topbarAva');
+  if(ava){
+    const nm = (e.nom||e.id||'A');
+    ava.textContent = nm.charAt(0).toUpperCase();
+  }
+
+  // ── Rôle de l'étudiant ──
+  const isEnligne = e.role === 'enligne';
+  const isAdmin   = e.role === 'admin';
+
+  // Masquer/afficher le score selon le rôle
+  const scoreEl = document.getElementById('heroScore');
+  if(scoreEl) scoreEl.style.display = isEnligne ? 'none' : '';
+
+  // ── Stats héro ──
+  const statsEl = document.getElementById('heroStats');
+  if(statsEl){
+    if(isEnligne){
+      statsEl.innerHTML = `
+        <div class="hero-stat"><div class="hs-v">🎓</div><div class="hs-l">Formation en ligne</div></div>
+        <div class="hero-stat"><div class="hs-v" style="color:var(--accent)">Actif</div><div class="hs-l">Accès cours</div></div>`;
+    } else {
+      statsEl.innerHTML = `
+        <div class="hero-stat"><div class="hs-v" id="dashMoy">—</div><div class="hs-l">Moyenne /20</div></div>
+        <div class="hero-stat"><div class="hs-v" id="dashMention">—</div><div class="hs-l">Mention</div></div>
+        <div class="hero-stat"><div class="hs-v" id="dashDecision">—</div><div class="hs-l">Décision</div></div>`;
+    }
+  }
+
+  // ── Accès rapide adaptatif ──
+  const qaZone = document.getElementById('quickAccessZone');
+  if(qaZone){
+    if(isEnligne){
+      qaZone.innerHTML = `
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Accès rapide</div>
+        <div class="quick-access">
+          <div class="qa-card" onclick="window.open('cours-etudiant.html','_blank')">
+            <div class="qa-icon">🎓</div><div class="qa-label">Mes cours</div>
+          </div>
+          <div class="qa-card" onclick="sPanel('library',null)">
+            <div class="qa-icon">📚</div><div class="qa-label">Documents</div>
+          </div>
+          <div class="qa-card" onclick="sPanel('messages',null)">
+            <div class="qa-icon">💬</div><div class="qa-label">Messages</div>
+          </div>
+          <div class="qa-card" onclick="sPanel('compte',null)">
+            <div class="qa-icon">👤</div><div class="qa-label">Mon compte</div>
+          </div>
+        </div>
       </div>
-      <div class="ac-card">
-        <div class="ac-card-title">🔧 À renforcer</div>
-        ${weak.length?weak.map(x=>`<div class="ac-row"><span style="color:var(--danger);font-weight:700">${x.n}/20</span> ${x.mat}</div>`).join(''):'<p style="color:var(--primary);font-size:13px">✅ Toutes vos notes sont au-dessus de 10 !</p>'}
+      <div class="s-card" style="background:linear-gradient(135deg,#0f3024,#1a4535);color:#fff;border:none;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="font-size:36px;flex-shrink:0">🎓</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:4px">Votre espace de formation EPPRIDAD</div>
+            <div style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.5">Apprenez à votre rythme, où que vous soyez. Vos cours, exercices et certificats sont disponibles 24h/24.</div>
+          </div>
+          <button onclick="window.open('cours-etudiant.html','_blank')" style="background:var(--accent);color:#1a1a1a;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+            Accéder à mes cours →
+          </button>
+        </div>
+      </div>`;
+    } else {
+      qaZone.innerHTML = `
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Accès rapide</div>
+        <div class="quick-access">
+          <div class="qa-card" onclick="sPanel('notes',null)"><div class="qa-icon">📊</div><div class="qa-label">Mes Notes</div></div>
+          <div class="qa-card" onclick="sPanel('bulletin',null)"><div class="qa-icon">📋</div><div class="qa-label">Bulletin</div></div>
+          <div class="qa-card" onclick="sPanel('conseils',null)"><div class="qa-icon">🤖</div><div class="qa-label">Conseils IA</div></div>
+          <div class="qa-card" onclick="sPanel('scolarite',null)"><div class="qa-icon">💳</div><div class="qa-label">Scolarité</div></div>
+        </div>
+      </div>`;
+    }
+  }
+
+  // ── Message admin ──
+  loadNotificationsAccueil(e);
+
+  // ── Contenu dynamique selon rôle ──
+  const accZone = document.getElementById('accueilZone');
+  if(accZone){
+    if(isEnligne){
+      // Pour les apprenants en ligne : bannière familiale EPPRIDAD
+      accZone.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:28px;margin-bottom:6px">🌿</div>
+          <div style="font-weight:700;font-size:13px;color:var(--text)">Agriculture</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Sahel & Niger</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:28px;margin-bottom:6px">🤝</div>
+          <div style="font-weight:700;font-size:13px;color:var(--text)">Communauté</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Famille EPPRIDAD</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:28px;margin-bottom:6px">📜</div>
+          <div style="font-weight:700;font-size:13px;color:var(--text)">Certificat</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">À votre rythme</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:28px;margin-bottom:6px">📞</div>
+          <div style="font-weight:700;font-size:13px;color:var(--text)">Support</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">+227 99 85 15 32</div>
+        </div>
       </div>
-      <div class="ac-card">
-        <div class="ac-card-title">📬 Dernier message</div>
-        ${e.msgs.length?`<div style="font-size:13px;font-weight:700">${e.msgs[0].title}</div><div style="font-size:12px;color:var(--text3);margin-top:4px">${e.msgs[0].body.substring(0,120)}…</div>`:'<p style="color:var(--text3);font-size:13px">Aucun message.</p>'}
-      </div>
-    </div>
-  </div>`;
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">Comment ça marche</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">1</div>
+            <div style="font-size:13px;color:var(--text2)">Accédez à vos cours depuis le bouton <strong>Mes cours</strong> ci-dessus</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">2</div>
+            <div style="font-size:13px;color:var(--text2)">Suivez les modules dans l'ordre — vidéos, PDFs et exercices pratiques</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">3</div>
+            <div style="font-size:13px;color:var(--text2)">Validez chaque quiz (70 % minimum) pour obtenir votre certificat</div>
+          </div>
+        </div>
+      </div>`;
+    } else {
+      // Étudiant diplômant : affichage des stats standard
+      fillNotesSummary && fillNotesSummary(e);
+    }
+  }
 }
+
+async function loadNotificationsAccueil(e){
+  // Charger le message admin pour l'afficher dans la bannière
+  try{
+    const msgs = await sb.select('actualites',{
+      filters:[
+        {col:'type_post',val:'eq.message'},
+        {col:'publie',val:'eq.true'}
+      ],
+      order:'created_at.desc',limit:1
+    }).catch(()=>[]);
+    const banner = document.getElementById('adminMsgBanner');
+    const msgEl  = document.getElementById('adminMsgDisplay');
+    if(msgs && msgs.length && banner && msgEl){
+      const m = msgs[0];
+      msgEl.textContent = m.contenu || m.titre || '';
+      banner.style.display = 'block';
+    }
+  }catch(err){}
+}
+
 
 // ── Notes ─────────────────────────────────────────────────────
 function fillNotes(e){
@@ -1636,7 +1765,18 @@ async function loadInscriptions() {
     const badge = document.getElementById('inscBadge');
     if (badge) badge.textContent = newCount > 0 ? newCount : '0';
 
-    const typeLabels = { diplomante:'🎓 Diplômante', courte:'📜 Courte', enligne:'💻 En ligne' };
+    const typeLabels = {
+      diplomante:'🎓 Diplômante',
+      courte:'📜 Formation courte',
+      enligne:'💻 En ligne',
+      presentiel:'🏫 Présentiel'
+    };
+    const typeColors = {
+      diplomante:'#1e6b54',
+      courte:'#7d5a00',
+      enligne:'#1a5276',
+      presentiel:'#5a2d82'
+    };
     const statusColors = { nouveau:'#e53935', 'en_cours':'#f57c00', traite:'var(--primary)', annule:'#999' };
     const statusLabels = { nouveau:'Nouveau', en_cours:'En cours', traite:'Traité', annule:'Annulé' };
 
@@ -1647,7 +1787,7 @@ async function loadInscriptions() {
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
               <strong style="font-size:14px">${i.prenom || ''} ${i.nom || ''}</strong>
               <span style="background:${statusColors[i.statut] || '#999'};color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">${statusLabels[i.statut] || i.statut}</span>
-              <span style="background:var(--bg2);color:var(--text2);font-size:10px;padding:2px 8px;border-radius:10px">${typeLabels[i.type_inscription] || i.type_inscription}</span>
+              <span style="background:${typeColors?.[i.type_inscription]||'#555'};color:#fff;font-size:10px;padding:3px 9px;border-radius:10px;font-weight:700">${typeLabels[i.type_inscription] || i.type_inscription || '—'}</span>
             </div>
             <div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">📞 ${i.telephone || '—'} ${i.email ? '· ✉️ '+i.email : ''}</div>
             <div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">${i.resume || ''}</div>
@@ -1658,7 +1798,7 @@ async function loadInscriptions() {
           <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
             <a href="tel:${i.telephone}" style="background:var(--primary);color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">📞 Appeler</a>
             <a href="https://wa.me/${(i.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227')}?text=${encodeURIComponent(
-              i.statut_type==='inscription_enligne'||i.type_inscription==='enligne'||String(i.filiere||'').toLowerCase().includes('ligne')
+              i.type_inscription==='enligne'
                 ? 'Bonjour '+i.prenom+', votre inscription à la formation EPPRIDAD a bien été validée !\n\n🔑 Vos identifiants de connexion :\n- Identifiant : '+(i.reference||i.matricule||'ENL-'+Date.now().toString(36).toUpperCase())+'\n- Mot de passe initial : eppridad2025\n\n🔗 Connectez-vous sur : https://eppridad.github.io/cours-etudiant.html\n\nBonne formation ! 🎓 L\'équipe EPPRIDAD — +227 99 85 15 32'
                 : 'Bonjour '+i.prenom+', nous avons bien reçu votre dossier d\'inscription EPPRIDAD (Réf: '+(i.reference||'')+'). Notre équipe vous contactera dans les 48h pour la suite de votre admission. 📞 +227 99 85 15 32'
             )}" target="_blank" style="background:#25D366;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">💬 WhatsApp</a>

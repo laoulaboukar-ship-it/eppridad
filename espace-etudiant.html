@@ -188,18 +188,19 @@
 
       <!-- ACCUEIL -->
       <div id="sp-accueil" class="s-panel active">
-        <!-- HERO DYNAMIQUE -->
-        <div class="student-hero">
+
+        <!-- HERO UNIFIÉ — Fonctionne pour étudiant diplômant ET apprenant en ligne -->
+        <div class="student-hero" id="heroBlock">
           <div class="sh-row1">
             <div class="sh-left">
-              <div class="sh-greeting">Bonjour 👋</div>
-              <div class="sh-name" id="studName">Étudiant</div>
-              <div class="sh-chips">
+              <div class="sh-greeting" id="heroGreeting">Bienvenue 👋</div>
+              <div class="sh-name" id="studName">Chargement…</div>
+              <div class="sh-chips" id="studChips">
                 <span class="sh-chip" id="studMat">—</span>
                 <span class="sh-chip" id="studFi">—</span>
               </div>
             </div>
-            <div class="sh-score">
+            <div class="sh-score" id="heroScore" style="display:none">
               <div class="sh-score-n" id="dashMoy">—</div>
               <div class="sh-score-l">/ 20</div>
               <div class="sh-score-m" id="dashMention">—</div>
@@ -209,31 +210,34 @@
           <div class="hero-stats" id="heroStats"></div>
         </div>
 
-        <!-- ACCÈS RAPIDE — 4 cards -->
-        <div class="quick-access">
-          <div class="qa-card" onclick="sPanel('notes',null)"><div class="qa-icon">📊</div><div class="qa-label">Mes Notes</div></div>
-          <div class="qa-card" onclick="sPanel('bulletin',null)"><div class="qa-icon">📋</div><div class="qa-label">Bulletin</div></div>
-          <div class="qa-card" onclick="sPanel('conseils',null)"><div class="qa-icon">🤖</div><div class="qa-label">Conseils IA</div></div>
-          <div class="qa-card" onclick="sPanel('scolarite',null)"><div class="qa-icon">💳</div><div class="qa-label">Scolarité</div></div>
+        <!-- MESSAGE D'ERREUR -->
+        <div id="dashboardError" style="display:none;color:var(--danger);padding:12px;font-size:13px;background:#fff5f5;border-radius:8px;margin-bottom:12px"></div>
+
+        <!-- BANNIÈRE MESSAGE ADMIN -->
+        <div id="adminMsgBanner" style="display:none;background:linear-gradient(135deg,#0f3024,#16503f);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:14px;border-left:4px solid var(--accent)">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:5px">📢 Message de l'administration</div>
+          <div id="adminMsgDisplay" style="font-size:13.5px;line-height:1.5;color:rgba(255,255,255,.9)">Aucun message.</div>
         </div>
 
-        <div id="dashboardError" style="display:none;color:var(--danger);padding:10px;font-size:13px;background:#fff5f5;border-radius:8px;margin-bottom:12px"></div>
-        <!-- Bannière installation app -->
-        <div id="pwaPromoBanner" style="display:none;background:linear-gradient(135deg,#0b2f25,#16503f);color:#fff;border-radius:16px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px;">
-          <img src="images/logo.png" style="width:48px;height:48px;border-radius:10px;flex-shrink:0" alt="">
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:14px;margin-bottom:3px">📲 Installer l'app EPPRIDAD</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.65)">Accédez à votre espace hors ligne · Sur votre écran d'accueil</div>
-          </div>
-          <button onclick="installPWA()" style="background:var(--accent);color:#1a1a1a;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Installer</button>
-          <button onclick="document.getElementById('pwaPromoBanner').style.display='none'" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:none;border-radius:8px;width:30px;height:30px;cursor:pointer;flex-shrink:0;font-size:16px">✕</button>
-        </div>
+        <!-- ACCÈS RAPIDE ADAPTATIF — s'adapte au rôle -->
+        <div id="quickAccessZone"></div>
+
+        <!-- ZONE CONTENU DYNAMIQUE (notes récentes, progression, etc.) -->
         <div id="accueilZone"></div>
-        <div class="s-card">
-          <div class="s-title" style="margin-bottom:10px">💬 Message de l'administration</div>
-          <div id="adminMsgDisplay"><p style="color:var(--text3);font-size:13px">Aucun message pour le moment.</p></div>
+
+        <!-- BANNIÈRE PWA -->
+        <div id="pwaPromoBanner" style="display:none;background:linear-gradient(135deg,#0b2f25,#16503f);color:#fff;border-radius:16px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:32px;flex-shrink:0">📲</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13.5px;margin-bottom:2px">Installer l'app EPPRIDAD</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,.65)">Accès hors ligne · Toujours à portée de main</div>
+          </div>
+          <button onclick="installPWA()" style="background:var(--accent);color:#1a1a1a;border:none;border-radius:9px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Installer</button>
+          <button onclick="document.getElementById('pwaPromoBanner').style.display='none'" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:none;border-radius:8px;width:28px;height:28px;cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">✕</button>
         </div>
-        <div class="success-tip" id="successTip">"Travaillez avec méthode, persévérez et demandez de l'aide à vos professeurs. EPPRIDAD croit en votre réussite !"</div>
+
+        <!-- CITATION MOTIVANTE -->
+        <div class="success-tip" id="successTip">"La connaissance est la richesse la plus précieuse. EPPRIDAD vous accompagne à chaque étape de votre parcours."</div>
       </div>
 
       <!-- NOTES -->
