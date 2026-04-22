@@ -167,6 +167,14 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         <span>Mon compte</span>
       </div>
+      <a href="index.html" class="nav-item" title="Site EPPRIDAD" style="text-decoration:none;margin-top:8px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);">
+        <span class="nav-icon" style="font-size:18px">🌐</span>
+        <span style="color:var(--accent);font-weight:700">Site EPPRIDAD</span>
+      </a>
+      <div class="nav-item" onclick="doLogout()" title="Déconnexion" style="margin-top:4px;color:rgba(229,57,53,.7);">
+        <span class="nav-icon" style="font-size:18px">🚪</span>
+        <span style="color:rgba(229,57,53,.8)">Déconnexion</span>
+      </div>
         <span class="nav-icon">🔔</span><span class="nav-label">Notifications</span>
         <span class="notif-dot" id="notifDot" style="display:none"></span>
       </div>
@@ -460,6 +468,8 @@
 
       <!-- DASHBOARD -->
       <div id="ap-dashboard" class="ap active">
+        <!-- Zone alertes (inscriptions en attente, etc.) -->
+        <div id="dashAlertZone"></div>
         <div class="admin-stats-grid" id="adminStats"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
           <div class="s-card" style="margin-bottom:0">

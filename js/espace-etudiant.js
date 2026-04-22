@@ -873,6 +873,25 @@ function renderAdminDashboard(data){
     },0);
 
   document.getElementById('pendingBadge').textContent=pending;
+
+  // ── Alerte visuelle inscriptions en ligne non traitées ──
+  const alertZone = document.getElementById('dashAlertZone');
+  if(alertZone){
+    const enligneNew = inscriptions.filter(i=>i.type_inscription==='enligne'&&i.statut==='nouveau').length;
+    if(enligneNew>0){
+      alertZone.innerHTML=`
+        <div onclick="aPanel('inscriptions',null)" style="cursor:pointer;background:linear-gradient(135deg,#1a5276,#2874a6);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;animation:slideDown .3s ease">
+          <div style="font-size:28px;flex-shrink:0">🔔</div>
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:14px;margin-bottom:3px">${enligneNew} nouvelle${enligneNew>1?'s':''} inscription${enligneNew>1?'s':''} en ligne en attente</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.75)">Cliquez pour voir les demandes et donner les accès</div>
+          </div>
+          <div style="background:rgba(255,255,255,.2);border-radius:8px;padding:6px 14px;font-weight:700;font-size:13px;flex-shrink:0">Voir →</div>
+        </div>`;
+    } else {
+      alertZone.innerHTML='';
+    }
+  }
   const bb=document.getElementById('bnavBadge');
   if(bb){bb.textContent=pending;bb.style.display=pending?'block':'none';}
   const ib=document.getElementById('bnavInscBadge');
@@ -1824,6 +1843,67 @@ function showCreateTableGuide() {
 //  ADMIN — INSCRIPTIONS
 // ═══════════════════════════════════════════════════════════
 
+
+// ── Activation rapide d'un accès depuis le panel inscriptions ──
+async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre){
+  const matricule = reference || ('ENL-'+Date.now().toString(36).toUpperCase());
+  const pwd = 'eppridad2025';
+  
+  // Trouver la formation par titre
+  let formId = null;
+  try{
+    const formations = await sb.select('formations_enligne',{select:'id,titre',limit:20});
+    const form = formations.find(f=>f.titre===formation_titre||(f.titre||'').includes(formation_titre));
+    formId = form?.id || null;
+  }catch(e){}
+  
+  if(!formId){
+    // Ouvrir le panel accès avec les infos pré-remplies
+    aPanel('acces_el',null);
+    setTimeout(()=>{
+      document.getElementById('acces-matricule').value = matricule;
+      document.getElementById('acces-nom').value = (prenom+' '+nom).trim();
+      document.getElementById('acces-email').value = email||'';
+      document.getElementById('giveAccesForm').style.display='block';
+      showToast('Remplissez la formation et cliquez Activer');
+    },200);
+    return;
+  }
+  
+  try{
+    // Créer le compte portail
+    await sb.insert('portail_comptes',{
+      matricule, pwd_hash:simpleHash(pwd), statut:'actif',
+      role:'enligne', nom_complet:(prenom+' '+nom).trim(),
+      email:email||null, expiry_date:null
+    }).catch(()=>{});
+    // Créer l'accès formation
+    await sb.insert('acces_formations',{
+      matricule, formation_id:formId, actif:true, date_fin:null,
+      note_admin:'Activé depuis panel inscriptions — '+reference
+    });
+    // Marquer inscription comme traitée
+    await sb.update('inscriptions',{statut:'traite'},{col:'reference',val:'eq.'+reference}).catch(()=>{});
+    
+    showSuccess('✅ Accès activé !\n\nIdentifiant : '+matricule+'\nMot de passe : '+pwd+'\n\nEnvoyez ces identifiants à '+prenom+' par WhatsApp.');
+    
+    // Ouvrir WhatsApp avec les identifiants
+    const msg = encodeURIComponent(
+      'Bonjour '+prenom+', votre accès EPPRIDAD est activé !\n\n'+
+      '🔑 Identifiant : '+matricule+'\n'+
+      '🔐 Mot de passe : '+pwd+'\n\n'+
+      '🔗 Connectez-vous sur :\nhttps://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n'+
+      'Bonne formation ! 🎓 EPPRIDAD'
+    );
+    setTimeout(()=>window.open('https://wa.me/'+tel.replace(/[^0-9]/g,'').replace(/^0/,'227')+'?text='+msg,'_blank'),500);
+    
+    loadInscriptions();
+  }catch(err){
+    showError('Erreur activation: '+err.message);
+    // Fallback: ouvrir le panel accès
+    aPanel('acces_el',null);
+  }
+}
 async function loadInscriptions() {
   const container = document.getElementById('inscriptionsList');
   if (!container) return;
@@ -1879,6 +1959,9 @@ async function loadInscriptions() {
             <div style="font-size:10.5px;color:var(--text3);margin-top:5px">Réf: ${i.reference || '—'} · ${i.created_at ? new Date(i.created_at).toLocaleDateString('fr-FR') : ''}</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+            ${i.type_inscription==='enligne'?`
+            <button onclick="quickActiverAcces('${i.reference||''}','${i.prenom||''}','${i.nom||''}','${i.telephone||''}','${i.email||''}','${i.filiere||''}')" style="background:#1a5276;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;text-align:center">🔑 Activer accès</button>
+            `:''}
             <a href="tel:${i.telephone}" style="background:var(--primary);color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">📞 Appeler</a>
             <a href="https://wa.me/${(i.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227')}?text=${encodeURIComponent(
               i.type_inscription==='enligne'

@@ -761,6 +761,15 @@
 <script src="js/main.js"></script>
 <script src="js/chatbot.js"></script>
 <script>
+// Initialiser EmailJS immédiatement après chargement
+(function(){
+  if(typeof emailjs !== 'undefined'){
+    emailjs.init('S_LQPUgqU6988zXny');
+    console.log('EmailJS initialisé');
+  }
+})();
+</script>
+<script>
 // ═══════════════════════════════════════════
 //  INSCRIPTION LOGIC
 // ═══════════════════════════════════════════

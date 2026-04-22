@@ -223,6 +223,16 @@ select.form-input:focus{background:#fff;}
   .pricing-grid{grid-template-columns:1fr;}
 }
 </style>
+  <!-- EmailJS — chargé en tête pour être disponible partout -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    // Initialiser EmailJS dès le chargement
+    document.addEventListener('DOMContentLoaded',function(){
+      if(typeof emailjs !== 'undefined'){
+        emailjs.init('S_LQPUgqU6988zXny');
+      }
+    });
+  </script>
 </head>
 <body>
 <nav>
@@ -585,8 +595,7 @@ select.form-input:focus{background:#fff;}
     <p>© 2025 <span class="gold">EPPRIDAD</span> — Tous droits réservés. Niger.</p>
     <p>Conçu pour former les <span class="gold">bâtisseurs de demain</span></p>
   </div>
-</footer><script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="js/supabase.js"></script>
+</footer><script src="js/supabase.js"></script>
 <script src="js/main.js"></script>
 <script src="js/chatbot.js"></script>
 <script>
