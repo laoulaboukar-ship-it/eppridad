@@ -922,13 +922,32 @@ async function submitInscription(e, type) {
     '\n— Site EPPRIDAD'
   );
 
-  // Ouvrir email en arrière-plan
-  const mailLink = document.createElement('a');
-  mailLink.href = 'mailto:eppridad@gmail.com?subject=' + emailSubject + '&body=' + emailBody;
-  mailLink.style.display = 'none';
-  document.body.appendChild(mailLink);
-  mailLink.click();
-  setTimeout(() => mailLink.remove(), 1000);
+  // Envoyer via EmailJS (automatique, sans action utilisateur)
+  if(typeof sendEmailJS !== 'undefined'){
+    const bodyText = decodeURIComponent(emailBody);
+    sendEmailJS('eppridad@gmail.com','EPPRIDAD',
+      'Nouvelle inscription EPPRIDAD — '+resume, bodyText
+    ).catch(()=>{
+      // Fallback: ouvrir mailto si EmailJS échoue
+      const ml=document.createElement('a');
+      ml.href='mailto:eppridad@gmail.com?subject='+emailSubject+'&body='+emailBody;
+      ml.style.display='none';document.body.appendChild(ml);ml.click();
+      setTimeout(()=>ml.remove(),1000);
+    });
+  } else {
+    // Fallback mailto
+    const mailLink = document.createElement('a');
+    mailLink.href = 'mailto:eppridad@gmail.com?subject=' + emailSubject + '&body=' + emailBody;
+    mailLink.style.display = 'none';
+    document.body.appendChild(mailLink);
+    mailLink.click();
+    setTimeout(() => mailLink.remove(), 1000);
+  }
+
+  // Ouvrir WhatsApp automatiquement
+  setTimeout(()=>{
+    window.open('https://wa.me/22799851532?text='+waMsg,'_blank');
+  }, 1200);
 
   // Afficher confirmation
   const confirmId = {diplomante:'confirm-dip', courte:'confirm-fc', enligne:'confirm-ol'}[type];

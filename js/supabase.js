@@ -7,7 +7,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_PnJERdL-4gumDe-wHQNLfg_HborRshv';
 
 // EmailJS Configuration
 const EMAILJS_PUBLIC_KEY  = 'S_LQPUgqU6988zXny';
-const EMAILJS_SERVICE_ID  = 'EMAILJS_SERVICE_ID';
+const EMAILJS_SERVICE_ID  = 'service_5sapdz7';
 const EMAILJS_TEMPLATE_ID = 'template_6iuy2mm';
 
 function initEmailJS() {

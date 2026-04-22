@@ -826,7 +826,7 @@ async function loadAdminDashboard(){
       sb.select('portail_comptes',{select:'matricule,statut,expiry_date,date_creation,dernier_acces,role',order:'date_creation.desc'}).catch(()=>[]),
       sb.select('etudiants',{select:'matricule,nom,prenom,filiere,niveau,classe,actif',order:'matricule.asc'}).catch(()=>[]),
       sb.select('notes',{select:'etudiant_id,note'}).catch(()=>[]),
-      sb.select('inscriptions',{select:'id,statut,type_inscription,created_at',order:'created_at.desc',limit:200}).catch(()=>[]),
+      sb.select('inscriptions',{select:'id,prenom,nom,telephone,email,filiere,type_inscription,statut,reference,note_admin,ville,created_at',order:'created_at.desc',limit:300}).catch(()=>[]),
       sb.select('commandes_marketplace',{select:'id,statut,total_fcfa,created_at',order:'created_at.desc',limit:200}).catch(()=>[]),
     ]);
     window._adminData={
@@ -846,36 +846,119 @@ async function loadAdminDashboard(){
 }
 
 function renderAdminDashboard(data){
-  const {comptes,etudiants}=data;
-  const actifs=comptes.filter(c=>c.statut==='actif').length;
-  const pending=comptes.filter(c=>c.statut==='pending').length;
-  const expires=comptes.filter(c=>c.statut==='actif'&&c.expiry_date&&new Date(c.expiry_date)<new Date()).length;
+  const {comptes=[],etudiants=[],inscriptions=[],commandes=[]}=data;
+  const actifs  = comptes.filter(c=>c.statut==='actif').length;
+  const pending  = comptes.filter(c=>c.statut==='pending').length;
+  const enligne  = comptes.filter(c=>c.role==='enligne'&&c.statut==='actif').length;
+  const inscNew  = inscriptions.filter(i=>i.statut==='nouveau').length;
+  const inscEnl  = inscriptions.filter(i=>i.type_inscription==='enligne').length;
+  const cmdNew   = commandes.filter(c=>c.statut==='en_attente').length;
+  const cmdRevenu= commandes.filter(c=>c.statut==='livree').reduce((s,c)=>s+(c.total_fcfa||0),0);
+
+  // Suivi financier formations en ligne
+  const PRIX_FORMATIONS = {
+    'irrigation-goutte-a-goutte':12000,'maraichage-saison-seche':15000,
+    'elevage-avicole-rentable':12000,'sante-petits-ruminants':14000,
+    'fromage-artisanal':10000,'transformation-cereales':10000,
+    'reboisement-desertification':12000,'digue-filtrante-pierres-seches':10000,
+    'gestion-exploitation-agricole':15000,'agroforesterie-sahel':12000,
+    'apiculture-niger':16000,'huile-sesame-karite':10000,'pisciculture-aquaculture':15000
+  };
+  const revenusEnligne = inscriptions
+    .filter(i=>i.type_inscription==='enligne'&&i.statut!=='annule')
+    .reduce((s,i)=>{
+      const noteMatch = (i.note_admin||'').match(/Prix[^:]*:\s*([\d\s]+)\s*FCFA/);
+      const prix = noteMatch ? parseInt(noteMatch[1].replace(/\s/g,'')) : 12000;
+      return s + prix;
+    },0);
+
   document.getElementById('pendingBadge').textContent=pending;
-  const bb=document.getElementById('bnavBadge');if(bb){bb.textContent=pending;bb.style.display=pending?'block':'none';}
-  // Calcul inscriptions et commandes
-  const {inscriptions=[],commandes=[]}=data;
-  const inscNew=inscriptions.filter(i=>i.statut==='nouveau').length;
-  const cmdNew=commandes.filter(c=>c.statut==='en_attente').length;
-  const cmdRevenu=commandes.filter(c=>c.statut==='livree').reduce((s,c)=>s+(c.total_fcfa||0),0);
+  const bb=document.getElementById('bnavBadge');
+  if(bb){bb.textContent=pending;bb.style.display=pending?'block':'none';}
+  const ib=document.getElementById('bnavInscBadge');
+  if(ib){ib.textContent=inscNew;ib.style.display=inscNew?'block':'none';}
+
+  // Statistiques principales
   document.getElementById('adminStats').innerHTML=[
-    {ic:'👥',n:etudiants.length,l:'Étudiants inscrits',bg:'var(--primary-pale)',action:"aPanel('students',null)"},
-    {ic:'✅',n:actifs,l:'Comptes actifs',bg:'#e8f5e9',action:"aPanel('students',null)"},
-    {ic:'⏳',n:pending,l:'Comptes en attente',bg:'var(--accent-pale)',action:"aPanel('students',null)"},
-    {ic:'✍️',n:inscNew,l:'Nouvelles inscriptions',bg:'#e3f2fd',action:"aPanel('inscriptions',null)"},
-    {ic:'🛒',n:cmdNew,l:'Commandes en attente',bg:'#fff8e1',action:"aPanel('commandes',null)"},
-    {ic:'💰',n:(cmdRevenu/1000).toFixed(0)+'k',l:'FCFA livrés (boutique)',bg:'#e8f5e9',action:"aPanel('commandes',null)"},
+    {ic:'👥',n:etudiants.length,l:'Étudiants diplômants',bg:'var(--primary-pale)',action:"aPanel('students',null)"},
+    {ic:'💻',n:enligne,l:'Apprenants en ligne actifs',bg:'#e3f2fd',action:"aPanel('acces_el',null)"},
+    {ic:'✍️',n:inscNew,l:'Nouvelles demandes',bg:'var(--accent-pale)',action:"aPanel('inscriptions',null)"},
+    {ic:'📋',n:inscEnl,l:'Inscriptions en ligne',bg:'#e8f5e9',action:"aPanel('inscriptions',null)"},
+    {ic:'💰',n:(revenusEnligne/1000).toFixed(0)+'k',l:'FCFA formations en ligne',bg:'#e8f5e9',action:"aPanel('inscriptions',null)"},
+    {ic:'🛒',n:(cmdRevenu/1000).toFixed(0)+'k',l:'FCFA boutique',bg:'#fff8e1',action:"aPanel('commandes',null)"},
   ].map(s=>`<div class="admin-stat-card" onclick="${s.action}" style="cursor:pointer"><div class="admin-stat-icon" style="background:${s.bg}">${s.ic}</div><div><div class="admin-stat-n">${s.n}</div><div class="admin-stat-l">${s.l}</div></div></div>`).join('');
-  const fc={};etudiants.forEach(e=>{fc[e.filiere]=(fc[e.filiere]||0)+1;});
-  document.getElementById('filiereStats').innerHTML=Object.entries(fc).map(([fi,n])=>`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-      <div style="width:160px;font-size:12px;color:var(--text2)">${fi}</div>
-      <div style="flex:1;height:10px;background:var(--surface3);border-radius:5px;overflow:hidden"><div style="height:100%;width:${Math.round(n/etudiants.length*100)}%;background:linear-gradient(to right,var(--primary),var(--primary-l));border-radius:5px"></div></div>
-      <div style="width:24px;text-align:right;font-size:13px;font-weight:700;color:var(--primary)">${n}</div>
-    </div>`).join('');
+
+  // Stats formations en ligne (quelles formations sont les plus demandées)
+  const filiereEl = document.getElementById('filiereStats');
+  if(filiereEl){
+    // Compter par filière (étudiants diplômants)
+    const fc={};etudiants.forEach(e=>{fc[e.filiere]=(fc[e.filiere]||0)+1;});
+    // Compter inscriptions en ligne par formation
+    const fi={};
+    inscriptions.filter(i=>i.type_inscription==='enligne').forEach(i=>{
+      const k=i.filiere||'Autre';fi[k]=(fi[k]||0)+1;
+    });
+    const totalDip = etudiants.length||1;
+    const totalEnl = Object.values(fi).reduce((s,n)=>s+n,0)||1;
+
+    let html='';
+    if(Object.keys(fc).length){
+      html+='<div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Filières diplômantes</div>';
+      html+=Object.entries(fc).sort((a,b)=>b[1]-a[1]).map(([fil,n])=>`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="min-width:0;flex:1;font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fil}</div>
+          <div style="width:80px;height:8px;background:var(--surface3);border-radius:4px;flex-shrink:0;overflow:hidden"><div style="height:100%;width:${Math.round(n/totalDip*100)}%;background:linear-gradient(to right,var(--primary),var(--primary-l));border-radius:4px"></div></div>
+          <div style="width:20px;text-align:right;font-size:12px;font-weight:700;color:var(--primary);flex-shrink:0">${n}</div>
+        </div>`).join('');
+    }
+    if(Object.keys(fi).length){
+      html+='<div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin:14px 0 8px">Formations en ligne demandées</div>';
+      html+=Object.entries(fi).sort((a,b)=>b[1]-a[1]).map(([form,n])=>`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="min-width:0;flex:1;font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${form}</div>
+          <div style="width:80px;height:8px;background:#e3f2fd;border-radius:4px;flex-shrink:0;overflow:hidden"><div style="height:100%;width:${Math.round(n/totalEnl*100)}%;background:linear-gradient(to right,#1a5276,#2e86c1);border-radius:4px"></div></div>
+          <div style="width:20px;text-align:right;font-size:12px;font-weight:700;color:#1a5276;flex-shrink:0">${n}</div>
+        </div>`).join('');
+    }
+    if(!html) html='<div style="color:var(--text3);font-size:13px">Aucune donnée pour le moment.</div>';
+    filiereEl.innerHTML = html;
+  }
+
   loadAdminStudents();
   loadAdminMessages();
   loadAdminLibrary_admin();
   loadInscriptionsBadge();
+
+  // Charger les stats inscriptions en ligne en temps réel
+  loadDashboardInscriptionsStats();
+}
+
+async function loadDashboardInscriptionsStats(){
+  try{
+    const [insc, acces] = await Promise.all([
+      sb.select('inscriptions',{order:'created_at.desc',limit:200}).catch(()=>[]),
+      sb.select('acces_formations',{select:'formation_id,actif',limit:500}).catch(()=>[])
+    ]);
+    if(!insc||!insc.length) return;
+
+    // Calcul revenus réels par formation
+    const byForm={};
+    insc.filter(i=>i.type_inscription==='enligne'&&i.statut!=='annule').forEach(i=>{
+      const key = i.filiere||'—';
+      if(!byForm[key]) byForm[key]={count:0,revenu:0};
+      byForm[key].count++;
+      const m=(i.note_admin||'').match(/Prix[^:]*:\s*([\d\s]+)\s*FCFA/);
+      byForm[key].revenu += m ? parseInt(m[1].replace(/\s/g,'')) : 12000;
+    });
+
+    // Mettre à jour la stat revenus en ligne
+    const totalRev = Object.values(byForm).reduce((s,v)=>s+v.revenu,0);
+    document.querySelectorAll('.admin-stat-n').forEach((el,i)=>{
+      if(el.closest('.admin-stat-card')?.querySelector('.admin-stat-l')?.textContent?.includes('formations en ligne')){
+        el.textContent = (totalRev/1000).toFixed(0)+'k';
+      }
+    });
+  }catch(e){}
 }
 
 // ── Étudiants admin ───────────────────────────────────────────

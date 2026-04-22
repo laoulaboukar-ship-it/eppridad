@@ -182,6 +182,9 @@
 .form-input:focus{border-color:#16503f;box-shadow:0 0 0 3px rgba(22,80,63,.12);background:#fff;}
 .form-input::placeholder{color:#6a9a7a !important;-webkit-text-fill-color:#6a9a7a !important;}
 .form-input:-webkit-autofill,.form-input:-webkit-autofill:focus{-webkit-text-fill-color:#0a2218 !important;-webkit-box-shadow:0 0 0 100px #f0f7f2 inset !important;}
+select.form-input{background:#fff;color:#0a2218 !important;-webkit-text-fill-color:#0a2218 !important;appearance:auto;-webkit-appearance:auto;}
+select.form-input option{background:#fff !important;color:#0a2218 !important;font-weight:500;}
+select.form-input:focus{background:#fff;}
 .pay-methods-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .pay-method{border:2px solid var(--bdr);border-radius:10px;padding:13px;cursor:pointer;transition:all .2s;text-align:center;background:#fff;}
 .pay-method:hover,.pay-method.selected{border-color:var(--g);background:var(--gp);}
@@ -240,15 +243,7 @@
     </li>
     <li><a href="formations-en-ligne.html" style="color:var(--gold-light);font-weight:600;">🎓 Cours en ligne</a></li>
     <li><a href="marketplace.html" style="color:var(--gold-light);font-weight:600;">🛒 Boutique</a></li>
-    <li><a href="inscription.html" style="color:var(--gold);font-weight:700;">✍️ S'inscrire <span class="arrow">▾</span></a>
-      <div class="dropdown">
-        <a href="inscription.html#diplomante">🎓 Formation diplômante</a>
-        <a href="inscription.html#courte">📜 Formation courte certifiante</a>
-        <a href="inscription.html#enligne">💻 Formation en ligne</a>
-        <a href="contact.html">📞 Contact &amp; Localisation</a>
-        <a href="galerie.html">📸 Galerie &amp; Infos</a>
-      </div>
-    </li>
+
     <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li>
   </ul>
   <div class="nav-right">
@@ -937,6 +932,49 @@ function goStep3(){
     }).catch(()=>{});
     // Nettoyer le localStorage après inscription
     ['enroll_nom','enroll_tel','enroll_email','enroll_region'].forEach(k=>localStorage.removeItem(k));
+
+    // ── Notification automatique WhatsApp à EPPRIDAD ──
+    const waMsg = encodeURIComponent(
+      '🎓 NOUVELLE INSCRIPTION EPPRIDAD\n' +
+      '─────────────────────────────\n' +
+      'Formation : ' + (currentCourse?.titre||'—') + '\n' +
+      'Prix      : ' + (currentCourse?.prix||0).toLocaleString('fr-FR') + ' FCFA\n' +
+      'Paiement  : ' + (selectedPay||'—') + '\n' +
+      '─────────────────────────────\n' +
+      'Nom       : ' + nom + '\n' +
+      'Tél       : ' + tel + '\n' +
+      'Email     : ' + (email||'Non renseigné') + '\n' +
+      'Région    : ' + (region||'—') + '\n' +
+      'Référence : ' + ref + '\n' +
+      '─────────────────────────────\n' +
+      '⚡ À traiter dans l\'espace admin EPPRIDAD'
+    );
+    // Ouvrir WhatsApp automatiquement (nouvelle tab)
+    setTimeout(()=>{
+      window.open('https://wa.me/22799851532?text='+waMsg,'_blank');
+    }, 800);
+
+    // ── Email automatique à EPPRIDAD ──
+    if(typeof sendEmailJS !== 'undefined'){
+      const emailBody = 
+        'NOUVELLE INSCRIPTION FORMATION EN LIGNE\n\n' +
+        'Formation  : ' + (currentCourse?.titre||'—') + '\n' +
+        'Prix       : ' + (currentCourse?.prix||0).toLocaleString('fr-FR') + ' FCFA\n' +
+        'Paiement   : ' + (selectedPay||'—') + '\n' +
+        'Référence  : ' + ref + '\n\n' +
+        'APPRENANT\n' +
+        'Nom complet: ' + nom + '\n' +
+        'Téléphone  : ' + tel + '\n' +
+        'Email      : ' + (email||'Non renseigné') + '\n' +
+        'Région     : ' + (region||'—') + '\n\n' +
+        'À activer dans : espace-etudiant.html → Accès apprenants';
+      sendEmailJS(
+        'eppridad@gmail.com',
+        'EPPRIDAD Admin',
+        '🎓 Nouvelle inscription en ligne — ' + (currentCourse?.titre||'Formation'),
+        emailBody
+      ).catch(()=>{});
+    }
   }
 }
 
