@@ -13,8 +13,16 @@ const EMAILJS_TEMPLATE_ID = 'template_6iuy2mm';
 function initEmailJS() {
   if (typeof emailjs !== 'undefined') {
     emailjs.init(EMAILJS_PUBLIC_KEY);
+    return true;
   }
+  return false;
 }
+// Retry EmailJS init avec backoff si le script n'est pas encore chargé
+(function retryInit(attempts){
+  if(!initEmailJS() && attempts > 0){
+    setTimeout(()=>retryInit(attempts-1), 300);
+  }
+})(10);
 
 async function sendEmailJS(to_email, to_name, subject, message_body, extra_params = {}) {
   if (typeof emailjs === 'undefined') { console.warn('EmailJS non chargé'); return false; }
@@ -57,9 +65,10 @@ const sb = {
     const { method='GET', body, select='*', filters=[], order, limit } = options;
     let url = `${SUPABASE_URL}/rest/v1/${table}`;
     const params = new URLSearchParams();
-    if (select) params.set('select', select);
+    // select uniquement pour les GET (PATCH/DELETE n'ont pas besoin de select)
+    if (select && method === 'GET') params.set('select', select);
     if (order)  params.set('order', order);
-    if (limit)  params.set('limit', String(limit));
+    if (limit && method === 'GET')  params.set('limit', String(limit));
     filters.forEach(f => params.set(f.col, f.val));
     if ([...params].length) url += '?' + params.toString();
     const headers = {
@@ -165,8 +174,4 @@ async function sbChangePassword(matricule, oldPwd, newPwd) {
   await sb.update('portail_comptes',{pwd_hash:simpleHash(newPwd)},{col:'matricule',val:`eq.${matricule}`});
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initEmailJS);
-} else {
-  initEmailJS();
-}
+// initEmailJS appelé via retryInit ci-dessus
