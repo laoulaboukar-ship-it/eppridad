@@ -468,46 +468,66 @@
 
       <!-- DASHBOARD -->
       <div id="ap-dashboard" class="ap active">
-        <!-- Zone alertes (inscriptions en attente, etc.) -->
-        <div id="dashAlertZone"></div>
-        <div class="admin-stats-grid" id="adminStats"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+        <!-- Alertes dynamiques -->
+        <div id="dashAlertZone" style="margin-bottom:4px"></div>
+
+        <!-- KPI Cards -->
+        <div class="admin-stats-grid" id="adminStats" style="margin-bottom:20px"></div>
+
+        <!-- Graphiques revenus + répartition filières -->
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px">
           <div class="s-card" style="margin-bottom:0">
-            <div class="s-title" style="margin-bottom:14px;font-size:16px">📊 Répartition par filière</div>
-            <div id="filiereStats"></div>
+            <div id="revenusChartZone"><div style="color:var(--text3);font-size:13px;padding:8px 0">Chargement des revenus…</div></div>
           </div>
           <div class="s-card" style="margin-bottom:0">
-            <div class="s-title" style="margin-bottom:14px;font-size:16px">⚡ Actions rapides</div>
+            <div class="s-title" style="margin-bottom:14px;font-size:15px">Répartition par filière</div>
+            <div id="filiereStats"></div>
+          </div>
+        </div>
+
+        <!-- Revenus par formation + Actions rapides -->
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="s-card" style="margin-bottom:0">
+            <div id="formationsChartZone"><div style="color:var(--text3);font-size:13px;padding:8px 0">Chargement…</div></div>
+          </div>
+          <div class="s-card" style="margin-bottom:0">
+            <div class="s-title" style="margin-bottom:14px;font-size:15px">Actions rapides</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <button onclick="aPanel('students',null)" style="background:var(--primary-pale);border:1px solid rgba(22,80,63,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit" onmouseover="this.style.background='var(--primary-pale)'" >
-                <div style="font-size:24px;margin-bottom:6px">👥</div>
-                <div style="font-size:12px;font-weight:700;color:var(--primary)">Gérer étudiants</div>
+              <button onclick="aPanel('students',null)" style="background:var(--primary-pale);border:1px solid rgba(22,80,63,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:22px;margin-bottom:6px">👥</div>
+                <div style="font-size:11.5px;font-weight:700;color:var(--primary)">Étudiants</div>
               </button>
-              <button onclick="aPanel('inscriptions',null)" style="background:#e3f2fd;border:1px solid rgba(13,110,253,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
-                <div style="font-size:24px;margin-bottom:6px">✍️</div>
-                <div style="font-size:12px;font-weight:700;color:#0d6efd">Inscriptions</div>
+              <button onclick="aPanel('inscriptions',null)" style="background:#e3f2fd;border:1px solid rgba(13,110,253,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:22px;margin-bottom:6px">✍️</div>
+                <div style="font-size:11.5px;font-weight:700;color:#1565c0">Inscriptions</div>
               </button>
-              <button onclick="aPanel('commandes',null)" style="background:#fff8e1;border:1px solid rgba(255,193,7,.3);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
-                <div style="font-size:24px;margin-bottom:6px">🛒</div>
-                <div style="font-size:12px;font-weight:700;color:#e65100">Commandes</div>
+              <button onclick="aPanel('acces_el',null)" style="background:#e8f5e9;border:1px solid rgba(22,80,63,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:22px;margin-bottom:6px">💻</div>
+                <div style="font-size:11.5px;font-weight:700;color:var(--primary)">Accès en ligne</div>
               </button>
-              <button onclick="aPanel('infos',null)" style="background:#f3e5f5;border:1px solid rgba(156,39,176,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
-                <div style="font-size:24px;margin-bottom:6px">📢</div>
-                <div style="font-size:12px;font-weight:700;color:#7b1fa2">Publier</div>
+              <button onclick="aPanel('commandes',null)" style="background:#fff8e1;border:1px solid rgba(255,193,7,.3);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:22px;margin-bottom:6px">🛒</div>
+                <div style="font-size:11.5px;font-weight:700;color:#e65100">Boutique</div>
               </button>
-              <button onclick="aPanel('library',null)" style="background:#e8f5e9;border:1px solid rgba(27,94,32,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
-                <div style="font-size:24px;margin-bottom:6px">📚</div>
-                <div style="font-size:12px;font-weight:700;color:#1b5e20">Bibliothèque</div>
+              <button onclick="aPanel('infos',null)" style="background:#f3e5f5;border:1px solid rgba(156,39,176,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:22px;margin-bottom:6px">📢</div>
+                <div style="font-size:11.5px;font-weight:700;color:#7b1fa2">Publier</div>
               </button>
-              <button onclick="aPanel('marketplace',null)" style="background:#fce4ec;border:1px solid rgba(233,30,99,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit">
-                <div style="font-size:24px;margin-bottom:6px">🌿</div>
-                <div style="font-size:12px;font-weight:700;color:#c62828">Boutique</div>
+              <button onclick="exportRevenusCSV()" style="background:linear-gradient(135deg,#0b2f25,#16503f);border:none;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                <div style="font-size:22px;margin-bottom:6px;color:#C9A84C">⬇</div>
+                <div style="font-size:11.5px;font-weight:700;color:#C9A84C">Export CSV</div>
               </button>
             </div>
           </div>
         </div>
+
+        <!-- Dernières inscriptions -->
         <div class="s-card">
-          <div class="s-title" style="margin-bottom:14px;font-size:16px">📅 Dernières inscriptions</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div class="s-title" style="font-size:15px;margin:0">Dernières demandes reçues</div>
+            <button onclick="aPanel('inscriptions',null)" style="background:var(--primary-pale);color:var(--primary);border:1px solid rgba(22,80,63,.2);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Voir tout →</button>
+          </div>
           <div id="recentInscriptions"><div style="color:var(--text3);font-size:13px">Chargement...</div></div>
         </div>
       </div>
@@ -722,13 +742,27 @@
       <div id="ap-inscriptions" class="ap">
         <div class="s-title-row">
           <div class="s-title">✍️ Demandes d'inscription</div>
-          <select class="admin-form-select" id="insc-filter-type" onchange="loadInscriptions()" style="width:auto;padding:7px 12px;font-size:12px">
-            <option value="">Tous les types</option>
-            <option value="diplomante">Formation diplômante</option>
-            <option value="courte">Formation courte</option>
-            <option value="enligne">Formation en ligne</option>
-          </select>
+          <button class="btn-sm" onclick="loadInscriptions()" style="font-size:12px">🔄 Actualiser</button>
         </div>
+
+        <!-- Filtres & stats inline -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+          <select class="admin-form-select" id="insc-filter-type" onchange="loadInscriptions()" style="width:auto;padding:7px 12px;font-size:12px;border-radius:8px">
+            <option value="">Tous les types</option>
+            <option value="diplomante">🎓 Diplômante</option>
+            <option value="courte">📜 Formation courte</option>
+            <option value="enligne">💻 En ligne</option>
+          </select>
+          <select class="admin-form-select" id="insc-filter-statut" onchange="loadInscriptions()" style="width:auto;padding:7px 12px;font-size:12px;border-radius:8px">
+            <option value="">Tous les statuts</option>
+            <option value="nouveau">🔴 Nouveau</option>
+            <option value="en_cours">🟡 En cours</option>
+            <option value="traite">🟢 Traité</option>
+            <option value="annule">⚫ Annulé</option>
+          </select>
+          <div id="inscStatsBar" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+
         <div id="inscriptionsList">
           <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement...</div>
         </div>

@@ -931,20 +931,26 @@ async function submitInscription(e, type) {
     '\n— Site EPPRIDAD'
   );
 
-  // Envoyer via EmailJS (automatique, sans action utilisateur)
+  // ── Email EPPRIDAD (notification école) ──
   if(typeof sendEmailJS !== 'undefined'){
     const bodyText = decodeURIComponent(emailBody);
     sendEmailJS('eppridad@gmail.com','EPPRIDAD',
-      'Nouvelle inscription EPPRIDAD — '+resume, bodyText
+      '🆕 Nouvelle inscription — '+resume, bodyText
     ).catch(()=>{
-      // Fallback: ouvrir mailto si EmailJS échoue
       const ml=document.createElement('a');
       ml.href='mailto:eppridad@gmail.com?subject='+emailSubject+'&body='+emailBody;
       ml.style.display='none';document.body.appendChild(ml);ml.click();
       setTimeout(()=>ml.remove(),1000);
     });
+
+    // ── Email de confirmation à l'apprenant (si email renseigné) ──
+    if(data.email && typeof emailConfirmationInscription !== 'undefined'){
+      emailConfirmationInscription(
+        data.email, fullName, ref, type,
+        selFiliere || selFC || selOLTitle || ''
+      ).catch(()=>{});
+    }
   } else {
-    // Fallback mailto
     const mailLink = document.createElement('a');
     mailLink.href = 'mailto:eppridad@gmail.com?subject=' + emailSubject + '&body=' + emailBody;
     mailLink.style.display = 'none';
