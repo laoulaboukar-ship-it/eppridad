@@ -36,27 +36,76 @@ async function sendEmailJS(to_email, to_name, subject, message_body, extra_param
 
 async function emailAccesAccorde(to_email, to_name, matricule, formation_titre, mot_de_passe, date_fin) {
   if(!to_email) return false;
-  const expiry = date_fin ? `Votre accès est valable jusqu'au ${new Date(date_fin).toLocaleDateString('fr-FR')}.` : 'Votre accès est illimité.';
+  const expiry = date_fin
+    ? `Votre accès est valable jusqu'au ${new Date(date_fin).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'})}.`
+    : 'Votre accès est illimité — apprenez à votre rythme.';
+  const prenom = to_name.split(' ')[0];
   return sendEmailJS(to_email, to_name,
-    `✅ Accès activé — ${formation_titre} | EPPRIDAD`,
-    `Bonjour ${to_name},\n\nVotre accès à la formation "${formation_titre}" a été activé.\n\n🔑 Identifiants :\n- Matricule : ${matricule}\n- Mot de passe : ${mot_de_passe}\n\n${expiry}\n\n🔗 Connexion : https://eppridad.github.io/cours-etudiant.html\n\n📞 +227 99 85 15 32\n\nCordialement, EPPRIDAD`,
+    `🎓 Votre accès EPPRIDAD est activé — ${formation_titre}`,
+    `Bonjour ${prenom},\n\n` +
+    `Félicitations ! Votre accès à la formation EPPRIDAD est maintenant ouvert.\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `📚 FORMATION : ${formation_titre}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `🔑 VOS IDENTIFIANTS DE CONNEXION\n` +
+    `   Identifiant : ${matricule}\n` +
+    `   Mot de passe : ${mot_de_passe}\n\n` +
+    `🔗 ACCÉDER À VOS COURS\n` +
+    `   https://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n` +
+    `${expiry}\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `EPPRIDAD — École Professionnelle de Pratiques et de Recherche\n` +
+    `en Innovation pour le Développement Agricole et Durable\n` +
+    `📞 +227 99 85 15 32 | ✉️ eppridad@gmail.com\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
     { matricule, formation: formation_titre });
 }
 
-async function emailConfirmationInscription(to_email, to_name, reference, filiere) {
+async function emailConfirmationInscription(to_email, to_name, reference, type_form, filiere) {
   if(!to_email) return false;
+  const prenom = to_name.split(' ')[0];
+  const typeLabel = {diplomante:'Formation diplômante', courte:'Formation courte', enligne:'Formation en ligne'}[type_form] || type_form;
   return sendEmailJS(to_email, to_name,
-    `📋 Inscription reçue — EPPRIDAD (Réf: ${reference})`,
-    `Bonjour ${to_name},\n\nNous avons bien reçu votre demande d'inscription pour la filière "${filiere}".\n\nRéférence : ${reference}\n\nNotre équipe vous contactera dans les 48h.\n\n📞 +227 99 85 15 32\n\nCordialement, EPPRIDAD`);
+    `📋 Demande reçue — EPPRIDAD (Réf: ${reference})`,
+    `Bonjour ${prenom},\n\n` +
+    `Nous accusons réception de votre demande d'inscription à EPPRIDAD.\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `RÉCAPITULATIF DE VOTRE DEMANDE\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `Type         : ${typeLabel}\n` +
+    `Formation    : ${filiere||'—'}\n` +
+    `Référence    : ${reference}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `Notre équipe pédagogique examinera votre dossier et vous contactera sous 48 heures.\n\n` +
+    `📞 Pour toute question urgente : +227 99 85 15 32\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `EPPRIDAD — École Professionnelle de Pratiques et de Recherche\n` +
+    `en Innovation pour le Développement Agricole et Durable\n` +
+    `📞 +227 99 85 15 32 | ✉️ eppridad@gmail.com\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 }
 
 async function emailCorrectionExercice(to_email, to_name, statut, note_admin, formation_titre) {
   if(!to_email) return false;
-  const emoji = statut === 'valide' ? '✅' : '❌';
-  const txt   = statut === 'valide' ? 'validé avec succès' : 'retourné pour correction';
+  const prenom = to_name.split(' ')[0];
+  const valide = statut === 'valide';
   return sendEmailJS(to_email, to_name,
-    `${emoji} Retour sur votre exercice — ${formation_titre}`,
-    `Bonjour ${to_name},\n\nVotre exercice pour "${formation_titre}" a été ${txt}.\n\n${note_admin ? `💬 Commentaire du formateur :\n"${note_admin}"\n\n` : ''}🔗 Voir : https://eppridad.github.io/cours-etudiant.html\n\nCordialement, EPPRIDAD`);
+    `${valide?'✅':'🔄'} Retour exercice — ${formation_titre} | EPPRIDAD`,
+    `Bonjour ${prenom},\n\n` +
+    `${valide
+      ? 'Excellente nouvelle ! Votre exercice a été validé avec succès. Félicitations !'
+      : 'Votre exercice a été examiné et vous est retourné pour quelques ajustements.'
+    }\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `FORMATION : ${formation_titre}\n` +
+    `RÉSULTAT  : ${valide ? '✅ VALIDÉ' : '🔄 À CORRIGER'}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `${note_admin ? `\n💬 COMMENTAIRE DU FORMATEUR\n"${note_admin}"\n` : ''}\n` +
+    `🔗 Accédez à votre espace pour voir le détail :\n` +
+    `   https://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `EPPRIDAD — 📞 +227 99 85 15 32 | ✉️ eppridad@gmail.com\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 }
 
 // ── CLIENT SUPABASE ──

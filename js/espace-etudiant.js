@@ -332,6 +332,79 @@ function toggleSidebar(){
 }
 
 // ── Accueil ───────────────────────────────────────────────────
+// ── PAGE DE GARDE UNIFIÉE — tous les apprenants EPPRIDAD ────────────────
+function buildAccueilEnligneHTML(e){
+  const prenom = (e.nom||e.id||'Apprenant').split(' ')[0];
+  const cards = [
+    {ico:'🎓',lbl:'Mes cours',sub:'Accès immédiat',fn:"window.open('cours-etudiant.html','_blank')"},
+    {ico:'📚',lbl:'Bibliothèque',sub:'Ressources PDF',fn:"sPanel('library',null)"},
+    {ico:'💬',lbl:'Messages',sub:'Notifications',fn:"sPanel('messages',null)"},
+    {ico:'👤',lbl:'Mon compte',sub:'Paramètres',fn:"sPanel('compte',null)"}
+  ];
+  const steps = [
+    {n:'1',t:'Accédez à vos cours',d:"Cliquez sur « Mes cours » — disponible 24h/24 sur téléphone ou ordinateur."},
+    {n:'2',t:'Suivez les modules',d:'Vidéos pratiques, guides PDF et exercices adaptés au contexte agricole nigérien.'},
+    {n:'3',t:'Validez avec les quiz',d:'Chaque module se termine par un quiz (score minimum 70%). 3 tentatives par module.'},
+    {n:'4',t:'Obtenez votre certificat',d:'Complétez tous les modules et téléchargez votre certificat officiel EPPRIDAD reconnu par nos institutions partenaires.'}
+  ];
+  const domaines = [
+    '🌿 Agriculture durable','🐐 Élevage & zootechnie','💧 Irrigation & eau',
+    '🌳 Environnement & reboisement','🍯 Transformation alimentaire','📊 Gestion exploitation',
+    '🐟 Pisciculture','🌾 Céréales & conservation'
+  ];
+
+  let html = '';
+
+  // Bannière hero
+  html += '<div style="background:linear-gradient(135deg,#07120e,#0b2f25 40%,#16503f 80%);border-radius:18px;padding:24px 26px;margin-bottom:16px;position:relative;overflow:hidden">';
+  html += '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(201,168,76,.08),transparent 55%);pointer-events:none"></div>';
+  html += '<div style="position:relative;z-index:1">';
+  html += '<div style="font-size:11px;font-weight:700;color:rgba(201,168,76,.7);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">🌍 École Polytechnique Privée — Niger</div>';
+  html += '<div style="font-size:clamp(16px,2.2vw,21px);font-weight:800;color:#fff;line-height:1.25;margin-bottom:10px">Bienvenue dans la famille <span style="color:#C9A84C">EPPRIDAD</span>, '+prenom+' 👋</div>';
+  html += '<div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.75;max-width:520px;margin-bottom:18px">Que vous suiviez une formation en ligne, une formation courte ou un cursus diplômant — EPPRIDAD vous accompagne vers l’excellence professionnelle au Niger et au Sahel.</div>';
+  html += '<div style="display:flex;gap:10px;flex-wrap:wrap">';
+  html += '<button onclick="window.open(&quot;cours-etudiant.html&quot;,&quot;_blank&quot;)" style="background:linear-gradient(135deg,#C9A84C,#e4c06a);color:#07120e;border:none;border-radius:11px;padding:11px 22px;font-size:13.5px;font-weight:800;cursor:pointer;font-family:inherit">&#127891; Accéder à mes cours</button>';
+  html += '<a href="https://wa.me/22799851532" target="_blank" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:11px;padding:11px 18px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;text-decoration:none">💬 Contacter EPPRIDAD</a>';
+  html += '</div></div></div>';
+
+  // Accès rapide cartes
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">';
+  cards.forEach(function(c){
+    html += '<div onclick="'+c.fn+'" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:all .2s">';
+    html += '<div style="font-size:28px;margin-bottom:6px">'+c.ico+'</div>';
+    html += '<div style="font-weight:700;font-size:13px;color:var(--text)">'+c.lbl+'</div>';
+    html += '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+c.sub+'</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Parcours de formation
+  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px">';
+  html += '<div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px">📋 Votre parcours de formation</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:12px">';
+  steps.forEach(function(s){
+    html += '<div style="display:flex;align-items:flex-start;gap:12px">';
+    html += '<div style="width:28px;height:28px;background:linear-gradient(135deg,#16503f,#1e6b54);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:2px">'+s.n+'</div>';
+    html += '<div><div style="font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:3px">'+s.t+'</div>';
+    html += '<div style="font-size:12.5px;color:var(--text2);line-height:1.6">'+s.d+'</div></div></div>';
+  });
+  html += '</div></div>';
+
+  // Domaines
+  html += '<div style="background:linear-gradient(135deg,#fdf6e3,#fef9ed);border:1px solid rgba(201,168,76,.2);border-radius:14px;padding:16px">';
+  html += '<div style="font-size:11px;font-weight:800;color:#7d5a00;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">🌾 Nos domaines de formation</div>';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  domaines.forEach(function(d){
+    html += '<div style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:20px;padding:6px 14px;font-size:12px;color:#7d5a00;font-weight:600">'+d+'</div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-top:12px;font-size:12.5px;color:rgba(125,90,0,.7);line-height:1.6">Formations conçues par des experts du terrain, adaptées aux réalités du Niger — reconnues par nos institutions et partenaires internationaux.</div>';
+  html += '</div>';
+
+  return html;
+}
+
+
 function renderAccueil(e){
   if(!e) return;
 
@@ -434,53 +507,13 @@ function renderAccueil(e){
   const accZone = document.getElementById('accueilZone');
   if(accZone){
     if(isEnligne){
-      // Pour les apprenants en ligne : bannière familiale EPPRIDAD
-      accZone.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
-          <div style="font-size:28px;margin-bottom:6px">🌿</div>
-          <div style="font-weight:700;font-size:13px;color:var(--text)">Agriculture</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Sahel & Niger</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
-          <div style="font-size:28px;margin-bottom:6px">🤝</div>
-          <div style="font-weight:700;font-size:13px;color:var(--text)">Communauté</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Famille EPPRIDAD</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
-          <div style="font-size:28px;margin-bottom:6px">📜</div>
-          <div style="font-weight:700;font-size:13px;color:var(--text)">Certificat</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">À votre rythme</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
-          <div style="font-size:28px;margin-bottom:6px">📞</div>
-          <div style="font-weight:700;font-size:13px;color:var(--text)">Support</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">+227 99 85 15 32</div>
-        </div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
-        <div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">Comment ça marche</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">1</div>
-            <div style="font-size:13px;color:var(--text2)">Accédez à vos cours depuis le bouton <strong>Mes cours</strong> ci-dessus</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">2</div>
-            <div style="font-size:13px;color:var(--text2)">Suivez les modules dans l'ordre — vidéos, PDFs et exercices pratiques</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">3</div>
-            <div style="font-size:13px;color:var(--text2)">Validez chaque quiz (70 % minimum) pour obtenir votre certificat</div>
-          </div>
-        </div>
-      </div>`;
+      accZone.innerHTML = buildAccueilEnligneHTML(e);
     } else {
-      // Étudiant diplômant : affichage des stats standard
       fillNotesSummary && fillNotesSummary(e);
     }
   }
 }
+
 
 async function loadNotificationsAccueil(e){
   // Charger le message admin pour l'afficher dans la bannière
@@ -845,140 +878,378 @@ async function loadAdminDashboard(){
   }
 }
 
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — DASHBOARD V2 (Phase 1 — Haute qualité)
+// ════════════════════════════════════════════════════════════
+
+const PRIX_FORMATIONS_REF = {
+  'irrigation-goutte-a-goutte':12000,'maraichage-saison-seche':15000,
+  'elevage-avicole-rentable':12000,'sante-petits-ruminants':14000,
+  'fromage-artisanal':10000,'transformation-cereales':10000,
+  'reboisement-desertification':12000,'digue-filtrante-pierres-seches':10000,
+  'gestion-exploitation-agricole':15000,'agroforesterie-sahel':12000,
+  'apiculture-niger':16000,'huile-sesame-karite':10000,'pisciculture-aquaculture':15000
+};
+
+function getPrixFormation(insc){
+  const m=(insc.note_admin||'').match(/Prix[^:]*:\s*([\d\s]+)\s*FCFA/);
+  if(m) return parseInt(m[1].replace(/\s/g,''));
+  const slug=(insc.filiere||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  return PRIX_FORMATIONS_REF[slug]||12000;
+}
+
+function fmtNum(n){ return Math.round(n).toLocaleString('fr-FR'); }
+function fmtK(n){ return n>=1000?(n/1000).toFixed(0)+' k':fmtNum(n); }
+
 function renderAdminDashboard(data){
   const {comptes=[],etudiants=[],inscriptions=[],commandes=[]}=data;
-  const actifs  = comptes.filter(c=>c.statut==='actif').length;
+
+  // ── Calculs KPI ──
+  const actifs   = comptes.filter(c=>c.statut==='actif').length;
   const pending  = comptes.filter(c=>c.statut==='pending').length;
   const enligne  = comptes.filter(c=>c.role==='enligne'&&c.statut==='actif').length;
   const inscNew  = inscriptions.filter(i=>i.statut==='nouveau').length;
   const inscEnl  = inscriptions.filter(i=>i.type_inscription==='enligne').length;
+  const inscEnlNew = inscriptions.filter(i=>i.type_inscription==='enligne'&&i.statut==='nouveau').length;
+  const inscDip  = inscriptions.filter(i=>i.type_inscription==='diplomante').length;
+  const inscCrt  = inscriptions.filter(i=>i.type_inscription==='courte').length;
   const cmdNew   = commandes.filter(c=>c.statut==='en_attente').length;
   const cmdRevenu= commandes.filter(c=>c.statut==='livree').reduce((s,c)=>s+(c.total_fcfa||0),0);
 
-  // Suivi financier formations en ligne
-  const PRIX_FORMATIONS = {
-    'irrigation-goutte-a-goutte':12000,'maraichage-saison-seche':15000,
-    'elevage-avicole-rentable':12000,'sante-petits-ruminants':14000,
-    'fromage-artisanal':10000,'transformation-cereales':10000,
-    'reboisement-desertification':12000,'digue-filtrante-pierres-seches':10000,
-    'gestion-exploitation-agricole':15000,'agroforesterie-sahel':12000,
-    'apiculture-niger':16000,'huile-sesame-karite':10000,'pisciculture-aquaculture':15000
-  };
-  const revenusEnligne = inscriptions
-    .filter(i=>i.type_inscription==='enligne'&&i.statut!=='annule')
-    .reduce((s,i)=>{
-      const noteMatch = (i.note_admin||'').match(/Prix[^:]*:\s*([\d\s]+)\s*FCFA/);
-      const prix = noteMatch ? parseInt(noteMatch[1].replace(/\s/g,'')) : 12000;
-      return s + prix;
-    },0);
+  // Revenus formations en ligne
+  const inscEnlArray = inscriptions.filter(i=>i.type_inscription==='enligne'&&i.statut!=='annule');
+  const revenusEnligne = inscEnlArray.reduce((s,i)=>s+getPrixFormation(i),0);
 
-  document.getElementById('pendingBadge').textContent=pending;
+  // Revenus totaux (en ligne + boutique)
+  const revenuTotal = revenusEnligne + cmdRevenu;
 
-  // ── Alerte visuelle inscriptions en ligne non traitées ──
-  const alertZone = document.getElementById('dashAlertZone');
-  if(alertZone){
-    const enligneNew = inscriptions.filter(i=>i.type_inscription==='enligne'&&i.statut==='nouveau').length;
-    if(enligneNew>0){
-      alertZone.innerHTML=`
-        <div onclick="aPanel('inscriptions',null)" style="cursor:pointer;background:linear-gradient(135deg,#1a5276,#2874a6);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;animation:slideDown .3s ease">
-          <div style="font-size:28px;flex-shrink:0">🔔</div>
-          <div style="flex:1">
-            <div style="font-weight:800;font-size:14px;margin-bottom:3px">${enligneNew} nouvelle${enligneNew>1?'s':''} inscription${enligneNew>1?'s':''} en ligne en attente</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.75)">Cliquez pour voir les demandes et donner les accès</div>
-          </div>
-          <div style="background:rgba(255,255,255,.2);border-radius:8px;padding:6px 14px;font-weight:700;font-size:13px;flex-shrink:0">Voir →</div>
-        </div>`;
-    } else {
-      alertZone.innerHTML='';
-    }
-  }
+  // Taux de traitement
+  const tauxTraitement = inscriptions.length ? Math.round(inscriptions.filter(i=>i.statut==='traite').length/inscriptions.length*100) : 0;
+
+  // ── Badges topbar ──
+  document.getElementById('pendingBadge').textContent = pending;
   const bb=document.getElementById('bnavBadge');
   if(bb){bb.textContent=pending;bb.style.display=pending?'block':'none';}
   const ib=document.getElementById('bnavInscBadge');
   if(ib){ib.textContent=inscNew;ib.style.display=inscNew?'block':'none';}
 
-  // Statistiques principales
-  document.getElementById('adminStats').innerHTML=[
-    {ic:'👥',n:etudiants.length,l:'Étudiants diplômants',bg:'var(--primary-pale)',action:"aPanel('students',null)"},
-    {ic:'💻',n:enligne,l:'Apprenants en ligne actifs',bg:'#e3f2fd',action:"aPanel('acces_el',null)"},
-    {ic:'✍️',n:inscNew,l:'Nouvelles demandes',bg:'var(--accent-pale)',action:"aPanel('inscriptions',null)"},
-    {ic:'📋',n:inscEnl,l:'Inscriptions en ligne',bg:'#e8f5e9',action:"aPanel('inscriptions',null)"},
-    {ic:'💰',n:(revenusEnligne/1000).toFixed(0)+'k',l:'FCFA formations en ligne',bg:'#e8f5e9',action:"aPanel('inscriptions',null)"},
-    {ic:'🛒',n:(cmdRevenu/1000).toFixed(0)+'k',l:'FCFA boutique',bg:'#fff8e1',action:"aPanel('commandes',null)"},
-  ].map(s=>`<div class="admin-stat-card" onclick="${s.action}" style="cursor:pointer"><div class="admin-stat-icon" style="background:${s.bg}">${s.ic}</div><div><div class="admin-stat-n">${s.n}</div><div class="admin-stat-l">${s.l}</div></div></div>`).join('');
+  // ── Zone alertes ──
+  const alertZone=document.getElementById('dashAlertZone');
+  if(alertZone){
+    let alerts='';
+    if(inscEnlNew>0){
+      alerts+=`
+      <div onclick="aPanel('inscriptions',null)" style="cursor:pointer;background:linear-gradient(135deg,#0b3d2e,#16503f);border:1px solid rgba(201,168,76,.3);color:#fff;border-radius:14px;padding:14px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:all .2s" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        <div style="width:40px;height:40px;background:rgba(201,168,76,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🔑</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:2px">${inscEnlNew} inscription${inscEnlNew>1?'s':''} en ligne en attente d'activation</div>
+          <div style="font-size:11.5px;color:rgba(255,255,255,.6)">Activez les accès pour que les apprenants puissent commencer leurs cours</div>
+        </div>
+        <div style="background:var(--accent);color:#07120e;border-radius:8px;padding:7px 16px;font-weight:800;font-size:12px;flex-shrink:0">Activer →</div>
+      </div>`;
+    }
+    if(pending>0){
+      alerts+=`
+      <div onclick="aPanel('students',null)" style="cursor:pointer;background:linear-gradient(135deg,#1a3a5c,#1e5276);border:1px solid rgba(100,170,255,.2);color:#fff;border-radius:14px;padding:12px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        <div style="font-size:22px;flex-shrink:0">⏳</div>
+        <div style="flex:1;font-size:12.5px">${pending} compte${pending>1?'s':''} en attente de validation</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.55)">Voir →</div>
+      </div>`;
+    }
+    alertZone.innerHTML = alerts;
+  }
 
-  // Stats formations en ligne (quelles formations sont les plus demandées)
-  const filiereEl = document.getElementById('filiereStats');
+  // ── KPI Cards premium ──
+  const kpiCards = [
+    {
+      label:'Revenus formations en ligne',val:fmtNum(revenusEnligne)+' FCFA',
+      sub:inscEnl+' inscription'+(inscEnl>1?'s':''),
+      icon:'💰',color:'var(--primary)',bg:'linear-gradient(135deg,#0b2f25,#16503f)',
+      action:"aPanel('inscriptions',null)"
+    },
+    {
+      label:'Chiffre d\'affaires boutique',val:fmtNum(cmdRevenu)+' FCFA',
+      sub:commandes.filter(c=>c.statut==='livree').length+' commande'+(commandes.filter(c=>c.statut==='livree').length>1?'s':'') +' livrée'+(commandes.filter(c=>c.statut==='livree').length>1?'s':''),
+      icon:'🛒',color:'#e65100',bg:'linear-gradient(135deg,#3e1a00,#7a3800)',
+      action:"aPanel('commandes',null)"
+    },
+    {
+      label:'Apprenants en ligne actifs',val:enligne,
+      sub:inscEnlNew+' en attente d\'accès',
+      icon:'💻',color:'#1565c0',bg:'linear-gradient(135deg,#0a1929,#1565c0)',
+      action:"aPanel('acces_el',null)"
+    },
+    {
+      label:'Étudiants diplômants',val:etudiants.length,
+      sub:actifs+' compte'+(actifs>1?'s':'')+' actif'+(actifs>1?'s':''),
+      icon:'🎓',color:'#4a148c',bg:'linear-gradient(135deg,#1a0533,#4a148c)',
+      action:"aPanel('students',null)"
+    },
+    {
+      label:'Nouvelles demandes',val:inscNew,
+      sub:'sur '+inscriptions.length+' total · '+tauxTraitement+'% traité',
+      icon:'✍️',color:inscNew>0?'#c62828':'var(--primary)',
+      bg:inscNew>0?'linear-gradient(135deg,#3a0a0a,#8b1a1a)':'linear-gradient(135deg,#1a2f25,#2e5c44)',
+      action:"aPanel('inscriptions',null)"
+    },
+    {
+      label:'Commandes en attente',val:cmdNew,
+      sub:commandes.length+' commande'+(commandes.length>1?'s':'')+' au total',
+      icon:'📦',color:cmdNew>0?'#e65100':'#555',
+      bg:cmdNew>0?'linear-gradient(135deg,#3e1a00,#a04000)':'linear-gradient(135deg,#1a1a1a,#333)',
+      action:"aPanel('commandes',null)"
+    },
+  ];
+
+  document.getElementById('adminStats').innerHTML = kpiCards.map(k=>`
+    <div onclick="${k.action}" style="cursor:pointer;background:${k.bg};border-radius:16px;padding:18px 20px;transition:all .22s;border:1px solid rgba(255,255,255,.07);min-width:0"
+      onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 32px rgba(0,0,0,.3)'"
+      onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.55)">${k.label}</div>
+        <div style="font-size:20px;opacity:.9">${k.icon}</div>
+      </div>
+      <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#fff;line-height:1;margin-bottom:6px">${k.val}</div>
+      <div style="font-size:11.5px;color:rgba(255,255,255,.5)">${k.sub}</div>
+    </div>`).join('');
+
+  // ── Graphiques & Stats (appel asynchrone) ──
+  renderDashboardCharts(inscriptions, commandes, etudiants);
+
+  // ── Section filières ──
+  const filiereEl=document.getElementById('filiereStats');
   if(filiereEl){
-    // Compter par filière (étudiants diplômants)
-    const fc={};etudiants.forEach(e=>{fc[e.filiere]=(fc[e.filiere]||0)+1;});
-    // Compter inscriptions en ligne par formation
+    const fc={};etudiants.forEach(e=>{if(e.filiere)fc[e.filiere]=(fc[e.filiere]||0)+1;});
     const fi={};
     inscriptions.filter(i=>i.type_inscription==='enligne').forEach(i=>{
       const k=i.filiere||'Autre';fi[k]=(fi[k]||0)+1;
     });
-    const totalDip = etudiants.length||1;
-    const totalEnl = Object.values(fi).reduce((s,n)=>s+n,0)||1;
-
+    const totalDip=etudiants.length||1;
+    const totalEnl=Object.values(fi).reduce((s,n)=>s+n,0)||1;
     let html='';
     if(Object.keys(fc).length){
-      html+='<div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Filières diplômantes</div>';
-      html+=Object.entries(fc).sort((a,b)=>b[1]-a[1]).map(([fil,n])=>`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      html+='<div style="font-size:10.5px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Filières diplômantes</div>';
+      html+=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([fil,n])=>`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
           <div style="min-width:0;flex:1;font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fil}</div>
-          <div style="width:80px;height:8px;background:var(--surface3);border-radius:4px;flex-shrink:0;overflow:hidden"><div style="height:100%;width:${Math.round(n/totalDip*100)}%;background:linear-gradient(to right,var(--primary),var(--primary-l));border-radius:4px"></div></div>
-          <div style="width:20px;text-align:right;font-size:12px;font-weight:700;color:var(--primary);flex-shrink:0">${n}</div>
+          <div style="width:90px;height:6px;background:var(--surface3);border-radius:3px;flex-shrink:0;overflow:hidden">
+            <div style="height:100%;width:${Math.round(n/totalDip*100)}%;background:var(--primary);border-radius:3px;transition:width .6s"></div>
+          </div>
+          <div style="width:22px;text-align:right;font-size:12px;font-weight:700;color:var(--primary);flex-shrink:0">${n}</div>
         </div>`).join('');
     }
     if(Object.keys(fi).length){
-      html+='<div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin:14px 0 8px">Formations en ligne demandées</div>';
-      html+=Object.entries(fi).sort((a,b)=>b[1]-a[1]).map(([form,n])=>`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      html+='<div style="font-size:10.5px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin:16px 0 10px">Formations en ligne</div>';
+      html+=Object.entries(fi).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([form,n])=>`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
           <div style="min-width:0;flex:1;font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${form}</div>
-          <div style="width:80px;height:8px;background:#e3f2fd;border-radius:4px;flex-shrink:0;overflow:hidden"><div style="height:100%;width:${Math.round(n/totalEnl*100)}%;background:linear-gradient(to right,#1a5276,#2e86c1);border-radius:4px"></div></div>
-          <div style="width:20px;text-align:right;font-size:12px;font-weight:700;color:#1a5276;flex-shrink:0">${n}</div>
+          <div style="width:90px;height:6px;background:#e3f2fd;border-radius:3px;flex-shrink:0;overflow:hidden">
+            <div style="height:100%;width:${Math.round(n/totalEnl*100)}%;background:#1565c0;border-radius:3px;transition:width .6s"></div>
+          </div>
+          <div style="width:22px;text-align:right;font-size:12px;font-weight:700;color:#1565c0;flex-shrink:0">${n}</div>
         </div>`).join('');
     }
-    if(!html) html='<div style="color:var(--text3);font-size:13px">Aucune donnée pour le moment.</div>';
-    filiereEl.innerHTML = html;
+    if(!html)html='<div style="color:var(--text3);font-size:13px;padding:16px 0">Aucune donnée encore.</div>';
+    filiereEl.innerHTML=html;
   }
 
   loadAdminStudents();
   loadAdminMessages();
   loadAdminLibrary_admin();
   loadInscriptionsBadge();
+  loadRecentInscriptions();
+  if(typeof updateAdminClock === 'function') updateAdminClock();
+  // Sync badge commandes
+  const cmdBadge=document.getElementById('cmdBadge');
+  if(cmdBadge&&data.commandes){
+    const nc=data.commandes.filter(c=>c.statut==='en_attente').length;
+    cmdBadge.textContent=nc||'0';
+  }
+}
 
-  // Charger les stats inscriptions en ligne en temps réel
-  loadDashboardInscriptionsStats();
+// ── Graphiques revenus + formations ──
+function renderDashboardCharts(inscriptions, commandes, etudiants){
+  renderRevenusChart(inscriptions, commandes);
+  renderFormationsChart(inscriptions);
+  loadRecentInscriptions();
+}
+
+function renderRevenusChart(inscriptions, commandes){
+  const zone=document.getElementById('revenusChartZone');
+  if(!zone) return;
+
+  // Calculer les 6 derniers mois
+  const now=new Date();
+  const mois=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    mois.push({
+      label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}),
+      year:d.getFullYear(),
+      month:d.getMonth()
+    });
+  }
+
+  const revMois=mois.map(m=>{
+    const enligne=inscriptions
+      .filter(i=>i.type_inscription==='enligne'&&i.statut!=='annule'&&i.created_at)
+      .filter(i=>{const d=new Date(i.created_at);return d.getFullYear()===m.year&&d.getMonth()===m.month;})
+      .reduce((s,i)=>s+getPrixFormation(i),0);
+    const boutique=commandes
+      .filter(c=>c.statut==='livree'&&c.created_at)
+      .filter(c=>{const d=new Date(c.created_at);return d.getFullYear()===m.year&&d.getMonth()===m.month;})
+      .reduce((s,c)=>s+(c.total_fcfa||0),0);
+    return {label:m.label,enligne,boutique,total:enligne+boutique};
+  });
+
+  const maxVal=Math.max(...revMois.map(m=>m.total),1);
+  const totalEnl=revMois.reduce((s,m)=>s+m.enligne,0);
+  const totalBout=revMois.reduce((s,m)=>s+m.boutique,0);
+
+  zone.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Revenus des 6 derniers mois</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">Total: <strong style="color:var(--primary)">${fmtNum(totalEnl+totalBout)} FCFA</strong></div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:10px;height:10px;background:var(--primary);border-radius:2px"></div>
+          <span style="font-size:11.5px;color:var(--text3)">En ligne · ${fmtNum(totalEnl)} FCFA</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:10px;height:10px;background:var(--accent);border-radius:2px"></div>
+          <span style="font-size:11.5px;color:var(--text3)">Boutique · ${fmtNum(totalBout)} FCFA</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:120px;margin-bottom:8px">
+      ${revMois.map(m=>{
+        const hEnl=maxVal>0?Math.round(m.enligne/maxVal*100):0;
+        const hBout=maxVal>0?Math.round(m.boutique/maxVal*100):0;
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%">
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;width:100%;gap:1px">
+            <div style="background:var(--accent);height:${hBout}%;min-height:${m.boutique>0?'2px':'0'};border-radius:3px 3px 0 0;transition:height .6s;width:100%"></div>
+            <div style="background:var(--primary);height:${hEnl}%;min-height:${m.enligne>0?'2px':'0'};border-radius:${hBout>0?'0':'3px 3px'} 0 0;transition:height .6s;width:100%"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:8px">
+      ${revMois.map(m=>`<div style="flex:1;text-align:center;font-size:10px;color:var(--text3)">${m.label}</div>`).join('')}
+    </div>
+    ${revMois.some(m=>m.total>0)?`
+    <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px">
+      ${revMois.filter(m=>m.total>0).map(m=>`
+        <div style="background:var(--surface2);border-radius:8px;padding:6px 10px;font-size:11px">
+          <span style="color:var(--text3)">${m.label}</span>
+          <span style="font-weight:700;color:var(--primary);margin-left:6px">${fmtK(m.total)} FCFA</span>
+        </div>`).join('')}
+    </div>`:''}
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button onclick="exportRevenusCSV()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px">
+        <span>⬇</span> Exporter CSV
+      </button>
+      <button onclick="aPanel('inscriptions',null)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">
+        Voir toutes les inscriptions →
+      </button>
+    </div>`;
+}
+
+function renderFormationsChart(inscriptions){
+  const zone=document.getElementById('formationsChartZone');
+  if(!zone) return;
+
+  const byForm={};
+  inscriptions.filter(i=>i.type_inscription==='enligne'&&i.statut!=='annule').forEach(i=>{
+    const k=i.filiere||'Formation EPPRIDAD';
+    if(!byForm[k]) byForm[k]={count:0,revenu:0};
+    byForm[k].count++;
+    byForm[k].revenu+=getPrixFormation(i);
+  });
+
+  const sorted=Object.entries(byForm).sort((a,b)=>b[1].revenu-a[1].revenu).slice(0,8);
+  const maxRev=Math.max(...sorted.map(([,v])=>v.revenu),1);
+
+  if(!sorted.length){
+    zone.innerHTML='<div style="color:var(--text3);font-size:13px;padding:16px 0">Aucune inscription en ligne enregistrée pour le moment.</div>';
+    return;
+  }
+
+  zone.innerHTML=`
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px">Revenus par formation en ligne</div>
+    ${sorted.map(([form,v],idx)=>{
+      const colors=['#16503f','#1e6b54','#1565c0','#4a148c','#e65100','#c62828','#7b1fa2','#1b5e20'];
+      const color=colors[idx%colors.length];
+      const pct=Math.round(v.revenu/maxRev*100);
+      return`<div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:12px;color:var(--text2);max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${form}">${form}</div>
+          <div style="font-size:12px;font-weight:700;color:${color};flex-shrink:0">${fmtNum(v.revenu)} FCFA · ${v.count} insc.</div>
+        </div>
+        <div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width .7s ease"></div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
+      <span style="font-size:12px;color:var(--text3)">Total revenus formations en ligne</span>
+      <span style="font-size:14px;font-weight:800;color:var(--primary)">${fmtNum(sorted.reduce((s,[,v])=>s+v.revenu,0))} FCFA</span>
+    </div>`;
+}
+
+// ── Export CSV revenus ──
+function exportRevenusCSV(){
+  const data=window._adminData||{};
+  const inscriptions=data.inscriptions||[];
+  const commandes=data.commandes||[];
+
+  const rows=[['Date','Type','Nom','Formation','Montant FCFA','Statut','Référence']];
+
+  inscriptions.filter(i=>i.type_inscription==='enligne').forEach(i=>{
+    rows.push([
+      i.created_at?new Date(i.created_at).toLocaleDateString('fr-FR'):'—',
+      'Formation en ligne',
+      ((i.prenom||'')+' '+(i.nom||'')).trim(),
+      i.filiere||'—',
+      getPrixFormation(i),
+      i.statut||'—',
+      i.reference||'—'
+    ]);
+  });
+
+  commandes.forEach(c=>{
+    rows.push([
+      c.created_at?new Date(c.created_at).toLocaleDateString('fr-FR'):'—',
+      'Boutique',
+      ((c.prenom||'')+' '+(c.nom||'')).trim(),
+      '—',
+      c.total_fcfa||0,
+      c.statut||'—',
+      c.id||'—'
+    ]);
+  });
+
+  const csv=rows.map(r=>r.map(v=>'"'+(String(v)).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='EPPRIDAD_Revenus_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},500);
+  showToast('Export CSV téléchargé !');
 }
 
 async function loadDashboardInscriptionsStats(){
-  try{
-    const [insc, acces] = await Promise.all([
-      sb.select('inscriptions',{order:'created_at.desc',limit:200}).catch(()=>[]),
-      sb.select('acces_formations',{select:'formation_id,actif',limit:500}).catch(()=>[])
-    ]);
-    if(!insc||!insc.length) return;
-
-    // Calcul revenus réels par formation
-    const byForm={};
-    insc.filter(i=>i.type_inscription==='enligne'&&i.statut!=='annule').forEach(i=>{
-      const key = i.filiere||'—';
-      if(!byForm[key]) byForm[key]={count:0,revenu:0};
-      byForm[key].count++;
-      const m=(i.note_admin||'').match(/Prix[^:]*:\s*([\d\s]+)\s*FCFA/);
-      byForm[key].revenu += m ? parseInt(m[1].replace(/\s/g,'')) : 12000;
-    });
-
-    // Mettre à jour la stat revenus en ligne
-    const totalRev = Object.values(byForm).reduce((s,v)=>s+v.revenu,0);
-    document.querySelectorAll('.admin-stat-n').forEach((el,i)=>{
-      if(el.closest('.admin-stat-card')?.querySelector('.admin-stat-l')?.textContent?.includes('formations en ligne')){
-        el.textContent = (totalRev/1000).toFixed(0)+'k';
-      }
-    });
-  }catch(e){}
+  // Données déjà chargées dans _adminData — pas besoin d'un second appel réseau
+  if(window._adminData){
+    renderRevenusChart(window._adminData.inscriptions||[], window._adminData.commandes||[]);
+    renderFormationsChart(window._adminData.inscriptions||[]);
+  }
 }
+
 
 // ── Étudiants admin ───────────────────────────────────────────
 function loadAdminStudents(filter=''){
@@ -1846,161 +2117,272 @@ function showCreateTableGuide() {
 
 // ── Activation rapide d'un accès depuis le panel inscriptions ──
 async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre){
-  const matricule = reference || ('ENL-'+Date.now().toString(36).toUpperCase());
-  const pwd = 'eppridad2025';
-  
-  // Trouver la formation par titre
-  let formId = null;
+  // Générer matricule propre
+  const now = new Date();
+  const yy = now.getFullYear().toString().slice(2);
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const matricule = reference || ('ENL'+yy+mm+'-'+Math.random().toString(36).slice(2,6).toUpperCase());
+  const pwd = 'Eppridad'+yy+'!';
+
+  showLoadingOverlay(true, 'Activation de l\'accès…');
+
   try{
-    const formations = await sb.select('formations_enligne',{select:'id,titre',limit:20});
-    const form = formations.find(f=>f.titre===formation_titre||(f.titre||'').includes(formation_titre));
-    formId = form?.id || null;
-  }catch(e){}
-  
-  if(!formId){
-    // Ouvrir le panel accès avec les infos pré-remplies
+    // Chercher la formation par slug, titre partiel ou filiere
+    let formId = null;
+    const formations = await sb.select('formations_enligne',{select:'id,titre,slug',limit:30}).catch(()=>[]);
+    if(formations && formations.length){
+      const slug = (formation_titre||'').toLowerCase().normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      let match = formations.find(f=>f.slug===slug)
+        || formations.find(f=>(f.titre||'').toLowerCase().includes((formation_titre||'').toLowerCase().slice(0,12)))
+        || formations.find(f=>(f.titre||'').includes(formation_titre));
+      formId = match?.id || null;
+    }
+
+    // 1. Créer/mettre à jour le compte portail
+    const compteExist = await sb.select('portail_comptes',{
+      filters:[{col:'matricule',val:'eq.'+matricule}], limit:1
+    }).catch(()=>[]);
+
+    if(!compteExist || !compteExist.length){
+      await sb.insert('portail_comptes',{
+        matricule,
+        pwd_hash: simpleHash(pwd),
+        statut: 'actif',
+        role: 'enligne',
+        nom_complet: (prenom+' '+nom).trim(),
+        email: email||null,
+        expiry_date: null,
+        date_creation: new Date().toISOString()
+      });
+    }
+
+    // 2. Créer ou mettre à jour l'accès à la formation (upsert évite le duplicate key)
+    if(formId){
+      await sb.upsert('acces_formations',{
+        matricule,
+        formation_id: formId,
+        actif: true,
+        date_fin: null,
+        note_admin: 'Activé le '+new Date().toLocaleDateString('fr-FR')+' — Réf: '+reference
+      },'matricule,formation_id');
+    }
+
+    // 3. Marquer l'inscription comme traitée
+    if(reference){
+      await sb.update('inscriptions',
+        {statut:'traite', note_admin:'Accès activé le '+new Date().toLocaleDateString('fr-FR')+' · ID: '+matricule},
+        {col:'reference', val:'eq.'+reference}
+      ).catch(()=>{});
+    }
+
+    // 4. Envoyer email via EmailJS
+    if(typeof sendEmailJS !== 'undefined' && email){
+      sendEmailJS(email, prenom+' '+nom,
+        'Vos accès EPPRIDAD — Formation en ligne',
+        'Bonjour '+prenom+',\n\nVotre accès à la plateforme EPPRIDAD est activé !\n\n'+
+        '🔑 Identifiant : '+matricule+'\n🔐 Mot de passe : '+pwd+'\n\n'+
+        '🔗 Connectez-vous ici :\nhttps://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n'+
+        'En cas de question : +227 99 85 15 32\nBonne formation ! 🎓 L\'équipe EPPRIDAD'
+      ).catch(()=>{});
+    }
+
+    showLoadingOverlay(false);
+
+    // 5. Modal de confirmation avec les identifiants
+    const confirmMsg =
+      '✅ Accès activé avec succès !\n\n'+
+      '👤 Apprenant : '+prenom+' '+nom+'\n'+
+      '🔑 Identifiant : '+matricule+'\n'+
+      '🔐 Mot de passe : '+pwd+'\n'+
+      (formId?'':'\n⚠️ Formation non identifiée — ajoutez l\'accès manuellement dans le panel Accès.\n')+
+      '\nCliquez OK pour ouvrir WhatsApp et envoyer les identifiants.';
+
+    if(confirm(confirmMsg)){
+      const msg = encodeURIComponent(
+        'Bonjour '+prenom+' 👋,\n\n'+
+        'Votre accès à la plateforme de formation EPPRIDAD est maintenant activé !\n\n'+
+        '🔑 Identifiant : *'+matricule+'*\n'+
+        '🔐 Mot de passe : *'+pwd+'*\n\n'+
+        '🔗 Connectez-vous ici :\nhttps://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n'+
+        '📚 Bonne formation ! Pour toute question : +227 99 85 15 32\n🎓 L\'équipe EPPRIDAD'
+      );
+      window.open('https://wa.me/'+(tel||'').replace(/[^0-9]/g,'').replace(/^0/,'227')+'?text='+msg,'_blank');
+    }
+
+    loadInscriptions();
+    loadAdminDashboard();
+
+  }catch(err){
+    showLoadingOverlay(false);
+    showToast('Erreur activation: '+err.message, '#e53935');
+    console.error('quickActiverAcces error:', err);
+    // Fallback manuel
     aPanel('acces_el',null);
     setTimeout(()=>{
-      document.getElementById('acces-matricule').value = matricule;
-      document.getElementById('acces-nom').value = (prenom+' '+nom).trim();
-      document.getElementById('acces-email').value = email||'';
-      document.getElementById('giveAccesForm').style.display='block';
-      showToast('Remplissez la formation et cliquez Activer');
-    },200);
-    return;
-  }
-  
-  try{
-    // Créer le compte portail
-    await sb.insert('portail_comptes',{
-      matricule, pwd_hash:simpleHash(pwd), statut:'actif',
-      role:'enligne', nom_complet:(prenom+' '+nom).trim(),
-      email:email||null, expiry_date:null
-    }).catch(()=>{});
-    // Créer l'accès formation
-    await sb.insert('acces_formations',{
-      matricule, formation_id:formId, actif:true, date_fin:null,
-      note_admin:'Activé depuis panel inscriptions — '+reference
-    });
-    // Marquer inscription comme traitée
-    await sb.update('inscriptions',{statut:'traite'},{col:'reference',val:'eq.'+reference}).catch(()=>{});
-    
-    showSuccess('✅ Accès activé !\n\nIdentifiant : '+matricule+'\nMot de passe : '+pwd+'\n\nEnvoyez ces identifiants à '+prenom+' par WhatsApp.');
-    
-    // Ouvrir WhatsApp avec les identifiants
-    const msg = encodeURIComponent(
-      'Bonjour '+prenom+', votre accès EPPRIDAD est activé !\n\n'+
-      '🔑 Identifiant : '+matricule+'\n'+
-      '🔐 Mot de passe : '+pwd+'\n\n'+
-      '🔗 Connectez-vous sur :\nhttps://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n'+
-      'Bonne formation ! 🎓 EPPRIDAD'
-    );
-    setTimeout(()=>window.open('https://wa.me/'+tel.replace(/[^0-9]/g,'').replace(/^0/,'227')+'?text='+msg,'_blank'),500);
-    
-    loadInscriptions();
-  }catch(err){
-    showError('Erreur activation: '+err.message);
-    // Fallback: ouvrir le panel accès
-    aPanel('acces_el',null);
+      const el = document.getElementById('acces-matricule');
+      if(el) el.value = matricule;
+      const en = document.getElementById('acces-nom');
+      if(en) en.value = (prenom+' '+nom).trim();
+      const ee = document.getElementById('acces-email');
+      if(ee) ee.value = email||'';
+      const gf = document.getElementById('giveAccesForm');
+      if(gf) gf.style.display = 'block';
+      showToast('Complétez manuellement et cliquez Activer');
+    },300);
   }
 }
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN — INSCRIPTIONS V2 (UI premium, filtres doubles, stats)
+// ════════════════════════════════════════════════════════════
+
 async function loadInscriptions() {
   const container = document.getElementById('inscriptionsList');
   if (!container) return;
-  const typeFilter = document.getElementById('insc-filter-type')?.value || '';
-  container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Chargement...</div>';
+
+  const typeFilter   = document.getElementById('insc-filter-type')?.value   || '';
+  const statutFilter = document.getElementById('insc-filter-statut')?.value || '';
+
+  container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3)"><div style="font-size:28px;margin-bottom:10px">⏳</div>Chargement des inscriptions…</div>';
+
   try {
-    const filters = typeFilter ? [{ col: 'type_inscription', val: 'eq.' + typeFilter }] : [];
-    const inscriptions = await sb.select('inscriptions', {
+    // Charger TOUT (max 200) pour stats puis filtrer côté client
+    const all = await sb.select('inscriptions', {
       order: 'created_at.desc',
-      limit: 50,
-      filters
+      limit: 200
     });
-    if (!inscriptions || inscriptions.length === 0) {
-      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Aucune demande d\'inscription pour le moment.</div>';
-      // Update badge
-      const badge = document.getElementById('inscBadge');
-      if (badge) badge.textContent = '0';
+
+    const inscriptions = all || [];
+
+    // Stats bar
+    const sbar = document.getElementById('inscStatsBar');
+    if(sbar){
+      const tot    = inscriptions.length;
+      const nv     = inscriptions.filter(i=>i.statut==='nouveau').length;
+      const enl    = inscriptions.filter(i=>i.type_inscription==='enligne').length;
+      const traite = inscriptions.filter(i=>i.statut==='traite').length;
+      sbar.innerHTML = [
+        {lbl:'Total',val:tot,bg:'var(--surface2)',c:'var(--text)'},
+        {lbl:'Nouvelles',val:nv,bg:'#fdecea',c:'#c62828'},
+        {lbl:'En ligne',val:enl,bg:'#e3f2fd',c:'#1565c0'},
+        {lbl:'Traitées',val:traite,bg:'#e8f5e9',c:'#2e7d32'},
+      ].map(s=>`<div style="background:${s.bg};border-radius:8px;padding:5px 12px;font-size:11.5px;font-weight:700;color:${s.c};white-space:nowrap">${s.lbl} <span style="font-family:'Playfair Display',serif;font-size:14px">${s.val}</span></div>`).join('');
+    }
+
+    // Filtrage local
+    let filtered = inscriptions;
+    if(typeFilter)   filtered = filtered.filter(i=>i.type_inscription===typeFilter);
+    if(statutFilter) filtered = filtered.filter(i=>i.statut===statutFilter);
+
+    // Badge
+    const badge = document.getElementById('inscBadge');
+    if(badge){ const nv=inscriptions.filter(i=>i.statut==='nouveau').length; badge.textContent=nv||'0'; }
+    const ib=document.getElementById('bnavInscBadge');
+    if(ib){ const nv=inscriptions.filter(i=>i.statut==='nouveau').length; ib.textContent=nv; ib.style.display=nv?'block':'none'; }
+
+    if(!filtered.length){
+      container.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:36px;margin-bottom:12px">📭</div><div style="font-size:14px">Aucune demande ne correspond aux filtres sélectionnés.</div></div>';
       return;
     }
-    // Count new
-    const newCount = inscriptions.filter(i => i.statut === 'nouveau').length;
-    const badge = document.getElementById('inscBadge');
-    if (badge) badge.textContent = newCount > 0 ? newCount : '0';
 
-    const typeLabels = {
-      diplomante:'🎓 Diplômante',
-      courte:'📜 Formation courte',
-      enligne:'💻 En ligne',
-      presentiel:'🏫 Présentiel'
-    };
-    const typeColors = {
-      diplomante:'#1e6b54',
-      courte:'#7d5a00',
-      enligne:'#1a5276',
-      presentiel:'#5a2d82'
-    };
-    const statusColors = { nouveau:'#e53935', 'en_cours':'#f57c00', traite:'var(--primary)', annule:'#999' };
-    const statusLabels = { nouveau:'Nouveau', en_cours:'En cours', traite:'Traité', annule:'Annulé' };
+    const typeLabels = { diplomante:'🎓 Diplômante', courte:'📜 Courte', enligne:'💻 En ligne', presentiel:'🏫 Présentiel' };
+    const typeBg     = { diplomante:'#1e6b54', courte:'#7d5a00', enligne:'#1565c0', presentiel:'#5a2d82' };
+    const statBg     = { nouveau:'#c62828', en_cours:'#e65100', traite:'#2e7d32', annule:'#757575' };
+    const statLbl    = { nouveau:'Nouveau', en_cours:'En cours', traite:'Traité', annule:'Annulé' };
 
-    container.innerHTML = inscriptions.map(i => `
-      <div class="s-card" style="margin-bottom:10px;padding:14px 16px">
-        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
-          <div style="flex:1;min-width:200px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
-              <strong style="font-size:14px">${i.prenom || ''} ${i.nom || ''}</strong>
-              <span style="background:${statusColors[i.statut] || '#999'};color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700">${statusLabels[i.statut] || i.statut}</span>
-              <span style="background:${typeColors?.[i.type_inscription]||'#555'};color:#fff;font-size:10px;padding:3px 9px;border-radius:10px;font-weight:700">${typeLabels[i.type_inscription] || i.type_inscription || '—'}</span>
+    container.innerHTML = filtered.map(i => {
+      const safeStr = s => (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      const tel = (i.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227');
+      const whatsappMsg = i.type_inscription==='enligne'
+        ? `Bonjour ${i.prenom||''}, votre demande d'accès EPPRIDAD a bien été reçue.\\n\\nNous allons activer votre espace d'apprentissage dans les 24h.\\n\\nEn attendant, n'hésitez pas à nous contacter : +227 99 85 15 32 🎓`
+        : `Bonjour ${i.prenom||''}, nous avons bien reçu votre dossier d'inscription EPPRIDAD (Réf: ${i.reference||'—'}).\\n\\nNotre équipe vous contactera dans les 48h pour la suite de votre admission.\\n📞 +227 99 85 15 32`;
+
+      const dateStr = i.created_at ? new Date(i.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      const isNew = i.statut === 'nouveau';
+
+      return `
+      <div class="insc-card${isNew?' insc-card--new':''}" style="background:#fff;border-radius:14px;border:1px solid ${isNew?'rgba(198,40,40,.25)':'var(--border)'};padding:16px 18px;margin-bottom:10px;transition:all .2s;${isNew?'box-shadow:0 0 0 2px rgba(198,40,40,.08)':''}">
+        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+
+          <!-- Infos principales -->
+          <div style="flex:1;min-width:220px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+              <div style="font-size:15px;font-weight:800;color:var(--text)">${i.prenom||''} ${i.nom||''}</div>
+              <span style="background:${statBg[i.statut]||'#757575'};color:#fff;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;letter-spacing:.3px">${statLbl[i.statut]||i.statut}</span>
+              <span style="background:${typeBg[i.type_inscription]||'#444'};color:#fff;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700">${typeLabels[i.type_inscription]||i.type_inscription||'—'}</span>
             </div>
-            <div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">📞 ${i.telephone || '—'} ${i.email ? '· ✉️ '+i.email : ''}</div>
-            <div style="font-size:12.5px;color:var(--text2);margin-bottom:3px">${i.resume || ''}</div>
-            ${i.ville ? `<div style="font-size:11.5px;color:var(--text3)">📍 ${i.ville}</div>` : ''}
-            ${i.message ? `<div style="font-size:11.5px;color:var(--text3);margin-top:4px;font-style:italic">"${i.message.substring(0,80)}${i.message.length>80?'...':''}"</div>` : ''}
-            <div style="font-size:10.5px;color:var(--text3);margin-top:5px">Réf: ${i.reference || '—'} · ${i.created_at ? new Date(i.created_at).toLocaleDateString('fr-FR') : ''}</div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+              <div style="font-size:12.5px;color:var(--text2);display:flex;align-items:center;gap:5px">
+                <span>📞</span> <a href="tel:${i.telephone||''}" style="color:var(--primary);font-weight:600;text-decoration:none">${i.telephone||'—'}</a>
+              </div>
+              ${i.email?`<div style="font-size:12.5px;color:var(--text2);display:flex;align-items:center;gap:5px"><span>✉️</span> <a href="mailto:${i.email}" style="color:var(--primary);font-weight:600;text-decoration:none">${i.email}</a></div>`:''}
+              ${i.ville?`<div style="font-size:12px;color:var(--text3)">📍 ${i.ville}</div>`:''}
+            </div>
+
+            ${i.resume?`<div style="font-size:12.5px;color:var(--text2);background:var(--surface2);border-radius:8px;padding:8px 12px;margin-bottom:6px;border-left:3px solid var(--primary)">${i.resume}</div>`:''}
+            ${i.message?`<div style="font-size:11.5px;color:var(--text3);margin-bottom:6px;font-style:italic;background:#fffbf0;border-radius:6px;padding:6px 10px;border-left:3px solid var(--accent)">"${i.message.substring(0,120)}${i.message.length>120?'…':''}"</div>`:''}
+            ${i.note_admin?`<div style="font-size:11.5px;color:#1565c0;margin-bottom:6px;background:#e3f2fd;border-radius:6px;padding:6px 10px">📝 ${i.note_admin}</div>`:''}
+
+            <div style="font-size:10.5px;color:var(--text3);display:flex;gap:12px;flex-wrap:wrap">
+              <span>Réf: <strong>${i.reference||'—'}</strong></span>
+              <span>📅 ${dateStr}</span>
+              ${i.paiement?`<span>💳 ${i.paiement}</span>`:''}
+            </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-            ${i.type_inscription==='enligne'?`
-            <button onclick="quickActiverAcces('${i.reference||''}','${i.prenom||''}','${i.nom||''}','${i.telephone||''}','${i.email||''}','${i.filiere||''}')" style="background:#1a5276;color:#fff;border:none;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;text-align:center">🔑 Activer accès</button>
-            `:''}
-            <a href="tel:${i.telephone}" style="background:var(--primary);color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">📞 Appeler</a>
-            <a href="https://wa.me/${(i.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227')}?text=${encodeURIComponent(
-              i.type_inscription==='enligne'
-                ? 'Bonjour '+i.prenom+', votre inscription à la formation EPPRIDAD a bien été validée !\n\n🔑 Vos identifiants de connexion :\n- Identifiant : '+(i.reference||i.matricule||'ENL-'+Date.now().toString(36).toUpperCase())+'\n- Mot de passe initial : eppridad2025\n\n🔗 Connectez-vous sur : https://eppridad.github.io/cours-etudiant.html\n\nBonne formation ! 🎓 L\'équipe EPPRIDAD — +227 99 85 15 32'
-                : 'Bonjour '+i.prenom+', nous avons bien reçu votre dossier d\'inscription EPPRIDAD (Réf: '+(i.reference||'')+'). Notre équipe vous contactera dans les 48h pour la suite de votre admission. 📞 +227 99 85 15 32'
-            )}" target="_blank" style="background:#25D366;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">💬 WhatsApp</a>
-            <select onchange="updateInscriptionStatus(${i.id},this.value)" style="font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg)">
-              <option ${i.statut==='nouveau'?'selected':''} value="nouveau">Nouveau</option>
-              <option ${i.statut==='en_cours'?'selected':''} value="en_cours">En cours</option>
-              <option ${i.statut==='traite'?'selected':''} value="traite">Traité</option>
-              <option ${i.statut==='annule'?'selected':''} value="annule">Annulé</option>
+
+          <!-- Actions -->
+          <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0;min-width:130px">
+            ${i.type_inscription==='enligne'&&i.statut!=='traite'?`
+            <button onclick="quickActiverAcces('${safeStr(i.reference)}','${safeStr(i.prenom)}','${safeStr(i.nom)}','${safeStr(i.telephone)}','${safeStr(i.email)}','${safeStr(i.filiere)}')"
+              style="background:linear-gradient(135deg,#0b2f25,#16503f);color:#C9A84C;border:none;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;text-align:center;letter-spacing:.3px;box-shadow:0 4px 14px rgba(22,80,63,.35);transition:all .2s"
+              onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+              🔑 Activer l'accès
+            </button>`:''}
+
+            <a href="tel:${i.telephone||''}"
+              style="background:var(--primary);color:#fff;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;transition:all .2s"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+              📞 Appeler
+            </a>
+
+            <a href="https://wa.me/${tel}?text=${encodeURIComponent(whatsappMsg)}" target="_blank"
+              style="background:#25D366;color:#fff;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;transition:all .2s"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+              💬 WhatsApp
+            </a>
+
+            <select onchange="updateInscriptionStatus(${i.id},this.value)"
+              style="font-size:11.5px;padding:7px 10px;border:1px solid var(--border);border-radius:9px;background:#fff;cursor:pointer;font-family:inherit;color:var(--text);font-weight:600">
+              <option ${i.statut==='nouveau'?'selected':''} value="nouveau">🔴 Nouveau</option>
+              <option ${i.statut==='en_cours'?'selected':''} value="en_cours">🟡 En cours</option>
+              <option ${i.statut==='traite'?'selected':''} value="traite">🟢 Traité</option>
+              <option ${i.statut==='annule'?'selected':''} value="annule">⚫ Annulé</option>
             </select>
           </div>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
+
   } catch(err) {
-    container.innerHTML = `<div style="color:#e53935;padding:16px;font-size:13px">Erreur: ${err.message}<br>La table "inscriptions" doit être créée dans Supabase.</div>`;
+    container.innerHTML = `<div style="color:#e53935;padding:20px;border-radius:10px;background:#fdecea;font-size:13px"><strong>Erreur de chargement</strong><br>${err.message}<br><br>Vérifiez que la table "inscriptions" existe dans Supabase et que le patch SQL V3 a bien été exécuté.</div>`;
   }
 }
 
 async function updateInscriptionStatus(id, status) {
   try {
     await sb.update('inscriptions', { statut: status }, { col: 'id', val: 'eq.' + id });
-    showToast('Statut mis à jour → ' + status);
-  } catch(e) { alert('Erreur: ' + e.message); }
+    const labels = {nouveau:'Nouveau',en_cours:'En cours',traite:'Traité ✅',annule:'Annulé'};
+    showToast('Statut → ' + (labels[status]||status));
+    // Recharger le badge
+    loadInscriptionsBadge();
+  } catch(e) {
+    showToast('Erreur: ' + e.message, '#e53935');
+  }
 }
 
 // Badge inscriptions chargé au démarrage admin
-async function loadInscriptionsBadge(){
-  try{
-    const inscriptions=await sb.select('inscriptions',{filters:[{col:'statut',val:'eq.nouveau'}],limit:99}).catch(()=>[]);
-    const badge=document.getElementById('inscBadge');
-    if(badge)badge.textContent=(inscriptions||[]).length||'0';
-  }catch(e){}
-}
-
-
-// ════════════════════════════════════════════════════════════
 //  ADMIN — COMMANDES MARKETPLACE
 // ════════════════════════════════════════════════════════════
 
@@ -2149,19 +2531,8 @@ async function loadRecentInscriptions(){
   }
 }
 
-// Override renderAdminDashboard to also load recent inscriptions
-const _origRender = renderAdminDashboard;
-window.renderAdminDashboard = function(data){
-  _origRender(data);
-  updateAdminClock();
-  loadRecentInscriptions();
-  // Update badges from preloaded data
-  const cmdBadge=document.getElementById('cmdBadge');
-  if(cmdBadge&&data.commandes){
-    const n=data.commandes.filter(c=>c.statut==='en_attente').length;
-    cmdBadge.textContent=n||'0';
-  }
-};
+// updateAdminClock + loadRecentInscriptions désormais appelés directement depuis renderAdminDashboard
+// (override supprimé — il créait des conflits de scope et boucles infinies)
 
 // ════════════════════════════════════════════════════════════
 //  ADMIN — FORMATIONS EN LIGNE — GESTION COMPLÈTE

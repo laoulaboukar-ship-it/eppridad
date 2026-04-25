@@ -464,7 +464,7 @@ a{text-decoration:none;color:inherit}
 .ap.active{display:block}
 
 /* ── STAT CARDS ── */
-.admin-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:24px}
+.admin-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:14px;margin-bottom:24px}
 .admin-stat-card{
   background:#fff;border:1px solid #e8ede9;border-radius:14px;
   padding:18px;display:flex;align-items:center;gap:14px;
@@ -861,4 +861,47 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(min-width:768px){
   .mobile-nav-logout{display:none!important;}
   .hide-mobile{display:inline!important;}
+}
+
+/* ═══════════════════════════════════════════════
+   PHASE 1 — Dashboard V2 & Inscriptions premium
+═══════════════════════════════════════════════ */
+
+/* KPI cards sombres — override pour le nouveau style */
+.admin-stat-card{
+  background:linear-gradient(135deg,#0b2f25,#16503f);
+  border-radius:16px;
+  padding:18px 20px;
+  border:1px solid rgba(255,255,255,.07);
+  transition:all var(--tr);
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+}
+.admin-stat-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 32px rgba(0,0,0,.3);
+}
+.admin-stat-n{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#fff;line-height:1}
+.admin-stat-l{font-size:11.5px;color:rgba(255,255,255,.5);margin-top:4px}
+
+/* Inscription cards */
+.insc-card{transition:box-shadow var(--tr)}
+.insc-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.09)!important}
+.insc-card--new{animation:inscPulse 2s ease-in-out}
+@keyframes inscPulse{0%,100%{box-shadow:0 0 0 2px rgba(198,40,40,.08)}50%{box-shadow:0 0 0 4px rgba(198,40,40,.15)}}
+
+/* Stats bar inscriptions */
+#inscStatsBar{gap:6px;display:flex;flex-wrap:wrap}
+
+/* Charts zones */
+#revenusChartZone,#formationsChartZone{min-height:60px}
+
+/* Responsive dashboard grids */
+@media(max-width:900px){
+  #ap-dashboard>[style*="1.6fr"]{grid-template-columns:1fr!important}
+}
+@media(max-width:640px){
+  .admin-stats-grid{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  #ap-dashboard>[style*="1.6fr"]{grid-template-columns:1fr!important}
 }
