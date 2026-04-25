@@ -41,7 +41,7 @@ a{text-decoration:none;color:inherit}
 /* ══════════════════════════════
    AUTH PAGE — DARK PREMIUM
 ══════════════════════════════ */
-#auth-page{background:var(--dark);align-items:stretch;min-height:100vh}
+#auth-page{background:#fff;align-items:stretch;min-height:100vh}
 
 
 @media(max-width:860px){}
@@ -904,7 +904,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* ══ PAGE LOGIN — PREMIUM V27 ══════════════════════════════ */
 
 /* Grille login */
-#auth-page{display:flex;min-height:100vh;background:#fff}
+/* #auth-page : display géré par .page / .page.active (voir haut du fichier) */
 
 /* Gauche dark */
 .auth-left{

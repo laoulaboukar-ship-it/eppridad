@@ -90,8 +90,8 @@ function doAdminLogin(){
   if(id==='ADMIN'&&simpleHash(pwd)===getAdminHash()){
     setSession({id:'ADMIN',role:'admin'});
     _sessionUser={id:'ADMIN',role:'admin'};
-    loadAdminDashboard();
-    showPage('admin-page');
+    showPage('admin-page');      // Afficher la page AVANT de charger les données
+    loadAdminDashboard();        // Charger ensuite (async — ne bloque pas l'affichage)
   } else {
     err.textContent='Identifiant ou mot de passe incorrect.';err.classList.add('show');
   }
@@ -854,14 +854,17 @@ function showToast(msg, color) {
 
 async function loadAdminDashboard(){
   showLoadingOverlay(true,'Chargement administration…');
+  // Sécurité : toujours masquer l'overlay après 8s max
+  const safetyTimer = setTimeout(()=>showLoadingOverlay(false), 8000);
   try{
     const [comptes,etudiants,notes,inscriptions,commandes] = await Promise.all([
-      sb.select('portail_comptes',{select:'matricule,statut,expiry_date,date_creation,dernier_acces,role',order:'date_creation.desc'}).catch(()=>[]),
+      sb.select('portail_comptes',{select:'matricule,statut,expiry_date,date_creation,dernier_acces,role',order:'date_creation.desc',limit:500}).catch(()=>[]),
       sb.select('etudiants',{select:'matricule,nom,prenom,filiere,niveau,classe,actif',order:'matricule.asc'}).catch(()=>[]),
       sb.select('notes',{select:'etudiant_id,note'}).catch(()=>[]),
-      sb.select('inscriptions',{select:'id,prenom,nom,telephone,email,filiere,type_inscription,statut,reference,note_admin,ville,created_at',order:'created_at.desc',limit:300}).catch(()=>[]),
-      sb.select('commandes_marketplace',{select:'id,statut,total_fcfa,created_at',order:'created_at.desc',limit:200}).catch(()=>[]),
+      sb.select('inscriptions',{select:'id,prenom,nom,telephone,email,filiere,type_inscription,statut,reference,note_admin,paiement,lu,ville,message,created_at',order:'created_at.desc',limit:300}).catch(()=>[]),
+      sb.select('commandes_marketplace',{select:'id,statut,total_fcfa,prenom,nom,created_at',order:'created_at.desc',limit:200}).catch(()=>[]),
     ]);
+    clearTimeout(safetyTimer);
     window._adminData={
       comptes:comptes||[],
       etudiants:etudiants||[],
@@ -872,9 +875,13 @@ async function loadAdminDashboard(){
     renderAdminDashboard(window._adminData);
     showLoadingOverlay(false);
   }catch(e){
+    clearTimeout(safetyTimer);
     showLoadingOverlay(false);
     console.error('loadAdminDashboard',e);
-    showError('Erreur chargement admin: '+e.message);
+    // Afficher quand même le dashboard avec données vides plutôt qu'un écran blanc
+    window._adminData = window._adminData || {comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
+    renderAdminDashboard(window._adminData);
+    showToast('⚠️ Certaines données n\'ont pas pu être chargées: '+e.message, 5000);
   }
 }
 
