@@ -2190,11 +2190,15 @@ function showActivationModal({prenom, nom, matricule, pwd, formId, waUrl, tel, e
 
 
 async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre){
-  // Générer matricule propre
+  // Générer matricule propre — TOUJOURS un nouveau code, jamais la référence d'inscription
   const now = new Date();
   const yy = now.getFullYear().toString().slice(2);
   const mm = String(now.getMonth()+1).padStart(2,'0');
-  const matricule = reference || ('ENL'+yy+mm+'-'+Math.random().toString(36).slice(2,6).toUpperCase());
+  // 4 caractères alphanumériques aléatoires (majuscules, sans O/0/I/1 pour éviter la confusion)
+  const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let suffix = '';
+  for(let i=0;i<4;i++) suffix += charset[Math.floor(Math.random()*charset.length)];
+  const matricule = 'ENL'+yy+mm+'-'+suffix;
   const pwd = 'Eppridad'+yy+'!';
 
   showLoadingOverlay(true, 'Activation de l\'accès…');
@@ -2218,7 +2222,8 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
     }).catch(()=>[]);
 
     if(!compteExist || !compteExist.length){
-      await sb.insert('portail_comptes',{
+      // Utiliser upsert pour éviter les doublons et garantir l'insertion
+      await sb.upsert('portail_comptes',{
         matricule,
         pwd_hash: simpleHash(pwd),
         statut: 'actif',
@@ -2227,7 +2232,15 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
         email: email||null,
         expiry_date: null,
         date_creation: new Date().toISOString()
-      });
+      },'matricule');
+      console.log('[EPPRIDAD] Compte créé → matricule:', matricule, '| pwd:', pwd);
+    } else {
+      // Compte existant : s'assurer qu'il est actif
+      await sb.update('portail_comptes',
+        {statut:'actif', role:'enligne', nom_complet:(prenom+' '+nom).trim()},
+        {col:'matricule', val:'eq.'+matricule}
+      ).catch(()=>{});
+      console.log('[EPPRIDAD] Compte existant réactivé → matricule:', matricule);
     }
 
     // 2. Créer ou mettre à jour l'accès à la formation (upsert évite le duplicate key)

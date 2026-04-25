@@ -77,9 +77,9 @@ a{text-decoration:none;color:inherit}
 .auth-tab:not(.active):hover{color:rgba(255,255,255,.65)}
 
 .form-label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:8px}
-.form-input{width:100%;padding:13px 16px;border:2px solid rgba(255,255,255,.15);border-radius:12px;font-size:15px;font-weight:500;color:#fff !important;-webkit-text-fill-color:#fff !important;background:rgba(255,255,255,.1);transition:all .2s;outline:none;caret-color:#fff;}
-.form-input::placeholder{color:rgba(255,255,255,.22);font-weight:400}
-.form-input:focus{border-color:var(--accent);background:rgba(255,255,255,.11);box-shadow:0 0 0 3px rgba(201,168,76,.12)}
+/* .form-input ancien style sombre supprimé — voir règle dans section LOGIN PREMIUM V27 */
+/* form-input::placeholder ancien style sombre supprimé */
+/* form-input:focus ancien style sombre supprimé */
 .form-input:hover:not(:focus){border-color:rgba(255,255,255,.2)}
 .form-group{margin-bottom:18px}
 
@@ -625,12 +625,10 @@ a{text-decoration:none;color:inherit}
 
 /* Fix autocomplete browser override */
 .form-input:-webkit-autofill,
-.form-input:-webkit-autofill:hover,
 .form-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #fff !important;
-  -webkit-box-shadow: 0 0 0 100px rgba(22,80,63,.3) inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-  caret-color: #fff;
+  -webkit-text-fill-color: #091f17 !important;
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+  background-color: #fff !important;
 }
 
 /* ══════════════════════════════════════════════════════════
