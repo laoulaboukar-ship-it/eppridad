@@ -2116,6 +2116,72 @@ function showCreateTableGuide() {
 
 
 // ── Activation rapide d'un accès depuis le panel inscriptions ──
+// ── Modal activation accès — remplace confirm() natif ───────────────────
+function showActivationModal({prenom, nom, matricule, pwd, formId, waUrl, tel, email}){
+  // Supprimer un ancien modal si présent
+  const old = document.getElementById('activationModal');
+  if(old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'activationModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(7,18,14,.75);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:20px;padding:28px 30px;max-width:460px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:fadeUp .25s ease">
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:22px">
+        <div style="font-size:48px;margin-bottom:10px">✅</div>
+        <div style="font-family:'Playfair Display',Georgia,serif;font-size:21px;font-weight:800;color:#091f17;margin-bottom:5px">Accès activé avec succès !</div>
+        <div style="font-size:13px;color:#5a8a72">${prenom} ${nom} peut maintenant se connecter.</div>
+      </div>
+
+      <!-- Identifiants -->
+      <div style="background:linear-gradient(135deg,#07120e,#0b2f25 40%,#16503f);border-radius:14px;padding:18px 20px;margin-bottom:18px;color:#fff">
+        <div style="font-size:10.5px;font-weight:700;color:rgba(201,168,76,.7);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">🔑 Identifiants de connexion</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.06);border-radius:9px;padding:10px 14px">
+            <span style="font-size:12px;color:rgba(255,255,255,.5)">Identifiant</span>
+            <span style="font-family:monospace;font-size:15px;font-weight:700;color:#C9A84C;letter-spacing:.5px">${matricule}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.06);border-radius:9px;padding:10px 14px">
+            <span style="font-size:12px;color:rgba(255,255,255,.5)">Mot de passe</span>
+            <span style="font-family:monospace;font-size:15px;font-weight:700;color:#C9A84C;letter-spacing:.5px">${pwd}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border-radius:9px;padding:8px 14px">
+            <span style="font-size:11px;color:rgba(255,255,255,.4)">Portail</span>
+            <span style="font-size:11px;color:rgba(255,255,255,.4);font-family:monospace">cours-etudiant.html</span>
+          </div>
+          ${!formId ? '<div style="background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.3);border-radius:9px;padding:9px 14px;font-size:12px;color:#ffd54f;margin-top:4px">⚠️ Formation non identifiée — à assigner manuellement dans « Accès apprenants »</div>' : ''}
+        </div>
+      </div>
+
+      <!-- Info contact -->
+      ${tel&&tel!=='—'?`<div style="font-size:12.5px;color:#5a8a72;margin-bottom:16px;text-align:center">📞 Numéro apprenant : <strong style="color:#091f17">${tel}</strong>${email?` · ✉️ ${email}`:''}</div>`:''}
+
+      <!-- Actions -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <a href="${waUrl}" target="_blank" onclick="document.getElementById('activationModal').remove()"
+          style="display:flex;align-items:center;justify-content:center;gap:10px;background:#25D366;color:#fff;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:800;text-decoration:none;transition:all .2s">
+          💬 Envoyer les identifiants par WhatsApp
+        </a>
+        <div style="display:flex;gap:8px">
+          <button onclick="navigator.clipboard&&navigator.clipboard.writeText('Identifiant: ${matricule}\nMot de passe: ${pwd}\nPortail: https://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html').then(()=>showToast('✅ Identifiants copiés !'))"
+            style="flex:1;background:#e8f5f0;border:1px solid rgba(22,80,63,.2);color:#16503f;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+            📋 Copier les identifiants
+          </button>
+          <button onclick="document.getElementById('activationModal').remove()"
+            style="flex:1;background:#f4f8f6;border:1px solid rgba(22,80,63,.1);color:#5a8a72;border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+            ✕ Fermer
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  // Fermer en cliquant en dehors
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+}
+
+
 async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre){
   // Générer matricule propre
   const now = new Date();
@@ -2189,26 +2255,24 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
 
     showLoadingOverlay(false);
 
-    // 5. Modal de confirmation avec les identifiants
-    const confirmMsg =
-      '✅ Accès activé avec succès !\n\n'+
-      '👤 Apprenant : '+prenom+' '+nom+'\n'+
-      '🔑 Identifiant : '+matricule+'\n'+
-      '🔐 Mot de passe : '+pwd+'\n'+
-      (formId?'':'\n⚠️ Formation non identifiée — ajoutez l\'accès manuellement dans le panel Accès.\n')+
-      '\nCliquez OK pour ouvrir WhatsApp et envoyer les identifiants.';
+    // 5. Modal de confirmation premium avec accès WhatsApp direct
+    const telClean = (tel||'').replace(/[^0-9]/g,'').replace(/^0/,'227');
+    const waMsg = encodeURIComponent(
+      'Bonjour '+prenom+' 👋\n\n'+
+      'Votre accès à la plateforme de formation en ligne EPPRIDAD est maintenant activé !\n\n'+
+      '🔑 *Identifiant* : '+matricule+'\n'+
+      '🔐 *Mot de passe* : '+pwd+'\n\n'+
+      '🔗 Connectez-vous ici :\nhttps://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n'+
+      '📚 Bonne formation ! Pour toute question : +227 99 85 15 32\n'+
+      '🎓 L\'équipe EPPRIDAD'
+    );
+    const waUrl = 'https://wa.me/'+telClean+'?text='+waMsg;
 
-    if(confirm(confirmMsg)){
-      const msg = encodeURIComponent(
-        'Bonjour '+prenom+' 👋,\n\n'+
-        'Votre accès à la plateforme de formation EPPRIDAD est maintenant activé !\n\n'+
-        '🔑 Identifiant : *'+matricule+'*\n'+
-        '🔐 Mot de passe : *'+pwd+'*\n\n'+
-        '🔗 Connectez-vous ici :\nhttps://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n'+
-        '📚 Bonne formation ! Pour toute question : +227 99 85 15 32\n🎓 L\'équipe EPPRIDAD'
-      );
-      window.open('https://wa.me/'+(tel||'').replace(/[^0-9]/g,'').replace(/^0/,'227')+'?text='+msg,'_blank');
-    }
+    // Afficher un modal propre avec les identifiants + bouton WA
+    showActivationModal({
+      prenom, nom, matricule, pwd, formId, waUrl,
+      tel: tel||'—', email: email||null
+    });
 
     loadInscriptions();
     loadAdminDashboard();
@@ -2383,6 +2447,29 @@ async function updateInscriptionStatus(id, status) {
 }
 
 // Badge inscriptions chargé au démarrage admin
+async function loadInscriptionsBadge(){
+  try{
+    const rows = await sb.select('inscriptions',{
+      select:'id,statut,type_inscription',
+      filters:[{col:'statut',val:'eq.nouveau'}],
+      limit:100
+    });
+    const n = rows ? rows.length : 0;
+    // Badge sidebar nav
+    const b = document.getElementById('inscBadge');
+    if(b){ b.textContent = n||'0'; }
+    // Badge bottomnav mobile
+    const bi = document.getElementById('bnavInscBadge');
+    if(bi){ bi.textContent = n; bi.style.display = n ? 'block' : 'none'; }
+    // Badge pendingBadge (pour les inscriptions en ligne en attente)
+    const enligne = rows ? rows.filter(r=>r.type_inscription==='enligne').length : 0;
+    const pb = document.getElementById('pendingBadge');
+    if(pb && enligne > 0){ pb.textContent = enligne; }
+  }catch(e){
+    console.warn('loadInscriptionsBadge:', e.message);
+  }
+}
+
 //  ADMIN — COMMANDES MARKETPLACE
 // ════════════════════════════════════════════════════════════
 

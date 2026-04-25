@@ -24,41 +24,90 @@
 
 <!-- ═══════════════ PAGE AUTH ═══════════════ -->
 <div id="auth-page" class="page active">
+  <!-- GAUCHE — vitrine EPPRIDAD -->
   <div class="auth-left">
     <div class="auth-left-bg"></div>
     <div class="auth-left-orb"></div>
     <div class="auth-left-orb2"></div>
     <div class="auth-left-content">
+
       <div class="auth-logo-wrap">
         <div class="auth-logo-circle">
           <img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'">
         </div>
         <div class="auth-logo-text">
           <div class="auth-logo-name">EPPRIDAD</div>
-          <div class="auth-logo-sub">Portail Académique</div>
+          <div class="auth-logo-sub">Portail Académique & Formation</div>
         </div>
       </div>
-      <h1>Votre espace<br>EPPRIDAD <em>personnel</em></h1>
-      <p>Étudiants diplômants, apprenants en ligne, stagiaires — connectez-vous pour accéder à votre espace dédié, vos cours, certificats et bien plus.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-        <div style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:5px 12px;font-size:11.5px;font-weight:700;color:#d4af37">🎓 Formations diplômantes</div>
-        <div style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:5px 12px;font-size:11.5px;font-weight:700;color:#d4af37">💻 Cours en ligne</div>
-        <div style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:5px 12px;font-size:11.5px;font-weight:700;color:#d4af37">📜 Formations courtes</div>
+
+      <h1>Votre espace<br><em>EPPRIDAD</em> vous attend</h1>
+      <p>Étudiants diplômants, apprenants en ligne, stagiaires en formation courte — un seul portail pour tout : vos cours, notes, certificats, bibliothèque et bien plus.</p>
+
+      <!-- Badges types de formation -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px">
+        <div class="auth-badge">🎓 Formation diplômante</div>
+        <div class="auth-badge">💻 Cours en ligne</div>
+        <div class="auth-badge">📜 Formation courte</div>
+        <div class="auth-badge">🤝 Accompagnement</div>
       </div>
+
+      <!-- Fonctionnalités clés -->
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">📊</div>
+          <div>
+            <div class="auth-feature-title">Suivi académique en temps réel</div>
+            <div class="auth-feature-sub">Notes, bulletins, progression, décisions du jury</div>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🎓</div>
+          <div>
+            <div class="auth-feature-title">Plateforme e-learning intégrée</div>
+            <div class="auth-feature-sub">Vidéos, PDF, quiz de validation, certificats officiels</div>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🏅</div>
+          <div>
+            <div class="auth-feature-title">Certificats numérotés vérifiables</div>
+            <div class="auth-feature-sub">Reconnus par nos institutions partenaires nationales et internationales</div>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">💬</div>
+          <div>
+            <div class="auth-feature-title">Support direct WhatsApp</div>
+            <div class="auth-feature-sub">L'équipe EPPRIDAD vous répond — +227 99 85 15 32</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
       <div class="auth-stats-row">
-        <div class="auth-stat"><div class="auth-stat-n">13</div><div class="auth-stat-l">Formations</div></div>
+        <div class="auth-stat"><div class="auth-stat-n">13+</div><div class="auth-stat-l">Formations</div></div>
         <div class="auth-stat"><div class="auth-stat-n">100%</div><div class="auth-stat-l">En ligne</div></div>
         <div class="auth-stat"><div class="auth-stat-n">🏅</div><div class="auth-stat-l">Certifiantes</div></div>
       </div>
+
     </div>
   </div>
 
+  <!-- DROITE — formulaire connexion -->
   <div class="auth-right">
     <div class="auth-box">
-      <div class="auth-box-logo" style="position:relative">
-        <a href="index.html" title="Retour au site EPPRIDAD" style="position:absolute;top:0;right:0;display:inline-flex;align-items:center;gap:5px;background:rgba(22,80,63,.07);border:1px solid rgba(22,80,63,.12);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:var(--primary);text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(22,80,63,.14)'" onmouseout="this.style.background='rgba(22,80,63,.07)'">🌐 Site EPPRIDAD</a>
-        <img src="images/logo.png" alt="EPPRIDAD" onerror="this.outerHTML='<div style=\'font-family:Playfair Display,serif;font-size:22px;font-weight:700;color:var(--primary)\'>EPPRIDAD</div>'">
+
+      <!-- Logo mobile uniquement -->
+      <div class="auth-box-logo">
+        <img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'">
+        <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#16503f;margin-top:8px">EPPRIDAD</div>
       </div>
+
+      <!-- Lien retour site -->
+      <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;background:rgba(22,80,63,.07);border:1px solid rgba(22,80,63,.12);border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:700;color:#16503f;text-decoration:none;margin-bottom:20px;transition:all .2s" onmouseover="this.style.background='rgba(22,80,63,.14)'" onmouseout="this.style.background='rgba(22,80,63,.07)'">
+        ← Site EPPRIDAD
+      </a>
 
       <!-- TABS -->
       <div class="auth-tabs" id="authTabs">
@@ -68,41 +117,39 @@
 
       <!-- LOGIN -->
       <div id="loginForm">
-        <h2 class="form-heading">Connexion 🔐</h2>
-        <p class="form-sub">Entrez votre matricule EPPRIDAD et votre mot de passe.</p>
+        <h2 class="form-heading">Bon retour 👋</h2>
+        <p class="form-sub">Connectez-vous avec votre matricule EPPRIDAD.</p>
         <div class="form-err" id="loginErr"></div>
         <div class="form-group">
           <label class="form-label">Identifiant étudiant</label>
-          <input class="form-input" type="text" id="loginId" placeholder="Votre matricule  (ex: EPPRI25-001)" autocomplete="username" spellcheck="false" autocapitalize="characters">
+          <input class="form-input" type="text" id="loginId" placeholder="Votre matricule (ex: EPPRI25-001)" autocomplete="username" spellcheck="false" autocapitalize="characters">
         </div>
         <div class="form-group">
           <label class="form-label">Mot de passe</label>
-          <input class="form-input" type="password" id="loginPwd" placeholder="Votre mot de passe" autocomplete="current-password" id="loginPwd">
+          <input class="form-input" type="password" id="loginPwd" placeholder="Votre mot de passe" autocomplete="current-password">
         </div>
         <button class="btn-primary" id="loginBtn" onclick="doLogin()">🔓 Se connecter</button>
         <p class="form-link">Pas encore de compte ? <a href="#" onclick="switchTab('register')">Créez-en un</a></p>
-        <p style="text-align:center;margin-top:10px">
-          <a href="?reset=1" style="font-size:12px;color:rgba(255,255,255,.35);text-decoration:none;" 
-             onclick="sessionStorage.clear();localStorage.removeItem('eppr_admin_hash_v2');return true;">
-            🔄 Problème de connexion ? Cliquez ici pour réinitialiser
+        <p style="text-align:center;margin-top:12px">
+          <a href="?reset=1" style="font-size:11.5px;color:rgba(0,0,0,.3);text-decoration:none" onclick="sessionStorage.clear();localStorage.removeItem('eppr_admin_hash_v2');return true;">
+            🔄 Réinitialiser la session
           </a>
         </p>
-        <!-- Accès admin discret — triple clic sur le logo ou taper ADMIN comme ID -->
-        <div id="adminHint" style="display:none;margin-top:12px;">
+        <div id="adminHint" style="display:none;margin-top:12px">
           <div class="divider"><span>Administration</span></div>
-          <button class="btn-primary" style="background:var(--dark2);font-size:13px;" onclick="doAdminLogin()">⚙️ Accès Administration</button>
+          <button class="btn-primary" style="background:var(--dark2);font-size:13px" onclick="doAdminLogin()">⚙️ Accès Administration</button>
         </div>
       </div>
 
       <!-- REGISTER -->
       <div id="registerForm" style="display:none">
         <h2 class="form-heading">Créer mon compte</h2>
-        <p class="form-sub">Entrez le matricule que l'administration vous a donné (ex: EPPRI25-001).</p>
+        <p class="form-sub">Entrez le matricule que l'administration EPPRIDAD vous a attribué.</p>
         <div class="form-err" id="regErr"></div>
         <div class="form-success" id="regSuccess"></div>
         <div class="form-group">
           <label class="form-label">Identifiant étudiant</label>
-          <input class="form-input" type="text" id="regId" placeholder="Votre matricule  (ex: EPPRI25-001)" autocomplete="username" spellcheck="false" autocapitalize="characters">
+          <input class="form-input" type="text" id="regId" placeholder="Votre matricule (ex: EPPRI25-001)" autocomplete="username" spellcheck="false" autocapitalize="characters">
         </div>
         <div class="form-group">
           <label class="form-label">Choisir un mot de passe</label>
@@ -120,13 +167,20 @@
       <div id="pendingForm" style="display:none">
         <div class="pending-card">
           <div class="p-icon">⏳</div>
-          <h3>Compte en attente</h3>
-          <p>Votre demande a bien été envoyée à l'administration EPPRIDAD.</p>
+          <h3>Demande envoyée</h3>
+          <p>Votre demande a bien été transmise à l'équipe EPPRIDAD.</p>
           <div class="pending-id" id="pendingId">—</div>
-          <p>Vous serez contacté sous <strong>24h</strong> pour valider votre accès.</p>
-          <button class="btn-primary" style="margin-top:16px;" onclick="switchTab('login')">← Retour connexion</button>
+          <p>Vous serez contacté(e) sous <strong>24h</strong> pour valider votre accès.</p>
+          <a href="https://wa.me/22799851532" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;border:none;border-radius:11px;padding:11px 18px;font-size:13px;font-weight:700;text-decoration:none;margin-top:14px">💬 Contacter EPPRIDAD</a>
+          <button class="btn-primary" style="margin-top:10px;background:transparent;border:1.5px solid rgba(22,80,63,.2);color:#16503f" onclick="switchTab('login')">← Retour connexion</button>
         </div>
       </div>
+
+      <!-- Footer discret -->
+      <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(0,0,0,.25)">
+        EPPRIDAD · Niamey, Niger · +227 99 85 15 32
+      </div>
+
     </div>
   </div>
 </div>
