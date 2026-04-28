@@ -1,81 +1,14 @@
 {
   "name": "EPPRIDAD — Portail Étudiant",
   "short_name": "EPPRIDAD",
-  "description": "École Polytechnique Privée pour le Développement Agricole Durable — Niamey, Niger",
-  "start_url": "./espace-etudiant.html",
-  "scope": "./",
+  "start_url": "/espace-etudiant.html",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "theme_color": "#16503f",
-  "background_color": "#07120e",
-  "lang": "fr",
-  "categories": [
-    "education"
-  ],
+  "background_color": "#0d2b0d",
+  "theme_color": "#1a5d1a",
   "icons": [
-    {
-      "src": "/favicon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "/web-app-manifest-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/web-app-manifest-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
+    { "src": "/images/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/images/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
-  "shortcuts": [
-    {
-      "name": "Mes Notes",
-      "url": "./espace-etudiant.html",
-      "icons": [
-        {
-          "src": "/web-app-manifest-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Infos & Actualités",
-      "url": "./infos.html",
-      "icons": [
-        {
-          "src": "/web-app-manifest-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Inscription",
-      "url": "./admission.html",
-      "icons": [
-        {
-          "src": "/web-app-manifest-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/images/campus_gate.jpg",
-      "sizes": "640x480",
-      "type": "image/jpeg",
-      "label": "Campus EPPRIDAD"
-    }
-  ],
-  "prefer_related_applications": false
+  "lang": "fr",
+  "categories": ["education"]
 }

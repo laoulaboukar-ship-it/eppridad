@@ -1,1069 +1,1000 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPPRIDAD — Portail Étudiant</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/espace-etudiant.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>EPPRIDAD — Portail Étudiant</title>
+
   <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/images/icon-192x192.png">
+  <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1a5d1a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="EPPRIDAD">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="shortcut icon" href="favicon.ico">
+
+  <!-- CSS Mobile Fixes -->
+  <link rel="stylesheet" href="/css/mobile-fixes.css">
+
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --vert:   #1a5d1a;
+  --vert2:  #0d2b0d;
+  --vert3:  #2a7a2a;
+  --or:     #d4af37;
+  --or2:    #f0d060;
+  --blanc:  #ffffff;
+  --gris:   rgba(255,255,255,0.07);
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--vert2);
+  color: var(--blanc);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NAVBAR ── */
+.navbar {
+  background: rgba(10,30,10,0.97);
+  border-bottom: 1px solid rgba(212,175,55,0.2);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 58px;
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(10px);
+  overflow-x: auto;
+}
+.navbar a, .navbar button {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; text-decoration: none;
+  white-space: nowrap; transition: all .2s;
+}
+.navbar a:hover, .navbar button:hover {
+  background: rgba(212,175,55,0.15);
+  color: var(--or);
+}
+.navbar a.active { background: rgba(26,93,26,0.6); color: var(--or); }
+.navbar-logo { font-size: 15px; font-weight: 700; color: var(--or); margin-right: 8px; flex-shrink: 0; }
+
+/* ── PAGE CONNEXION ── */
+#page-auth {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: radial-gradient(ellipse at top, #1a5d1a22, transparent),
+              linear-gradient(180deg, var(--vert2) 0%, #000 100%);
+}
+.auth-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 20px;
+  padding: 40px 36px;
+  width: 100%; max-width: 440px;
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow);
+}
+.auth-logo {
+  text-align: center; margin-bottom: 28px;
+}
+.auth-logo img { width: 72px; height: 72px; border-radius: 16px; margin-bottom: 12px; }
+.auth-logo h1 { font-size: 22px; color: var(--or); letter-spacing: 2px; }
+.auth-logo p { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+.tab-group {
+  display: flex; background: rgba(0,0,0,0.3);
+  border-radius: 10px; padding: 4px; margin-bottom: 28px;
+}
+.tab-btn {
+  flex: 1; padding: 10px; border: none; border-radius: 8px;
+  background: transparent; color: rgba(255,255,255,0.5);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s;
+}
+.tab-btn.active { background: var(--vert); color: var(--blanc); }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input {
+  width: 100%; padding: 14px 16px;
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(212,175,55,0.25) !important;
+  border-radius: 10px; color: #fff !important; font-size: 15px;
+}
+.form-group input:focus { border-color: var(--or) !important; outline: none; }
+
+.btn-primary {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--vert), var(--vert3));
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 12px; color: var(--blanc);
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  letter-spacing: 0.5px; transition: all .2s; margin-top: 8px;
+}
+.btn-primary:hover { background: linear-gradient(135deg, var(--vert3), #3a9a3a); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.msg-error { background: rgba(220,50,50,0.15); border: 1px solid rgba(220,50,50,0.4); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #ff8080; margin-bottom: 14px; display: none; }
+.msg-success { background: rgba(26,93,26,0.3); border: 1px solid rgba(212,175,55,0.4); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--or); margin-bottom: 14px; display: none; }
+
+/* ── DASHBOARD ── */
+#page-dashboard { display: none; padding: 24px 20px; max-width: 1100px; margin: 0 auto; }
+.dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+.dash-hello h2 { font-size: 22px; color: var(--or); }
+.dash-hello p { color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 2px; }
+.badge-role { background: rgba(212,175,55,0.15); color: var(--or); border: 1px solid rgba(212,175,55,0.3); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; }
+
+.section-titre { font-size: 16px; font-weight: 700; color: var(--or); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.section-titre::before { content:''; display:block; width:4px; height:18px; background:var(--or); border-radius:2px; }
+
+/* ── GRILLE FORMATIONS ── */
+.formations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; margin-bottom: 36px; }
+.formation-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(212,175,55,0.15);
+  border-radius: var(--radius);
+  padding: 22px;
+  cursor: pointer; transition: all .25s;
+  position: relative; overflow: hidden;
+}
+.formation-card::before {
+  content: ''; position: absolute; top:0; left:0; right:0; height: 3px;
+  background: linear-gradient(90deg, var(--vert), var(--or));
+}
+.formation-card:hover { border-color: rgba(212,175,55,0.5); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.formation-card.locked { opacity: 0.6; cursor: default; }
+.formation-card.locked:hover { transform: none; }
+.fc-emoji { font-size: 32px; margin-bottom: 10px; }
+.fc-titre { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.fc-desc { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.5; margin-bottom: 14px; }
+.fc-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+.fc-badge { background: rgba(26,93,26,0.4); border: 1px solid rgba(26,93,26,0.6); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: rgba(255,255,255,0.7); }
+.fc-prix { background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--or); font-weight: 700; }
+.fc-progress { margin-top: 14px; }
+.progress-bar-bg { background: rgba(255,255,255,0.1); border-radius: 10px; height: 5px; }
+.progress-bar-fill { background: linear-gradient(90deg, var(--vert), var(--or)); border-radius: 10px; height: 5px; transition: width .5s; }
+.fc-pct { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+/* ── LECTEUR DE COURS ── */
+#page-cours { display: none; }
+.cours-layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+@media (max-width: 768px) { .cours-layout { grid-template-columns: 1fr; } }
+
+/* Sidebar modules */
+.cours-sidebar {
+  background: rgba(0,0,0,0.4);
+  border-right: 1px solid rgba(212,175,55,0.1);
+  padding: 20px 0;
+  position: sticky; top: 58px;
+  height: calc(100vh - 58px);
+  overflow-y: auto;
+}
+.cours-sidebar-titre { padding: 0 20px 16px; font-size: 13px; font-weight: 700; color: var(--or); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.module-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px; cursor: pointer; transition: all .2s;
+  border-left: 3px solid transparent;
+}
+.module-item:hover { background: rgba(255,255,255,0.04); }
+.module-item.active { background: rgba(26,93,26,0.3); border-left-color: var(--or); }
+.module-item.completed .mi-num { background: var(--vert); color: #fff; }
+.mi-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.mi-info { flex: 1; min-width: 0; }
+.mi-titre { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mi-duree { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+.mi-check { color: var(--or); font-size: 16px; }
+
+/* Contenu cours */
+.cours-content { padding: 32px; max-width: 820px; }
+@media (max-width: 480px) { .cours-content { padding: 16px; } }
+
+.cours-titre { font-size: 24px; font-weight: 800; color: var(--blanc); margin-bottom: 6px; }
+.cours-sous-titre { color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 28px; display: flex; gap: 16px; flex-wrap: wrap; }
+.cours-sous-titre span { display: flex; align-items: center; gap: 4px; }
+
+/* Sections de contenu */
+.content-section { margin-bottom: 28px; }
+.content-section h3 { font-size: 16px; color: var(--or); margin-bottom: 14px; }
+.content-texte {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 22px;
+  font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.85);
+}
+.content-texte p { margin-bottom: 12px; }
+.content-texte ul { padding-left: 20px; }
+.content-texte li { margin-bottom: 8px; }
+
+/* Vidéo */
+.video-container {
+  border-radius: 12px; overflow: hidden;
+  background: #000; margin-bottom: 20px;
+  position: relative; padding-top: 56.25%;
+}
+.video-container iframe {
+  position: absolute; top:0; left:0; width:100%; height:100%;
+  border: none;
+}
+.video-link {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3);
+  border-radius: 12px; padding: 16px; text-decoration: none; color: #fff;
+  transition: all .2s; margin-bottom: 16px;
+}
+.video-link:hover { background: rgba(255,0,0,0.2); transform: translateX(4px); }
+.video-link .play-icon { font-size: 24px; flex-shrink: 0; }
+.video-link .vl-info span { display: block; }
+.video-link .vl-titre { font-weight: 600; font-size: 14px; }
+.video-link .vl-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+/* PDF */
+.pdf-link {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 12px; padding: 16px; text-decoration: none; color: #fff;
+  transition: all .2s; margin-bottom: 16px;
+}
+.pdf-link:hover { background: rgba(212,175,55,0.15); }
+.pdf-icon { font-size: 28px; }
+
+/* Navigation cours */
+.cours-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 36px; padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  flex-wrap: wrap; gap: 12px;
+}
+.btn-nav {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 22px; border-radius: 10px; border: none;
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s;
+}
+.btn-nav-prev { background: rgba(255,255,255,0.08); color: var(--blanc); }
+.btn-nav-prev:hover { background: rgba(255,255,255,0.14); }
+.btn-nav-next {
+  background: linear-gradient(135deg, var(--vert), var(--vert3));
+  border: 1px solid rgba(212,175,55,0.3); color: var(--blanc);
+}
+.btn-nav-next:hover { background: linear-gradient(135deg, var(--vert3), #3a9a3a); }
+.btn-nav-complete {
+  background: linear-gradient(135deg, #b8860b, var(--or));
+  color: #000; font-weight: 800;
+}
+
+/* ── QUIZ ── */
+.quiz-container {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,175,55,0.2);
+  border-radius: 16px; padding: 28px; margin-top: 24px;
+}
+.quiz-titre { font-size: 18px; font-weight: 800; color: var(--or); margin-bottom: 6px; }
+.quiz-sous { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 24px; }
+.quiz-question { margin-bottom: 24px; }
+.quiz-q-text { font-size: 15px; font-weight: 600; margin-bottom: 14px; line-height: 1.5; }
+.quiz-q-num { color: var(--or); font-size: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+.quiz-option {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer; transition: all .2s; font-size: 14px;
+}
+.quiz-option:hover { border-color: rgba(212,175,55,0.4); background: rgba(212,175,55,0.06); }
+.quiz-option.selected { border-color: var(--or); background: rgba(212,175,55,0.12); }
+.quiz-option.correct { border-color: #4caf50; background: rgba(76,175,80,0.15); }
+.quiz-option.wrong { border-color: #f44336; background: rgba(244,67,54,0.12); }
+.opt-letter {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); display: flex; align-items: center;
+  justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.quiz-explication { margin-top: 12px; padding: 12px 16px; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); border-radius: 8px; font-size: 13px; color: rgba(255,255,255,0.7); display: none; }
+
+.quiz-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.btn-quiz-valider {
+  flex: 1; min-width: 140px; padding: 14px;
+  background: linear-gradient(135deg, var(--vert), var(--vert3));
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 10px; color: #fff; font-size: 15px;
+  font-weight: 700; cursor: pointer;
+}
+.btn-quiz-revoir {
+  padding: 14px 22px; background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 10px;
+  color: #fff; font-size: 14px; cursor: pointer;
+}
+
+/* Résultat quiz */
+.quiz-resultat {
+  text-align: center; padding: 36px 24px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,175,55,0.2); border-radius: 16px;
+  display: none;
+}
+.resultat-score { font-size: 56px; font-weight: 900; color: var(--or); }
+.resultat-pct { font-size: 20px; color: rgba(255,255,255,0.7); margin-bottom: 8px; }
+.resultat-mention { font-size: 16px; margin-bottom: 24px; }
+.resultat-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ── CERTIFICAT ── */
+.certificat-banner {
+  background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(26,93,26,0.2));
+  border: 2px solid rgba(212,175,55,0.4);
+  border-radius: 16px; padding: 28px;
+  text-align: center; margin-top: 28px;
+}
+.cert-titre { font-size: 18px; font-weight: 800; color: var(--or); margin-bottom: 8px; }
+.cert-sous { font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 20px; }
+
+/* ── ADMIN ── */
+#page-admin { display: none; padding: 24px 20px; max-width: 1000px; margin: 0 auto; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.admin-table th { padding: 12px 16px; text-align: left; color: var(--or); border-bottom: 1px solid rgba(212,175,55,0.2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.admin-table td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.admin-table tr:hover td { background: rgba(255,255,255,0.03); }
+.badge-attente { background: rgba(255,165,0,0.2); color: orange; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
+.badge-actif { background: rgba(76,175,80,0.2); color: #81c784; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
+.btn-activer { background: var(--vert); border: none; color: #fff; padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.btn-activer:hover { background: var(--vert3); }
+
+/* ── LOADING ── */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; display: none;
+}
+.spinner { width: 48px; height: 48px; border: 4px solid rgba(212,175,55,0.2); border-top-color: var(--or); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: rgba(20,50,20,0.97); border: 1px solid rgba(212,175,55,0.4);
+  border-radius: 12px; padding: 14px 22px; font-size: 14px; font-weight: 600;
+  z-index: 2000; opacity: 0; transition: opacity .3s; pointer-events: none;
+  max-width: 90vw; text-align: center;
+}
+.toast.show { opacity: 1; }
+
+/* ── SECTION VIDE ── */
+.empty-state { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.4); }
+.empty-state .es-icon { font-size: 48px; margin-bottom: 14px; }
+.empty-state p { font-size: 14px; }
+</style>
 </head>
 <body>
 
-<!-- ═══════════════ PAGE AUTH ═══════════════ -->
-<div id="auth-page" class="page active">
-  <!-- GAUCHE — vitrine EPPRIDAD -->
-  <div class="auth-left">
-    <div class="auth-left-bg"></div>
-    <div class="auth-left-orb"></div>
-    <div class="auth-left-orb2"></div>
-    <div class="auth-left-content">
-
-      <div class="auth-logo-wrap">
-        <div class="auth-logo-circle">
-          <img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'">
-        </div>
-        <div class="auth-logo-text">
-          <div class="auth-logo-name">EPPRIDAD</div>
-          <div class="auth-logo-sub">Portail Académique & Formation</div>
-        </div>
-      </div>
-
-      <h1>Votre espace<br><em>EPPRIDAD</em> vous attend</h1>
-      <p>Étudiants diplômants, apprenants en ligne, stagiaires en formation courte — un seul portail pour tout : vos cours, notes, certificats, bibliothèque et bien plus.</p>
-
-      <!-- Badges types de formation -->
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px">
-        <div class="auth-badge">🎓 Formation diplômante</div>
-        <div class="auth-badge">💻 Cours en ligne</div>
-        <div class="auth-badge">📜 Formation courte</div>
-        <div class="auth-badge">🤝 Accompagnement</div>
-      </div>
-
-      <!-- Fonctionnalités clés -->
-      <div class="auth-features">
-        <div class="auth-feature">
-          <div class="auth-feature-icon">📊</div>
-          <div>
-            <div class="auth-feature-title">Suivi académique en temps réel</div>
-            <div class="auth-feature-sub">Notes, bulletins, progression, décisions du jury</div>
-          </div>
-        </div>
-        <div class="auth-feature">
-          <div class="auth-feature-icon">🎓</div>
-          <div>
-            <div class="auth-feature-title">Plateforme e-learning intégrée</div>
-            <div class="auth-feature-sub">Vidéos, PDF, quiz de validation, certificats officiels</div>
-          </div>
-        </div>
-        <div class="auth-feature">
-          <div class="auth-feature-icon">🏅</div>
-          <div>
-            <div class="auth-feature-title">Certificats numérotés vérifiables</div>
-            <div class="auth-feature-sub">Reconnus par nos institutions partenaires nationales et internationales</div>
-          </div>
-        </div>
-        <div class="auth-feature">
-          <div class="auth-feature-icon">💬</div>
-          <div>
-            <div class="auth-feature-title">Support direct WhatsApp</div>
-            <div class="auth-feature-sub">L'équipe EPPRIDAD vous répond — +227 99 85 15 32</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="auth-stats-row">
-        <div class="auth-stat"><div class="auth-stat-n">13+</div><div class="auth-stat-l">Formations</div></div>
-        <div class="auth-stat"><div class="auth-stat-n">100%</div><div class="auth-stat-l">En ligne</div></div>
-        <div class="auth-stat"><div class="auth-stat-n">🏅</div><div class="auth-stat-l">Certifiantes</div></div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- DROITE — formulaire connexion -->
-  <div class="auth-right">
-    <div class="auth-box">
-
-      <!-- Logo mobile uniquement -->
-      <div class="auth-box-logo">
-        <img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'">
-        <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#16503f;margin-top:8px">EPPRIDAD</div>
-      </div>
-
-      <!-- Lien retour site -->
-      <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;background:rgba(22,80,63,.07);border:1px solid rgba(22,80,63,.12);border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:700;color:#16503f;text-decoration:none;margin-bottom:20px;transition:all .2s" onmouseover="this.style.background='rgba(22,80,63,.14)'" onmouseout="this.style.background='rgba(22,80,63,.07)'">
-        ← Site EPPRIDAD
-      </a>
-
-      <!-- TABS -->
-      <div class="auth-tabs" id="authTabs">
-        <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
-        <button class="auth-tab" onclick="switchTab('register')">Créer mon compte</button>
-      </div>
-
-      <!-- LOGIN -->
-      <div id="loginForm">
-        <h2 class="form-heading">Bon retour 👋</h2>
-        <p class="form-sub">Connectez-vous avec votre matricule EPPRIDAD.</p>
-        <div class="form-err" id="loginErr"></div>
-        <div class="form-group">
-          <label class="form-label">Identifiant étudiant</label>
-          <input class="form-input" type="text" id="loginId" placeholder="Votre matricule (ex: EPPRI25-001)" autocomplete="username" spellcheck="false" autocapitalize="characters">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Mot de passe</label>
-          <input class="form-input" type="password" id="loginPwd" placeholder="Votre mot de passe" autocomplete="current-password">
-        </div>
-        <button class="btn-primary" id="loginBtn" onclick="doLogin()">🔓 Se connecter</button>
-        <p class="form-link">Pas encore de compte ? <a href="#" onclick="switchTab('register')">Créez-en un</a></p>
-        <p style="text-align:center;margin-top:12px">
-          <a href="?reset=1" style="font-size:11.5px;color:rgba(0,0,0,.3);text-decoration:none" onclick="sessionStorage.clear();localStorage.removeItem('eppr_admin_hash_v2');return true;">
-            🔄 Réinitialiser la session
-          </a>
-        </p>
-        <div id="adminHint" style="display:none;margin-top:12px">
-          <div class="divider"><span>Administration</span></div>
-          <button class="btn-primary" style="background:var(--dark2);font-size:13px" onclick="doAdminLogin()">⚙️ Accès Administration</button>
-        </div>
-      </div>
-
-      <!-- REGISTER -->
-      <div id="registerForm" style="display:none">
-        <h2 class="form-heading">Créer mon compte</h2>
-        <p class="form-sub">Entrez le matricule que l'administration EPPRIDAD vous a attribué.</p>
-        <div class="form-err" id="regErr"></div>
-        <div class="form-success" id="regSuccess"></div>
-        <div class="form-group">
-          <label class="form-label">Identifiant étudiant</label>
-          <input class="form-input" type="text" id="regId" placeholder="Votre matricule (ex: EPPRI25-001)" autocomplete="username" spellcheck="false" autocapitalize="characters">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Choisir un mot de passe</label>
-          <input class="form-input" type="password" id="regPwd" placeholder="Minimum 6 caractères">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Confirmer le mot de passe</label>
-          <input class="form-input" type="password" id="regPwd2" placeholder="Répétez le mot de passe">
-        </div>
-        <button class="btn-primary" id="regBtn" onclick="doRegister()">✅ Créer mon compte</button>
-        <p class="form-link">Déjà un compte ? <a href="#" onclick="switchTab('login')">Se connecter</a></p>
-      </div>
-
-      <!-- PENDING -->
-      <div id="pendingForm" style="display:none">
-        <div class="pending-card">
-          <div class="p-icon">⏳</div>
-          <h3>Demande envoyée</h3>
-          <p>Votre demande a bien été transmise à l'équipe EPPRIDAD.</p>
-          <div class="pending-id" id="pendingId">—</div>
-          <p>Vous serez contacté(e) sous <strong>24h</strong> pour valider votre accès.</p>
-          <a href="https://wa.me/22799851532" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;border:none;border-radius:11px;padding:11px 18px;font-size:13px;font-weight:700;text-decoration:none;margin-top:14px">💬 Contacter EPPRIDAD</a>
-          <button class="btn-primary" style="margin-top:10px;background:transparent;border:1.5px solid rgba(22,80,63,.2);color:#16503f" onclick="switchTab('login')">← Retour connexion</button>
-        </div>
-      </div>
-
-      <!-- Footer discret -->
-      <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(0,0,0,.25)">
-        EPPRIDAD · Niamey, Niger · +227 99 85 15 32
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════ STUDENT PAGE ═══════════════ -->
-<div id="student-page" class="page">
-  <aside class="student-sidebar" id="studentSidebar">
-    <div class="sidebar-logo">
-      <img src="images/logo.png" alt="EPP" onerror="this.outerHTML='<span style=\'color:var(--accent);font-weight:700;font-size:13px\'>EPP</span>'">
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-item active" onclick="sPanel('accueil',this)" title="Tableau de bord">
-        <span class="nav-icon">🏠</span><span class="nav-label">Accueil</span>
-      </div>
-      <div class="nav-item" onclick="sPanel('notes',this)" title="Mes Notes">
-        <span class="nav-icon">📊</span><span class="nav-label">Mes Notes</span>
-      </div>
-      <div class="nav-item" onclick="sPanel('bulletin',this)" title="Bulletin">
-        <span class="nav-icon">📋</span><span class="nav-label">Bulletin</span>
-      </div>
-      <div class="nav-item" onclick="sPanel('edt',this)" title="Emploi du temps">
-        <span class="nav-icon">📅</span><span class="nav-label">Emploi du temps</span>
-      </div>
-      <div class="nav-item" onclick="sPanel('conseils',this)" title="Conseils IA">
-        <span class="nav-icon">🤖</span><span class="nav-label">Conseils IA</span>
-      </div>
-      <div class="nav-item" onclick="sPanel('progression',this)" title="Progression">
-        <span class="nav-icon">📈</span><span class="nav-label">Progression</span>
-      </div>
-      <div class="nav-item" onclick="sPanel('library',this)" title="Bibliothèque">
-        <span class="nav-icon">📚</span><span class="nav-label">Bibliothèque</span>
-      </div>
-      <div class="nav-item" onclick="sPanel('scolarite',this)" title="Scolarité">
-        <span class="nav-icon">💳</span><span class="nav-label">Scolarité</span>
-      </div>
-      <div class="nav-item" onclick="sPanel('messages',this)" title="Notifications" id="notifNavItem">
-      <div class="nav-item" onclick="sPanel('compte',this)" title="Mon compte">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-        <span>Mon compte</span>
-      </div>
-      <a href="index.html" class="nav-item" title="Site EPPRIDAD" style="text-decoration:none;margin-top:8px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);">
-        <span class="nav-icon" style="font-size:18px">🌐</span>
-        <span style="color:var(--accent);font-weight:700">Site EPPRIDAD</span>
-      </a>
-      <div class="nav-item" onclick="doLogout()" title="Déconnexion" style="margin-top:4px;color:rgba(229,57,53,.7);">
-        <span class="nav-icon" style="font-size:18px">🚪</span>
-        <span style="color:rgba(229,57,53,.8)">Déconnexion</span>
-      </div>
-        <span class="nav-icon">🔔</span><span class="nav-label">Notifications</span>
-        <span class="notif-dot" id="notifDot" style="display:none"></span>
-      </div>
-    </nav>
-    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-  </aside>
-
-  <div class="student-main" id="studentMain">
-    <div id="impersonateBar" class="impersonate-bar" style="display:none;">
-      <span>👁️ Mode prévisualisation — Vous consultez le profil de <strong id="impersonateName">—</strong></span>
-      <button onclick="exitImpersonate()">← Retour Admin</button>
-    </div>
-    <div class="student-topbar">
-        <button class="topbar-back" id="topbarBack" onclick="goBack()" style="display:none">←</button>
-      <div class="topbar-title" id="topbarTitle">Tableau de bord</div>
-      <div class="topbar-right">
-          <button id="pwaInstallBtn" onclick="installPWA()" style="display:none;background:var(--accent);color:#1a1a1a;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;">📲 App</button>
-          <a href="index.html" class="topbar-site-btn" title="Retour au site">🌐 <span class="hide-mobile">Site</span></a>
-          <button id="pwaInstallBtn" onclick="installPWA()" title="Installer l'app" style="display:none;background:var(--accent);color:#1a1a1a;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📲 Installer</button>
-        <div class="topbar-notif" onclick="sPanel('messages',null)" style="cursor:pointer;" title="Notifications">🔔</div>
-        <div class="topbar-ava" id="topbarAva" style="cursor:pointer;" onclick="sPanel('accueil',null)">?</div>
-      </div>
-    </div>
-    <div class="student-body">
-
-      <!-- ACCUEIL -->
-      <div id="sp-accueil" class="s-panel active">
-
-        <!-- HERO UNIFIÉ — Fonctionne pour étudiant diplômant ET apprenant en ligne -->
-        <div class="student-hero" id="heroBlock">
-          <div class="sh-row1">
-            <div class="sh-left">
-              <div class="sh-greeting" id="heroGreeting">Bienvenue 👋</div>
-              <div class="sh-name" id="studName">Chargement…</div>
-              <div class="sh-chips" id="studChips">
-                <span class="sh-chip" id="studMat">—</span>
-                <span class="sh-chip" id="studFi">—</span>
-              </div>
-            </div>
-            <div class="sh-score" id="heroScore" style="display:none">
-              <div class="sh-score-n" id="dashMoy">—</div>
-              <div class="sh-score-l">/ 20</div>
-              <div class="sh-score-m" id="dashMention">—</div>
-              <div class="sh-score-d" id="dashDecision">—</div>
-            </div>
-          </div>
-          <div class="hero-stats" id="heroStats"></div>
-        </div>
-
-        <!-- MESSAGE D'ERREUR -->
-        <div id="dashboardError" style="display:none;color:var(--danger);padding:12px;font-size:13px;background:#fff5f5;border-radius:8px;margin-bottom:12px"></div>
-
-        <!-- BANNIÈRE MESSAGE ADMIN -->
-        <div id="adminMsgBanner" style="display:none;background:linear-gradient(135deg,#0f3024,#16503f);color:#fff;border-radius:14px;padding:14px 18px;margin-bottom:14px;border-left:4px solid var(--accent)">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:5px">📢 Message de l'administration</div>
-          <div id="adminMsgDisplay" style="font-size:13.5px;line-height:1.5;color:rgba(255,255,255,.9)">Aucun message.</div>
-        </div>
-
-        <!-- ACCÈS RAPIDE ADAPTATIF — s'adapte au rôle -->
-        <div id="quickAccessZone"></div>
-
-        <!-- ZONE CONTENU DYNAMIQUE (notes récentes, progression, etc.) -->
-        <div id="accueilZone"></div>
-
-        <!-- BANNIÈRE PWA -->
-        <div id="pwaPromoBanner" style="display:none;background:linear-gradient(135deg,#0b2f25,#16503f);color:#fff;border-radius:16px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
-          <div style="font-size:32px;flex-shrink:0">📲</div>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:13.5px;margin-bottom:2px">Installer l'app EPPRIDAD</div>
-            <div style="font-size:11.5px;color:rgba(255,255,255,.65)">Accès hors ligne · Toujours à portée de main</div>
-          </div>
-          <button onclick="installPWA()" style="background:var(--accent);color:#1a1a1a;border:none;border-radius:9px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">Installer</button>
-          <button onclick="document.getElementById('pwaPromoBanner').style.display='none'" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:none;border-radius:8px;width:28px;height:28px;cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">✕</button>
-        </div>
-
-        <!-- CITATION MOTIVANTE -->
-        <div class="success-tip" id="successTip">"La connaissance est la richesse la plus précieuse. EPPRIDAD vous accompagne à chaque étape de votre parcours."</div>
-      </div>
-
-      <!-- NOTES -->
-      <div id="sp-notes" class="s-panel"><div id="notesZone"></div>
-        <div class="s-title">📊 Mes Notes — Semestre 1 · 2025/2026</div>
-        <div class="table-wrap">
-          <table class="notes-table">
-            <thead><tr><th>#</th><th>Matière</th><th>Note /20</th><th>Niveau</th><th>Coeff</th><th>Points</th><th>Statut</th></tr></thead>
-            <tbody id="notesBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- BULLETIN -->
-      <div id="sp-bulletin" class="s-panel"><div id="bulletinZone"></div>
-        <div class="s-title-row">
-          <div class="s-title">📋 Bulletin de Notes</div>
-          <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
-        </div>
-        <div class="bulletin-wrap" id="bulletinWrap">
-          <div class="bulletin-header">
-            <div>
-              <div class="bul-school">EPPRIDAD</div>
-              <div class="bul-sub">École Polytechnique Privée pour le Développement Agricole Durable</div>
-              <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">Niamey, Niger · Année 2025/2026 · Semestre 1</div>
-            </div>
-            <div style="text-align:right">
-              <div class="bul-student-name" id="bNom">—</div>
-              <div class="bul-info-grid">
-                <span>ID: <strong id="bId">—</strong></span>
-                <span>Classe: <strong id="bClasse">—</strong></span>
-                <span>Filière: <strong id="bFiliere">—</strong></span>
-                <span>Date: <strong id="bDate">—</strong></span>
-              </div>
-            </div>
-          </div>
-          <div class="bulletin-body">
-            <table class="bul-table">
-              <thead><tr><th>Matière</th><th>Coeff</th><th>Note /20</th><th>Points</th><th>Résultat</th></tr></thead>
-              <tbody id="bulBody"></tbody>
-            </table>
-          </div>
-          <div class="bul-footer">
-            <div>
-              <div style="font-size:12px;color:var(--text3)">Décision du jury</div>
-              <div style="font-weight:700;color:var(--primary);font-size:15px" id="bDecision">—</div>
-            </div>
-            <div class="bul-result">
-              <div class="bul-result-n" id="bAvg">—</div>
-              <div class="bul-result-l">Moyenne · <span id="bMention">—</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- EMPLOI DU TEMPS -->
-      <div id="sp-edt" class="s-panel"><div id="edtZone"></div>
-        <div class="s-title">📅 Emploi du Temps — Classe <span id="etClasse">—</span></div>
-        <div class="tt-wrap"><table class="tt-table" id="ttTable"></table></div>
-      </div>
-
-      <!-- CONSEILS IA -->
-      <div id="sp-conseils" class="s-panel">
-        <div class="s-title">🤖 Conseils Personnalisés par IA</div>
-        <div id="conseilsZone"><div class="ai-loading"><div class="spinner"></div>Chargement de vos conseils personnalisés…</div></div>
-      </div>
-
-      <!-- PROGRESSION -->
-      <div id="sp-progression" class="s-panel"><div id="progressionZone"></div>
-        <div class="s-title">📈 Analyse de Progression</div>
-        <div class="prog-grid" id="progOverview"></div>
-        <div class="s-card">
-          <div class="s-title" style="margin-bottom:14px">Performance par matière</div>
-          <div id="skillBars"></div>
-        </div>
-        <div class="s-card" style="margin-top:16px">
-          <div class="s-title" style="margin-bottom:10px">💡 Conseil de progression</div>
-          <div id="progAdvice"><div class="ai-loading"><div class="spinner"></div>Analyse en cours…</div></div>
-        </div>
-      </div>
-
-      <!-- BIBLIOTHÈQUE -->
-      <div id="sp-library" class="s-panel"><div class="lib-grid" id="libGrid"></div>
-        <div class="s-title">📚 Bibliothèque Numérique</div>
-        <div class="lib-filters">
-          <button class="lib-filter active" onclick="filterLib('all',this)">Tous les documents</button>
-          <button class="lib-filter" onclick="filterLib('gratuit',this)">📖 Gratuit</button>
-          <button class="lib-filter" onclick="filterLib('etudiant',this)">🎓 Étudiant</button>
-          <button class="lib-filter" onclick="filterLib('premium',this)">⭐ Premium</button>
-        </div>
-        <div class="lib-grid" id="libGrid"></div>
-      </div>
-
-      <!-- SCOLARITÉ -->
-      <div id="sp-scolarite" class="s-panel">
-        <div class="s-title">💳 Ma Scolarité — Année 2025/2026</div>
-        <div id="scolZone"></div>
-      </div>
-
-      <!-- NOTIFICATIONS -->
-      <div id="sp-messages" class="s-panel">
-        <div class="s-title">🔔 Notifications</div>
-        <div id="notifList"></div>
-      </div>
-
-      <!-- MON COMPTE -->
-      <div id="sp-compte" class="s-panel">
-        <div id="compteZone"></div>
-      </div>
-
-    </div><!-- end student-body -->
-
-      <!-- Boutons flottants mobile: site + logout -->
-      <div class="mobile-nav-logout">
-        <a href="index.html" class="mbl-btn mbl-site" title="Site EPPRIDAD">🌐</a>
-        <button class="mbl-btn mbl-logout" onclick="doLogout()" title="Déconnexion">🚪</button>
-      </div>
-
-      <!-- ═══ BARRE NAVIGATION MOBILE (bas d'écran) ═══ -->
-      <nav class="mobile-bottom-nav" id="mobileBottomNav">
-        <button class="mbn-item active" id="mbn-accueil" onclick="mbnClick('accueil',this)">
-          <span class="mbn-icon">🏠</span>
-          <span class="mbn-label">Accueil</span>
-        </button>
-        <button class="mbn-item" id="mbn-notes" onclick="mbnClick('notes',this)">
-          <span class="mbn-icon">📊</span>
-          <span class="mbn-label">Notes</span>
-        </button>
-        <button class="mbn-item" id="mbn-conseils" onclick="mbnClick('conseils',this)">
-          <span class="mbn-icon">🤖</span>
-          <span class="mbn-label">IA</span>
-        </button>
-        <button class="mbn-item" id="mbn-library" onclick="mbnClick('library',this)">
-          <span class="mbn-icon">📚</span>
-          <span class="mbn-label">Cours</span>
-        </button>
-        <button class="mbn-item" id="mbn-scolarite" onclick="mbnClick('scolarite',this)">
-          <span class="mbn-icon">💳</span>
-          <span class="mbn-label">Scolarité</span>
-        </button>
-        <button class="mbn-item" onclick="window.open('index.html','_blank')" title="Site EPPRIDAD">
-          <span class="mbn-icon">🌐</span>
-          <span class="mbn-label">Site</span>
-        </button>
-      </nav>
-
-  </div><!-- end student-main -->
-</div><!-- end student-page -->
-
-<!-- ═══════════════ ADMIN PAGE ═══════════════ -->
-<div id="admin-page" class="page">
-  <aside class="admin-sidebar">
-    <div class="admin-sidebar-logo">
-      <div class="admin-logo-row">
-        <div class="admin-logo-circle">
-          <img src="images/logo.png" alt="EPPRIDAD">
-        </div>
-        <div>
-          <div class="admin-sidebar-name">EPPRIDAD</div>
-          <div class="admin-sidebar-sub">Centre de contrôle</div>
-        </div>
-      </div>
-      <div class="admin-user-badge">
-        <div class="admin-user-dot"></div>
-        <div class="admin-user-text">
-          <strong>Administrateur</strong>
-          Session active
-        </div>
-      </div>
-    </div>
-    <nav class="admin-nav">
-      <div class="admin-nav-section">Vue d'ensemble</div>
-      <div class="admin-nav-item active" onclick="aPanel('dashboard',this)">📊 Tableau de bord</div>
-
-      <div class="admin-nav-section">Gestion académique</div>
-      <div class="admin-nav-item" onclick="aPanel('students',this)">👥 Étudiants <span class="admin-badge" id="pendingBadge">0</span></div>
-      <div class="admin-nav-item" onclick="aPanel('library',this)">📚 Bibliothèque</div>
-      <div class="admin-nav-item" onclick="aPanel('messages',this)">💬 Messagerie</div>
-      <div class="admin-nav-item" onclick="aPanel('infos',this)">📢 Publications</div>
-
-      <div class="admin-nav-section">Inscriptions</div>
-      <div class="admin-nav-item" onclick="aPanel('inscriptions',this)">✍️ Demandes <span class="admin-badge" id="inscBadge">0</span></div>
-      <div class="admin-nav-item" onclick="aPanel('contacts',this)">📩 Contacts reçus</div>
-
-      <div class="admin-nav-section">Formations en ligne</div>
-      <div class="admin-nav-item" onclick="aPanel('formations_el',this)">🎓 Formations & Modules</div>
-      <div class="admin-nav-item" onclick="aPanel('acces_el',this)">🔑 Accès apprenants</div>
-      <div class="admin-nav-item" onclick="aPanel('exercices_el',this)">📋 Exercices soumis</div>
-
-      <div class="admin-nav-section">Commerce</div>
-      <div class="admin-nav-item" onclick="aPanel('marketplace',this)">🌿 Boutique produits</div>
-      <div class="admin-nav-item" onclick="aPanel('commandes',this)">🛒 Commandes <span class="admin-badge" id="cmdBadge">0</span></div>
-
-      <div class="admin-nav-section">Système</div>
-      <div class="admin-nav-item" onclick="aPanel('settings',this)">⚙️ Paramètres</div>
-    </nav>
-    <div class="admin-footer">
-      <button onclick="doLogout()">🚪 Déconnexion</button>
-    </div>
-  </aside>
-  <div class="admin-main">
-    <div class="admin-topbar">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div class="admin-topbar-title" id="adminTopbarTitle">Tableau de bord</div>
-      </div>
-      <div class="admin-topbar-right">
-        <button class="admin-topbar-btn" onclick="loadAdminDashboard()" title="Actualiser">🔄</button>
-        <button class="admin-topbar-btn" title="Site public" onclick="window.open('index.html','_blank')">🌐</button>
-        <div style="width:1px;height:24px;background:#e0e8e3;margin:0 4px"></div>
-        <div style="font-size:12px;color:var(--text3);font-weight:600" id="adminDateTime"></div>
-      </div>
-    </div>
-    <div class="admin-body">
-
-      <!-- DASHBOARD -->
-      <div id="ap-dashboard" class="ap active">
-
-        <!-- Alertes dynamiques -->
-        <div id="dashAlertZone" style="margin-bottom:4px"></div>
-
-        <!-- KPI Cards -->
-        <div class="admin-stats-grid" id="adminStats" style="margin-bottom:20px"></div>
-
-        <!-- Graphiques revenus + répartition filières -->
-        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px">
-          <div class="s-card" style="margin-bottom:0">
-            <div id="revenusChartZone"><div style="color:var(--text3);font-size:13px;padding:8px 0">Chargement des revenus…</div></div>
-          </div>
-          <div class="s-card" style="margin-bottom:0">
-            <div class="s-title" style="margin-bottom:14px;font-size:15px">Répartition par filière</div>
-            <div id="filiereStats"></div>
-          </div>
-        </div>
-
-        <!-- Revenus par formation + Actions rapides -->
-        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:16px">
-          <div class="s-card" style="margin-bottom:0">
-            <div id="formationsChartZone"><div style="color:var(--text3);font-size:13px;padding:8px 0">Chargement…</div></div>
-          </div>
-          <div class="s-card" style="margin-bottom:0">
-            <div class="s-title" style="margin-bottom:14px;font-size:15px">Actions rapides</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <button onclick="aPanel('students',null)" style="background:var(--primary-pale);border:1px solid rgba(22,80,63,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-                <div style="font-size:22px;margin-bottom:6px">👥</div>
-                <div style="font-size:11.5px;font-weight:700;color:var(--primary)">Étudiants</div>
-              </button>
-              <button onclick="aPanel('inscriptions',null)" style="background:#e3f2fd;border:1px solid rgba(13,110,253,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-                <div style="font-size:22px;margin-bottom:6px">✍️</div>
-                <div style="font-size:11.5px;font-weight:700;color:#1565c0">Inscriptions</div>
-              </button>
-              <button onclick="aPanel('acces_el',null)" style="background:#e8f5e9;border:1px solid rgba(22,80,63,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-                <div style="font-size:22px;margin-bottom:6px">💻</div>
-                <div style="font-size:11.5px;font-weight:700;color:var(--primary)">Accès en ligne</div>
-              </button>
-              <button onclick="aPanel('commandes',null)" style="background:#fff8e1;border:1px solid rgba(255,193,7,.3);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-                <div style="font-size:22px;margin-bottom:6px">🛒</div>
-                <div style="font-size:11.5px;font-weight:700;color:#e65100">Boutique</div>
-              </button>
-              <button onclick="aPanel('infos',null)" style="background:#f3e5f5;border:1px solid rgba(156,39,176,.2);border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-                <div style="font-size:22px;margin-bottom:6px">📢</div>
-                <div style="font-size:11.5px;font-weight:700;color:#7b1fa2">Publier</div>
-              </button>
-              <button onclick="exportRevenusCSV()" style="background:linear-gradient(135deg,#0b2f25,#16503f);border:none;border-radius:10px;padding:14px 10px;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-                <div style="font-size:22px;margin-bottom:6px;color:#C9A84C">⬇</div>
-                <div style="font-size:11.5px;font-weight:700;color:#C9A84C">Export CSV</div>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Dernières inscriptions -->
-        <div class="s-card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-            <div class="s-title" style="font-size:15px;margin:0">Dernières demandes reçues</div>
-            <button onclick="aPanel('inscriptions',null)" style="background:var(--primary-pale);color:var(--primary);border:1px solid rgba(22,80,63,.2);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Voir tout →</button>
-          </div>
-          <div id="recentInscriptions"><div style="color:var(--text3);font-size:13px">Chargement...</div></div>
-        </div>
-      </div>
-
-      <!-- STUDENTS -->
-      <div id="ap-students" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">👥 Gestion des Étudiants</div>
-          <input class="admin-search" type="text" placeholder="🔍 Rechercher…" oninput="searchStudents(this.value)">
-        </div>
-        <div class="students-table-wrap">
-          <table class="students-table">
-            <thead><tr><th>ID</th><th>Nom</th><th>Filière</th><th>Statut</th><th>Expiration</th><th>Actions</th></tr></thead>
-            <tbody id="studentsTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- LIBRARY -->
-      <div id="ap-library" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">📚 Bibliothèque</div>
-          <button class="btn-sm" onclick="showAddDoc()">+ Ajouter un document</button>
-        </div>
-        <div id="adminLibList"></div>
-        <div id="addDocForm" style="display:none;" class="s-card">
-          <div class="s-title" style="margin-bottom:16px">📄 Nouveau document</div>
-          <div class="admin-form-group"><label class="admin-form-label">Titre</label><input class="admin-form-input" id="docTitle" placeholder="Ex: Guide du Zootechnicien"></div>
-          <div class="admin-form-group"><label class="admin-form-label">Description</label><textarea class="admin-form-textarea" id="docDesc" placeholder="Description courte du document…" rows="2"></textarea></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div class="admin-form-group"><label class="admin-form-label">Icône</label><input class="admin-form-input" id="docIcon" placeholder="📄" value="📄"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Accès réservé à</label>
-              <select class="admin-form-select" id="docType">
-                <option value="gratuit">🌍 Tous (public, site web)</option>
-                <option value="etudiant" selected>🎓 Étudiants diplômants</option>
-                <option value="enligne">💻 Apprenants en ligne</option>
-                <option value="premium">⭐ Toute la communauté EPPRIDAD</option>
-              </select>
-            </div>
-          </div>
-          <div class="admin-form-group"><label class="admin-form-label">Filière concernée</label><input class="admin-form-input" id="docFiliere" placeholder="Toutes les filières"></div>
-          <div class="admin-form-group">
-            <label class="admin-form-label">Source du document</label>
-            <div class="doc-src-tabs">
-              <button class="doc-src-tab sel" id="srcTabUrl" onclick="switchDocSrc('url')">🔗 Lien URL</button>
-              <button class="doc-src-tab" id="srcTabFile" onclick="switchDocSrc('file')">📁 Fichier PDF</button>
-            </div>
-            <div id="srcUrlSection">
-              <input class="admin-form-input" id="docUrl" placeholder="https://drive.google.com/... ou lien direct PDF">
-              <p style="font-size:11px;color:var(--text3);margin-top:5px">💡 Google Drive : clic droit → Obtenir le lien → Tout le monde peut consulter</p>
-            </div>
-            <div id="srcFileSection" style="display:none;">
-              <div class="drop-zone" id="dropZone" onclick="document.getElementById('docFileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDocDrop(event)">
-                <div style="font-size:32px;margin-bottom:8px">📁</div>
-                <div style="font-size:13.5px;font-weight:600;color:var(--text2)">Glisser un PDF ici ou cliquer pour choisir</div>
-                <div style="font-size:11px;color:var(--text3);margin-top:4px">PDF uniquement · Max 4 MB</div>
-                <div id="fileSelectedName" style="margin-top:10px;font-size:13px;color:var(--primary);font-weight:700;display:none;"></div>
-              </div>
-              <input type="file" id="docFileInput" accept=".pdf" style="display:none" onchange="handleDocFile(this)">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;margin-top:6px;">
-            <button class="btn-block btn-green-block" onclick="addDoc()" style="flex:1;">✅ Ajouter le document</button>
-            <button class="btn-block" style="flex:0 0 auto;padding:12px 18px;border:1px solid var(--border);border-radius:var(--r);" onclick="document.getElementById('addDocForm').style.display='none'">✕</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- MESSAGES -->
-      <div id="ap-messages" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">💬 Messagerie</div>
-          <button class="btn-sm" onclick="loadAdminMessages()">🔄 Actualiser</button>
-        </div>
-        <div class="s-card">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-            <div class="admin-form-group" style="margin-bottom:0">
-              <label class="admin-form-label">Destinataire</label>
-              <select class="admin-form-select" id="msgDest" onchange="toggleMsgDest(this.value)">
-                <option value="all">📢 Tous les étudiants</option>
-                <option value="specific">👤 Un étudiant spécifique</option>
-              </select>
-            </div>
-            <div class="admin-form-group" style="margin-bottom:0">
-              <label class="admin-form-label">Type de message</label>
-              <select class="admin-form-select" id="msgType">
-                <option value="info">ℹ️ Information générale</option>
-                <option value="important">⚠️ Important / Urgent</option>
-                <option value="success">✅ Félicitations</option>
-                <option value="reminder">📅 Rappel / Convocation</option>
-                <option value="conseil_stage">🌾 Conseil stage terrain</option>
-              </select>
-            </div>
-          </div>
-          <div id="msgDestSpecific" style="display:none;margin-bottom:12px">
-            <label class="admin-form-label">Matricule de l'étudiant</label>
-            <input class="admin-form-input" id="msgMatricule" placeholder="Ex: EPPRI25-001" autocomplete="off">
-          </div>
-          <div class="admin-form-group"><label class="admin-form-label">Titre *</label><input class="admin-form-input" id="msgTitle" placeholder="Ex: Convocation examen – Vendredi 25 avril"></div>
-          <div class="admin-form-group"><label class="admin-form-label">Contenu *</label><textarea class="admin-form-textarea" id="msgBody" rows="4" placeholder="Rédigez votre message ici…"></textarea></div>
-          <button class="btn-block btn-green-block" onclick="sendMsg()">📤 Envoyer le message</button>
-        </div>
-        <div class="s-title" style="margin:20px 0 12px">Messages envoyés</div>
-        <div id="msgList"><div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">Chargement…</div></div>
-      </div>
-
-      <!-- INFOS / PUBLICATIONS -->
-      <div id="ap-infos" class="ap">
-        <div class="s-title" style="margin-bottom:16px">📢 Publier une actualité</div>
-        <div class="s-card">
-          <div class="admin-form-group">
-            <label class="admin-form-label">Type de publication</label>
-            <div class="post-type-grid">
-              <button class="ptype-btn sel" id="pt-actu" onclick="selPostType('actu',this)">📢<br>Actualité</button>
-              <button class="ptype-btn" id="pt-major" onclick="selPostType('major',this)">🏆<br>Major</button>
-              <button class="ptype-btn" id="pt-results" onclick="selPostType('results',this)">📊<br>Résultats</button>
-              <button class="ptype-btn" id="pt-photo" onclick="selPostType('photo',this)">📸<br>Photo</button>
-            </div>
-          </div>
-          <div class="admin-form-group"><label class="admin-form-label">Titre *</label><input class="admin-form-input" id="postTitle" placeholder="Titre de la publication"></div>
-          <div class="admin-form-group"><label class="admin-form-label">Texte</label><textarea class="admin-form-textarea" id="postText" rows="3" placeholder="Contenu de la publication…"></textarea></div>
-          <div id="majorPostFields" style="display:none;">
-            <div class="admin-form-group"><label class="admin-form-label">Nom du/de la Major</label><input class="admin-form-input" id="postMajorName" placeholder="Ex: ABDOULAYE MOUNKAILA Djibrilla"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <div class="admin-form-group"><label class="admin-form-label">Filière</label><input class="admin-form-input" id="postMajorFi" placeholder="Agriculture"></div>
-              <div class="admin-form-group"><label class="admin-form-label">Moyenne</label><input class="admin-form-input" id="postMajorMoy" placeholder="14.5"></div>
-            </div>
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label">Image (optionnel)</label>
-            <input class="admin-form-input" type="file" id="postImgInput" accept="image/*" onchange="previewPostImg(this)" style="padding:8px;">
-            <img id="postImgPreview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-top:8px;" alt="aperçu">
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-            <input type="checkbox" id="postPinned" style="width:16px;height:16px;">
-            <label for="postPinned" style="font-size:13px;cursor:pointer;">📌 Épingler cette publication en haut</label>
-          </div>
-          <button class="btn-block btn-green-block" onclick="publishPost()">📤 Publier</button>
-        </div>
-        <div class="s-title" style="margin:20px 0 12px;">Publications existantes</div>
-        <div id="postsList"></div>
-      </div>
-
-
-      <!-- MARKETPLACE ADMIN -->
-      <div id="ap-marketplace" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">🛒 Gestion Boutique</div>
-          <button class="btn-sm" onclick="showAddProduct()" id="btn-add-product">+ Ajouter un produit</button>
-        </div>
-
-        <!-- FORMULAIRE AJOUT PRODUIT -->
-        <div id="addProductForm" style="display:none;" class="s-card" style="margin-bottom:16px">
-          <div class="s-title" style="margin-bottom:16px">🛍️ <span id="product-form-title">Nouveau produit</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="admin-form-group"><label class="admin-form-label">Nom du produit *</label><input class="admin-form-input" id="prod-nom" placeholder="Ex: Fromage frais de chèvre"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Catégorie *</label>
-              <select class="admin-form-select" id="prod-cat">
-                <option value="maraicher">🥕 Maraîchage</option>
-                <option value="fruits">🍋 Fruits</option>
-                <option value="epices">🌶️ Épices &amp; Herbes</option>
-                <option value="plants">🌱 Plants &amp; Pépinière</option>
-                <option value="laitier">🧀 Produits Laitiers</option>
-                <option value="huiles">🫒 Huiles &amp; Graines</option>
-                <option value="transformation">🍯 Transformation</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-            <div class="admin-form-group"><label class="admin-form-label">Prix (FCFA) *</label><input class="admin-form-input" id="prod-prix" type="number" min="0" placeholder="2500"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Unité *</label><input class="admin-form-input" id="prod-unite" placeholder="kg / pièce / bouteille 500ml"></div>
-            <div class="admin-form-group"><label class="admin-form-label">Emoji produit</label><input class="admin-form-input" id="prod-emoji" placeholder="🌿" maxlength="4" value="🌿"></div>
-          </div>
-          <div class="admin-form-group"><label class="admin-form-label">Description *</label><textarea class="admin-form-textarea" id="prod-desc" rows="2" placeholder="Décrivez le produit, son origine, ses qualités..."></textarea></div>
-          <div class="admin-form-group"><label class="admin-form-label">Tags (séparés par virgule)</label><input class="admin-form-input" id="prod-tags" placeholder="Artisanal, Ferme-école, Sans pesticide"></div>
-          <div class="admin-form-group">
-            <label class="admin-form-label">Photo du produit</label>
-            <div class="drop-zone" id="prodImgDrop" onclick="document.getElementById('prodImgInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleProdImgDrop(event)" style="min-height:100px">
-              <div style="font-size:28px;margin-bottom:6px">📷</div>
-              <div style="font-size:13px;font-weight:600">Cliquer ou glisser une photo</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:3px">JPG, PNG, WebP · Max 3 Mo</div>
-              <img id="prodImgPreview" style="display:none;max-height:140px;margin-top:8px;border-radius:8px;object-fit:cover" alt="aperçu">
-            </div>
-            <input type="file" id="prodImgInput" accept="image/*" style="display:none" onchange="handleProdImgFile(this)">
-            <p style="font-size:11px;color:var(--text3);margin-top:5px">💡 Ou collez un lien URL vers l'image :</p>
-            <input class="admin-form-input" id="prod-img-url" placeholder="https://... ou lien Google Drive" style="margin-top:4px">
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--text2)">
-              <input type="checkbox" id="prod-coup" style="width:16px;height:16px"> ⭐ Coup de cœur EPPRIDAD
-            </label>
-            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--text2)">
-              <input type="checkbox" id="prod-new" style="width:16px;height:16px"> 🆕 Badge Nouveau
-            </label>
-            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--text2)">
-              <input type="checkbox" id="prod-dispo" checked style="width:16px;height:16px"> ✅ Disponible
-            </label>
-          </div>
-          <div style="display:flex;gap:10px">
-            <button class="btn-block btn-green-block" onclick="saveProduct()" style="flex:1" id="btn-save-prod">✅ Publier dans la boutique</button>
-            <button class="btn-block" onclick="cancelAddProduct()" style="flex:0 0 auto;padding:12px 18px;border:1px solid var(--border);border-radius:var(--r)">✕ Annuler</button>
-          </div>
-        </div>
-
-        <!-- LISTE PRODUITS -->
-        <div id="productsList">
-          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement des produits...</div>
-        </div>
-      </div>
-
-      <!-- INSCRIPTIONS ADMIN -->
-      <div id="ap-inscriptions" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">✍️ Demandes d'inscription</div>
-          <button class="btn-sm" onclick="loadInscriptions()" style="font-size:12px">🔄 Actualiser</button>
-        </div>
-
-        <!-- Filtres & stats inline -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
-          <select class="admin-form-select" id="insc-filter-type" onchange="loadInscriptions()" style="width:auto;padding:7px 12px;font-size:12px;border-radius:8px">
-            <option value="">Tous les types</option>
-            <option value="diplomante">🎓 Diplômante</option>
-            <option value="courte">📜 Formation courte</option>
-            <option value="enligne">💻 En ligne</option>
-          </select>
-          <select class="admin-form-select" id="insc-filter-statut" onchange="loadInscriptions()" style="width:auto;padding:7px 12px;font-size:12px;border-radius:8px">
-            <option value="">Tous les statuts</option>
-            <option value="nouveau">🔴 Nouveau</option>
-            <option value="en_cours">🟡 En cours</option>
-            <option value="traite">🟢 Traité</option>
-            <option value="annule">⚫ Annulé</option>
-          </select>
-          <div id="inscStatsBar" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
-        </div>
-
-        <div id="inscriptionsList">
-          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement...</div>
-        </div>
-      </div>
-
-      <!-- COMMANDES MARKETPLACE -->
-      <div id="ap-commandes" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">🛒 Commandes de la boutique</div>
-          <button class="btn-sm" onclick="loadCommandes()" style="font-size:12px">🔄 Actualiser</button>
-        </div>
-        <div id="commandesList">
-          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement...</div>
-        </div>
-      </div>
-
-      <!-- CONTACTS -->
-      <div id="ap-contacts" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">📩 Messages reçus</div>
-          <button class="btn-sm" onclick="loadContacts()" style="font-size:12px">🔄 Actualiser</button>
-        </div>
-        <div id="contactsList">
-          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement...</div>
-        </div>
-      </div>
-
-      <!-- FORMATIONS EN LIGNE — GESTION CONTENU -->
-      <div id="ap-formations_el" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">🎓 Formations en ligne</div>
-          <button class="btn-sm" onclick="aPanel('acces_el',null)" style="background:var(--primary);color:#fff;border:none">🔑 Gérer les accès</button>
-        </div>
-        <div id="elFormationsList">
-          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement…</div>
-        </div>
-      </div>
-
-      <!-- ACCÈS APPRENANTS -->
-      <div id="ap-acces_el" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">🔑 Accès apprenants</div>
-          <button class="btn-sm" onclick="showGiveAccesForm()" style="background:var(--primary);color:#fff;border:none">+ Donner un accès</button>
-        </div>
-        <!-- Formulaire donner accès -->
-        <div id="giveAccesForm" style="display:none" class="s-card">
-          <div class="s-title" style="font-size:16px;margin-bottom:16px">🎓 Activer l'accès d'un apprenant</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="admin-form-group">
-              <label class="admin-form-label">Matricule / Identifiant *</label>
-              <input class="admin-form-input" id="acces-matricule" placeholder="Ex: ENL-2025-AGR-001">
-            </div>
-            <div class="admin-form-group">
-              <label class="admin-form-label">Mot de passe initial</label>
-              <input class="admin-form-input" id="acces-pwd" placeholder="eppridad2025" value="eppridad2025">
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="admin-form-group">
-              <label class="admin-form-label">Nom complet apprenant</label>
-              <input class="admin-form-input" id="acces-nom" placeholder="Ex: Moussa Mahamadou">
-            </div>
-            <div class="admin-form-group">
-              <label class="admin-form-label">Email (pour notification automatique) 📧</label>
-              <input class="admin-form-input" type="email" id="acces-email" placeholder="apprenant@email.com">
-            </div>
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label">Formation *</label>
-            <select class="admin-form-select" id="acces-formation">
-              <option value="">-- Choisir une formation --</option>
-            </select>
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label">Durée d'accès</label>
-            <select class="admin-form-select" id="acces-duree">
-              <option value="90">3 mois</option>
-              <option value="180" selected>6 mois</option>
-              <option value="365">1 an</option>
-              <option value="">Illimité</option>
-            </select>
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label">Note (optionnel)</label>
-            <input class="admin-form-input" id="acces-note" placeholder="Réf paiement, note interne…">
-          </div>
-          <div style="display:flex;gap:10px">
-            <button class="btn-block btn-green-block" onclick="giveAcces()" style="flex:1">✅ Activer l'accès</button>
-            <button onclick="document.getElementById('giveAccesForm').style.display='none'" style="padding:12px 18px;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:inherit">✕</button>
-          </div>
-        </div>
-        <!-- Liste des accès -->
-        <div id="acesList">
-          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement…</div>
-        </div>
-      </div>
-
-      <!-- EXERCICES SOUMIS -->
-      <div id="ap-exercices_el" class="ap">
-        <div class="s-title-row">
-          <div class="s-title">📋 Exercices à corriger</div>
-          <button class="btn-sm" onclick="loadExercicesSoumis()" style="font-size:12px">🔄 Actualiser</button>
-        </div>
-        <div id="exercicesSoumisList">
-          <div style="text-align:center;padding:32px;color:var(--text3);font-size:14px">Chargement…</div>
-        </div>
-      </div>
-
-      <!-- SETTINGS -->
-      <div id="ap-settings" class="ap">
-        <div class="s-card">
-          <div class="s-title" style="margin-bottom:14px">🔐 Changer le mot de passe admin</div>
-          <div class="admin-form-group"><label class="admin-form-label">Nouveau mot de passe</label><input class="admin-form-input" type="password" id="newAdminPwd" placeholder="Nouveau mot de passe (min. 6 car.)"></div>
-          <button class="btn-block btn-green-block" onclick="changeAdminPwd()">💾 Enregistrer</button>
-        </div>
-        <div class="s-card" style="margin-top:16px">
-          <div class="s-title" style="margin-bottom:14px">💡 Citation de motivation</div>
-          <div class="admin-form-group"><textarea class="admin-form-textarea" id="tipText" rows="3" placeholder="Texte de la citation..."></textarea></div>
-          <button class="btn-block btn-green-block" onclick="saveTip()">💾 Enregistrer</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- ADMIN MOBILE BOTTOM NAV -->
-<!-- ADMIN MOBILE BOTTOM NAV - main -->
-<nav class="admin-bottom-nav" id="adminBottomNav">
-  <div class="admin-bnav-item active" onclick="aPanel('dashboard',null);mbnav(this)"><span class="admin-bnav-ico">📊</span><span>Accueil</span></div>
-  <div class="admin-bnav-item" onclick="aPanel('students',null);mbnav(this)" style="position:relative;"><span class="admin-bnav-ico">👥</span><span>Étudiants</span><span class="bnav-badge" id="bnavBadge" style="display:none">0</span></div>
-  <div class="admin-bnav-item" onclick="aPanel('inscriptions',null);mbnav(this)" style="position:relative;"><span class="admin-bnav-ico">✍️</span><span>Inscriptions</span><span class="bnav-badge" id="bnavInscBadge" style="display:none">0</span></div>
-  <div class="admin-bnav-item" onclick="aPanel('formations_el',null);mbnav(this)"><span class="admin-bnav-ico">🎓</span><span>Cours</span></div>
-  <div class="admin-bnav-item" onclick="toggleAdminMoreMenu()"><span class="admin-bnav-ico">⋯</span><span>Plus</span></div>
+<!-- LOADING -->
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<!-- NAVBAR (cachée avant connexion) -->
+<nav class="navbar" id="navbar" style="display:none">
+  <span class="navbar-logo">🎓 EPPRIDAD</span>
+  <button onclick="showPage('dashboard')" id="nav-accueil">🏠 Accueil</button>
+  <button onclick="showPage('cours-liste')" id="nav-cours">📚 Mes Cours</button>
+  <button onclick="showPage('notes')" id="nav-notes">📊 Notes</button>
+  <button onclick="showPage('scolarite')" id="nav-scolarite">💰 Scolarité</button>
+  <button id="nav-admin" onclick="showPage('admin')" style="display:none">⚙️ Admin</button>
+  <a href="https://www.eppridad.com" target="_blank">🌐 Site</a>
+  <button onclick="EPPRIDAD_CORE.deconnexion()" style="color:#ff8080;margin-left:auto">🚪 Déconnexion</button>
 </nav>
 
-<!-- ADMIN MORE MENU (mobile) -->
-<div id="adminMoreMenu" style="display:none;position:fixed;bottom:60px;left:0;right:0;z-index:600;background:var(--dark2);border-top:1px solid rgba(255,255,255,.1);padding:8px 0;">
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 12px">
-    <div onclick="aPanel('library',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">📚</span>Bibliothèque</div>
-    <div onclick="aPanel('messages',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">💬</span>Messages</div>
-    <div onclick="aPanel('infos',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">📢</span>Publications</div>
-    <div onclick="aPanel('acces_el',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">🔑</span>Accès</div>
-    <div onclick="aPanel('exercices_el',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">📋</span>Exercices</div>
-    <div onclick="aPanel('marketplace',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">🌿</span>Boutique</div>
-    <div onclick="aPanel('commandes',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">🛒</span>Commandes</div>
-    <div onclick="aPanel('contacts',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">📩</span>Contacts</div>
-    <div onclick="aPanel('settings',null);closeAdminMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:rgba(255,255,255,.6);font-size:10px;border-radius:10px;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background='none'"><span style="font-size:22px">⚙️</span>Paramètres</div>
+<!-- ══════════════════════════════════════════
+     PAGE AUTH
+═══════════════════════════════════════════ -->
+<div id="page-auth">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="/images/icon-192x192.png" alt="EPPRIDAD" onerror="this.style.display='none'">
+      <h1>EPPRIDAD</h1>
+      <p>Portail Académique & Formation</p>
+    </div>
+
+    <div class="tab-group">
+      <button class="tab-btn active" id="tab-cnx" onclick="switchTab('connexion')">Connexion</button>
+      <button class="tab-btn" id="tab-ins" onclick="switchTab('inscription')">Créer un compte</button>
+    </div>
+
+    <!-- CONNEXION -->
+    <div id="form-connexion">
+      <div class="msg-error" id="err-cnx"></div>
+      <div class="form-group">
+        <label>Matricule EPPRIDAD</label>
+        <input type="text" id="inp-matricule" placeholder="Ex: EPP-123456" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="inp-mdp" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-primary" onclick="doConnexion()">🔐 Se connecter</button>
+    </div>
+
+    <!-- INSCRIPTION -->
+    <div id="form-inscription" style="display:none">
+      <div class="msg-error" id="err-ins"></div>
+      <div class="msg-success" id="ok-ins"></div>
+      <div class="form-group">
+        <label>Prénom</label>
+        <input type="text" id="ins-prenom" placeholder="Votre prénom">
+      </div>
+      <div class="form-group">
+        <label>Nom de famille</label>
+        <input type="text" id="ins-nom" placeholder="Votre nom">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="ins-email" placeholder="votre@email.com">
+      </div>
+      <div class="form-group">
+        <label>Téléphone (WhatsApp)</label>
+        <input type="tel" id="ins-tel" placeholder="+227 XX XX XX XX">
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="ins-mdp" placeholder="Choisissez un mot de passe">
+      </div>
+      <button class="btn-primary" onclick="doInscription()">✅ Créer mon compte</button>
+    </div>
   </div>
 </div>
 
-<!-- PDF VIEWER MODAL -->
-<div id="pdfModal" class="pdf-modal-overlay" style="display:none;" onclick="if(event.target===this)closePdfModal()">
-  <div class="pdf-modal-box">
-    <div class="pdf-modal-header">
-      <div style="font-weight:700;font-size:15px" id="pdfModalTitle">Document</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <a id="pdfDownloadBtn" href="#" target="_blank" class="btn-sm" style="text-decoration:none;padding:6px 14px;background:var(--primary);color:#fff;border-radius:8px;font-size:12px;font-weight:700;">⬇️ Télécharger</a>
-        <button onclick="closePdfModal()" style="font-size:20px;color:var(--text3);line-height:1;padding:4px 8px;">✕</button>
+<!-- ══════════════════════════════════════════
+     DASHBOARD
+═══════════════════════════════════════════ -->
+<div id="page-dashboard">
+  <div class="dash-header">
+    <div class="dash-hello">
+      <h2 id="dash-bonjour">Bon retour 👋</h2>
+      <p id="dash-matricule">—</p>
+    </div>
+    <span class="badge-role" id="dash-role">Étudiant</span>
+  </div>
+
+  <div class="section-titre">📚 Mes formations en ligne</div>
+  <div class="formations-grid" id="formations-grid">
+    <div class="empty-state"><div class="es-icon">📚</div><p>Chargement des formations…</p></div>
+  </div>
+
+  <div class="section-titre" id="section-toutes" style="display:none">🌐 Toutes les formations disponibles</div>
+  <div class="formations-grid" id="formations-grid-all" style="display:none"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LECTEUR DE COURS
+═══════════════════════════════════════════ -->
+<div id="page-cours">
+  <div class="cours-layout">
+    <!-- Sidebar modules -->
+    <aside class="cours-sidebar" id="cours-sidebar">
+      <div class="cours-sidebar-titre" id="sidebar-formation-titre">Formation</div>
+      <div id="modules-list"></div>
+    </aside>
+
+    <!-- Contenu -->
+    <main class="cours-content" id="cours-content">
+      <div class="empty-state"><div class="es-icon">📖</div><p>Sélectionnez un module</p></div>
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     NOTES
+═══════════════════════════════════════════ -->
+<div id="page-notes" style="display:none; padding:24px 20px; max-width:900px; margin:0 auto;">
+  <div class="section-titre">📊 Mes notes</div>
+  <div id="notes-content">
+    <div class="empty-state"><div class="es-icon">📊</div><p>Chargement…</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCOLARITÉ
+═══════════════════════════════════════════ -->
+<div id="page-scolarite" style="display:none; padding:24px 20px; max-width:900px; margin:0 auto;">
+  <div class="section-titre">💰 Ma scolarité</div>
+  <div id="scolarite-content">
+    <div class="empty-state"><div class="es-icon">💰</div><p>Chargement…</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ADMIN
+═══════════════════════════════════════════ -->
+<div id="page-admin">
+  <div class="dash-header">
+    <div class="dash-hello">
+      <h2>⚙️ Administration</h2>
+      <p>Gestion des comptes & formations</p>
+    </div>
+  </div>
+  <div class="section-titre">👥 Apprenants en attente d'activation</div>
+  <div style="overflow-x:auto">
+    <table class="admin-table" id="admin-table">
+      <thead>
+        <tr>
+          <th>Matricule</th>
+          <th>Nom complet</th>
+          <th>Email</th>
+          <th>Date d'inscription</th>
+          <th>Statut</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="admin-tbody">
+        <tr><td colspan="6" style="text-align:center;padding:28px;color:rgba(255,255,255,0.4)">Chargement…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════ -->
+<script src="/js/eppridad-core.js"></script>
+<script>
+// ── STATE ──────────────────────────────────────
+let _session = null;
+let _formationActive = null;
+let _moduleActif = null;
+let _modules = [];
+let _quizReponses = {};
+let _quizValide = false;
+
+// ── UTILS ──────────────────────────────────────
+function showLoading(b) { document.getElementById('loading').style.display = b ? 'flex' : 'none'; }
+function toast(msg, dur=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+function showPage(p) {
+  ['page-auth','page-dashboard','page-cours','page-notes','page-scolarite','page-admin']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+
+  const pages = {
+    'dashboard':   'page-dashboard',
+    'cours-liste': 'page-dashboard',
+    'notes':       'page-notes',
+    'scolarite':   'page-scolarite',
+    'admin':       'page-admin'
+  };
+  const pid = pages[p] || p;
+  const el = document.getElementById(pid);
+  if (el) el.style.display = pid === 'page-dashboard' ? 'block' : 'block';
+
+  if (p === 'dashboard' || p === 'cours-liste') chargerDashboard();
+  if (p === 'admin') chargerAdmin();
+  if (p === 'notes') chargerNotes();
+  if (p === 'scolarite') chargerScolarite();
+}
+
+// ── AUTH ───────────────────────────────────────
+function switchTab(t) {
+  document.getElementById('form-connexion').style.display = t === 'connexion' ? '' : 'none';
+  document.getElementById('form-inscription').style.display = t === 'inscription' ? '' : 'none';
+  document.getElementById('tab-cnx').classList.toggle('active', t === 'connexion');
+  document.getElementById('tab-ins').classList.toggle('active', t === 'inscription');
+}
+
+async function doConnexion() {
+  const matricule = document.getElementById('inp-matricule').value.trim();
+  const mdp = document.getElementById('inp-mdp').value;
+  const errEl = document.getElementById('err-cnx');
+  errEl.style.display = 'none';
+  if (!matricule || !mdp) { errEl.textContent = 'Remplissez tous les champs.'; errEl.style.display='block'; return; }
+
+  showLoading(true);
+  const res = await EPPRIDAD_CORE.connexion(matricule, mdp);
+  showLoading(false);
+
+  if (!res.ok) { errEl.textContent = res.msg; errEl.style.display='block'; return; }
+  afterLogin(res.session);
+}
+
+async function doInscription() {
+  const prenom = document.getElementById('ins-prenom').value.trim();
+  const nom    = document.getElementById('ins-nom').value.trim();
+  const email  = document.getElementById('ins-email').value.trim();
+  const tel    = document.getElementById('ins-tel').value.trim();
+  const mdp    = document.getElementById('ins-mdp').value;
+  const errEl  = document.getElementById('err-ins');
+  const okEl   = document.getElementById('ok-ins');
+  errEl.style.display='none'; okEl.style.display='none';
+
+  if (!prenom||!nom||!email||!mdp) { errEl.textContent='Remplissez tous les champs obligatoires.'; errEl.style.display='block'; return; }
+
+  showLoading(true);
+  const res = await EPPRIDAD_CORE.inscrireApprenant({ prenom,nom,email,telephone:tel,motDePasse:mdp });
+  showLoading(false);
+
+  if (!res.ok) { errEl.textContent=res.msg; errEl.style.display='block'; return; }
+  okEl.textContent = `✅ Compte créé ! Votre matricule : ${res.matricule}. En attente d'activation par l'administration.`;
+  okEl.style.display='block';
+}
+
+function afterLogin(session) {
+  _session = session;
+  document.getElementById('page-auth').style.display = 'none';
+  document.getElementById('navbar').style.display = 'flex';
+  document.getElementById('dash-bonjour').textContent = `Bon retour, ${session.nom_complet?.split(' ')[0] || ''} 👋`;
+  document.getElementById('dash-matricule').textContent = session.matricule;
+  document.getElementById('dash-role').textContent = session.role === 'admin' ? '⚙️ Administrateur' : '🎓 Étudiant';
+  if (session.role === 'admin') document.getElementById('nav-admin').style.display='';
+  showPage('dashboard');
+}
+
+// ── DASHBOARD ─────────────────────────────────
+async function chargerDashboard() {
+  const grid = document.getElementById('formations-grid');
+  grid.innerHTML = '<div class="empty-state"><div class="es-icon">⏳</div><p>Chargement…</p></div>';
+
+  const toutes = await EPPRIDAD_CORE.getFormationsEnLigne();
+  if (!toutes.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="es-icon">📚</div><p>Aucune formation disponible pour le moment.</p></div>';
+    return;
+  }
+
+  // Vérifier accès pour chaque formation
+  const cartes = await Promise.all(toutes.map(async f => {
+    const acces = await EPPRIDAD_CORE.verifierAccesFormation(_session.matricule, f.id);
+    const prog = acces ? await EPPRIDAD_CORE.getProgressionApprenant(_session.matricule, f.id) : [];
+    return { ...f, acces, progression: prog };
+  }));
+
+  const mesFormations = cartes.filter(f => f.acces);
+  const disponibles   = cartes.filter(f => !f.acces);
+
+  grid.innerHTML = mesFormations.length
+    ? mesFormations.map(f => carteFormation(f, true)).join('')
+    : '<div class="empty-state"><div class="es-icon">🎓</div><p>Aucune formation active. Inscrivez-vous à une formation ci-dessous.</p></div>';
+
+  if (disponibles.length) {
+    document.getElementById('section-toutes').style.display='flex';
+    document.getElementById('formations-grid-all').style.display='grid';
+    document.getElementById('formations-grid-all').innerHTML = disponibles.map(f => carteFormation(f, false)).join('');
+  }
+}
+
+function carteFormation(f, acces) {
+  const pct = f.progression ? Math.round((f.progression.filter(p=>p.complete).length / Math.max(1, f.progression.length)) * 100) : 0;
+  return `
+  <div class="formation-card ${acces ? '' : 'locked'}" onclick="${acces ? `ouvrirFormation('${f.id}')` : `acquerirFormation('${f.id}','${f.titre}')`}">
+    <div class="fc-emoji">${f.emoji || '📚'}</div>
+    <div class="fc-titre">${f.titre}</div>
+    <div class="fc-desc">${(f.description||'').slice(0,100)}…</div>
+    <div class="fc-meta">
+      <span class="fc-badge">⏱ ${f.duree_heures}h</span>
+      <span class="fc-badge">${f.niveau||'Tous niveaux'}</span>
+      ${acces ? '<span class="fc-badge" style="color:#81c784;border-color:#81c784">✅ Accès actif</span>'
+              : `<span class="fc-prix">💳 ${(f.prix_fcfa||0).toLocaleString('fr-FR')} FCFA</span>`}
+    </div>
+    ${acces && f.progression.length ? `
+    <div class="fc-progress">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+      <div class="fc-pct">${pct}% complété</div>
+    </div>` : ''}
+  </div>`;
+}
+
+function acquerirFormation(id, titre) {
+  toast(`Pour accéder à "${titre}", contactez l'administration EPPRIDAD.`);
+  EPPRIDAD_CORE.envoyerWhatsApp(EPPRIDAD_CORE.config?.whatsapp?.numero || '22799851532', 'achat', { formation: titre });
+}
+
+// ── LECTEUR DE COURS ───────────────────────────
+async function ouvrirFormation(formationId) {
+  showLoading(true);
+  _formationActive = formationId;
+  _modules = await EPPRIDAD_CORE.getModulesFormation(formationId);
+
+  ['page-dashboard','page-notes','page-scolarite','page-admin'].forEach(p => {
+    const el = document.getElementById(p); if(el) el.style.display='none';
+  });
+  document.getElementById('page-cours').style.display='block';
+
+  // Rendre la sidebar
+  const liste = document.getElementById('modules-list');
+  const prog = await EPPRIDAD_CORE.getProgressionApprenant(_session.matricule, formationId);
+  const completedModules = new Set(prog.filter(p=>p.complete).map(p=>p.module_id));
+
+  liste.innerHTML = _modules.map((m,i) => `
+    <div class="module-item ${completedModules.has(m.id)?'completed':''}" id="mi-${m.id}" onclick="chargerModule('${m.id}',${i})">
+      <div class="mi-num">${completedModules.has(m.id) ? '✓' : i+1}</div>
+      <div class="mi-info">
+        <div class="mi-titre">${m.titre}</div>
+        <div class="mi-duree">⏱ ${m.duree_min || m.duree_minutes || 60} min</div>
+      </div>
+    </div>`).join('');
+
+  showLoading(false);
+  if (_modules.length) chargerModule(_modules[0].id, 0);
+}
+
+async function chargerModule(moduleId, index) {
+  _moduleActif = { id: moduleId, index };
+  _quizReponses = {};
+  _quizValide = false;
+
+  // Activer dans sidebar
+  document.querySelectorAll('.module-item').forEach(el => el.classList.remove('active'));
+  const miEl = document.getElementById(`mi-${moduleId}`);
+  if (miEl) { miEl.classList.add('active'); miEl.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
+
+  showLoading(true);
+  const [ressources, quiz, prog] = await Promise.all([
+    EPPRIDAD_CORE.getRessourcesModule(moduleId),
+    EPPRIDAD_CORE.getQuizModule(moduleId),
+    EPPRIDAD_CORE.getProgressionApprenant(_session.matricule, _formationActive)
+  ]);
+  showLoading(false);
+
+  const module = _modules[index];
+  const completedRes = new Set(prog.filter(p=>p.complete && p.module_id===moduleId).map(p=>p.ressource_id));
+  const moduleComplet = completedRes.size >= ressources.filter(r=>r.obligatoire).length && ressources.filter(r=>r.obligatoire).length > 0;
+
+  const content = document.getElementById('cours-content');
+  content.innerHTML = `
+    <div class="cours-titre">${module.titre}</div>
+    <div class="cours-sous-titre">
+      <span>⏱ ${module.duree_min || module.duree_minutes || 60} min</span>
+      <span>📦 Module ${index+1} / ${_modules.length}</span>
+      ${moduleComplet ? '<span style="color:#81c784">✅ Complété</span>' : ''}
+    </div>
+
+    ${rendrirRessources(ressources, moduleId, completedRes)}
+    ${quiz.length ? rendrirQuiz(quiz, moduleId) : ''}
+
+    <div class="cours-nav">
+      ${index > 0
+        ? `<button class="btn-nav btn-nav-prev" onclick="chargerModule('${_modules[index-1].id}',${index-1})">← Module précédent</button>`
+        : '<div></div>'}
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${!moduleComplet
+          ? `<button class="btn-nav btn-nav-complete" onclick="marquerComplet('${moduleId}')">✅ Marquer comme terminé</button>`
+          : ''}
+        ${index < _modules.length-1
+          ? `<button class="btn-nav btn-nav-next" onclick="chargerModule('${_modules[index+1].id}',${index+1})">Module suivant →</button>`
+          : `<button class="btn-nav btn-nav-next" onclick="voirCertificat()">🏆 Obtenir mon certificat</button>`}
+      </div>
+    </div>`;
+}
+
+function rendrirRessources(ressources, moduleId, completedRes) {
+  if (!ressources.length) return '<div class="content-section"><p style="color:rgba(255,255,255,0.4)">Contenu en cours de préparation.</p></div>';
+
+  return ressources.map(r => {
+    const done = completedRes.has(r.id);
+    if (r.type === 'texte' || r.contenu_texte) {
+      return `<div class="content-section">
+        <h3>${done?'✅ ':''} ${r.titre}</h3>
+        <div class="content-texte">${r.contenu_texte || ''}</div>
+        ${!done ? `<button class="btn-nav btn-nav-next" style="margin-top:14px;width:auto" onclick="marquerRessource('${r.id}','${moduleId}')">✅ J'ai lu cette section</button>` : ''}
+      </div>`;
+    }
+    if (r.type === 'video' || (r.contenu_url||r.url||'').includes('youtube') || (r.contenu_url||r.url||'').includes('youtu.be') || (r.contenu_url||r.url||'').includes('vimeo')) {
+      const url = r.contenu_url || r.url || '';
+      const embedUrl = url.replace('watch?v=','embed/').replace('youtu.be/','youtube.com/embed/');
+      return `<div class="content-section">
+        <h3>${done?'✅ ':''} ${r.titre}</h3>
+        <div class="video-container"><iframe src="${embedUrl}" allowfullscreen></iframe></div>
+        ${!done ? `<button class="btn-nav btn-nav-next" style="width:auto" onclick="marquerRessource('${r.id}','${moduleId}')">✅ J'ai regardé cette vidéo</button>` : ''}
+      </div>`;
+    }
+    if (r.type === 'pdf' || (r.contenu_url||r.url||'').endsWith('.pdf')) {
+      const url = r.contenu_url || r.url || '';
+      return `<div class="content-section">
+        <h3>${done?'✅ ':''} ${r.titre}</h3>
+        <a href="${url}" target="_blank" class="pdf-link">
+          <span class="pdf-icon">📄</span>
+          <div><strong>${r.titre}</strong><br><small style="color:rgba(255,255,255,0.5)">Cliquer pour ouvrir / télécharger le PDF</small></div>
+        </a>
+        ${!done ? `<button class="btn-nav btn-nav-next" style="width:auto" onclick="marquerRessource('${r.id}','${moduleId}')">✅ J'ai lu ce document</button>` : ''}
+      </div>`;
+    }
+    const url = r.contenu_url || r.url || '';
+    return `<div class="content-section">
+      <h3>${r.titre}</h3>
+      <a href="${url}" target="_blank" class="video-link">
+        <span class="play-icon">🔗</span>
+        <div class="vl-info"><span class="vl-titre">${r.titre}</span><span class="vl-sub">Accéder à la ressource</span></div>
+      </a>
+    </div>`;
+  }).join('');
+}
+
+function rendrirQuiz(questions, moduleId) {
+  const qHTML = questions.map((q,i) => `
+    <div class="quiz-question">
+      <div class="quiz-q-num">Question ${i+1} / ${questions.length}</div>
+      <div class="quiz-q-text">${q.question}</div>
+      <div class="quiz-options">
+        ${['a','b','c','d'].filter(l => q['option_'+l]).map(l => `
+          <div class="quiz-option" id="opt-${q.id}-${l}" onclick="selOption('${q.id}','${l}',${JSON.stringify(q.reponse_correcte)})">
+            <span class="opt-letter">${l.toUpperCase()}</span>
+            <span>${q['option_'+l]}</span>
+          </div>`).join('')}
+      </div>
+      <div class="quiz-explication" id="exp-${q.id}">${q.explication||''}</div>
+    </div>`).join('');
+
+  return `
+    <div class="quiz-container" id="quiz-bloc">
+      <div class="quiz-titre">📝 Quiz de validation</div>
+      <div class="quiz-sous">Répondez à toutes les questions pour valider ce module. Score minimum : 70%</div>
+      ${qHTML}
+      <div class="quiz-actions">
+        <button class="btn-quiz-valider" onclick="validerQuiz(${JSON.stringify(questions)}, '${moduleId}')">Valider mes réponses ✅</button>
+        <button class="btn-quiz-revoir" onclick="this.closest('.quiz-container').scrollIntoView({behavior:'smooth'})">🔄 Revoir le module</button>
       </div>
     </div>
-    <div class="pdf-modal-body">
-      <iframe id="pdfFrame" src="" allowfullscreen></iframe>
-    </div>
-  </div>
-</div>
+    <div class="quiz-resultat" id="quiz-resultat"></div>`;
+}
 
-<!-- VALIDATE MODAL -->
-<div id="validateModal" class="vmodal-overlay" style="display:none;" onclick="if(event.target===this)closeValidateModal()">
-  <div class="vmodal-box">
-    <h3>✅ Valider le compte étudiant</h3>
-    <div id="vModalStudentInfo" style="background:var(--surface2);border-radius:var(--r);padding:14px;margin-bottom:16px;font-size:13.5px;"></div>
-    <label class="admin-form-label">Durée d'accès</label>
-    <div class="dur-grid" id="durGrid">
-      <button class="dur-btn sel" onclick="selDur(this,'3m')">3 mois<br><small>Formation courte</small></button>
-      <button class="dur-btn" onclick="selDur(this,'6m')">6 mois<br><small>Semestre</small></button>
-      <button class="dur-btn" onclick="selDur(this,'1y')">1 an<br><small>Année</small></button>
-      <button class="dur-btn" onclick="selDur(this,'2y')">2 ans<br><small>Formation longue</small></button>
-      <button class="dur-btn" onclick="selDur(this,'3y')">3 ans<br><small>Bac Pro</small></button>
-      <button class="dur-btn" onclick="selDur(this,'custom')">Date libre<br><small>Choisir</small></button>
-    </div>
-    <div id="customDateWrap" style="display:none;margin-bottom:14px;">
-      <label class="admin-form-label">Date d'expiration</label>
-      <input class="admin-form-input" type="date" id="customExpDate">
-    </div>
-    <div style="display:flex;gap:10px;margin-top:6px;">
-      <button class="btn-block btn-green-block" onclick="confirmValidate()" style="flex:1;">✅ Valider l'accès</button>
-      <button class="btn-block" style="flex:0 0 auto;padding:12px 18px;border:1px solid var(--border);border-radius:var(--r);" onclick="closeValidateModal()">Annuler</button>
-    </div>
-  </div>
-</div>
+function selOption(qId, lettre, bonneReponse) {
+  if (_quizValide) return;
+  _quizReponses[qId] = lettre;
+  document.querySelectorAll(`[id^="opt-${qId}-"]`).forEach(el => el.classList.remove('selected'));
+  document.getElementById(`opt-${qId}-${lettre}`)?.classList.add('selected');
+}
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="js/supabase.js"></script>
+async function validerQuiz(questions, moduleId) {
+  if (Object.keys(_quizReponses).length < questions.length) {
+    toast('⚠️ Répondez à toutes les questions avant de valider.'); return;
+  }
+  _quizValide = true;
 
-<script src="js/espace-etudiant.js"></script>
+  let score = 0;
+  questions.forEach(q => {
+    const rep = _quizReponses[q.id];
+    const bon = (q.reponse_correcte||'').toLowerCase().trim();
+    const optEl = document.getElementById(`opt-${q.id}-${rep}`);
+    const bonEl = document.getElementById(`opt-${q.id}-${bon}`);
+    if (rep === bon) { score++; optEl?.classList.add('correct'); }
+    else { optEl?.classList.add('wrong'); bonEl?.classList.add('correct'); }
+    const expEl = document.getElementById(`exp-${q.id}`);
+    if (expEl && q.explication) expEl.style.display='block';
+  });
 
-  <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a5d1a,#0d3d0d);color:#fff;padding:12px 16px;align-items:center;gap:10px;z-index:99999;box-shadow:0 -4px 18px rgba(0,0,0,.3);font-family:sans-serif;">
-    <img src="/web-app-manifest-192x192.png" style="width:42px;height:42px;border-radius:9px;flex-shrink:0;" alt="EPPRIDAD">
-    <div style="flex:1;">
-      <div style="font-size:13px;font-weight:700;">Installer l'app EPPRIDAD</div>
-      <div style="font-size:11px;opacity:.7;">Accès rapide · Fonctionne hors ligne</div>
+  const pct = Math.round((score/questions.length)*100);
+  const reussi = pct >= 70;
+
+  await EPPRIDAD_CORE.sauvegarderResultatQuiz(_session.matricule, _formationActive, moduleId, score, questions.length, _quizReponses);
+
+  const resEl = document.getElementById('quiz-resultat');
+  resEl.style.display='block';
+  resEl.innerHTML = `
+    <div class="resultat-score">${score}/${questions.length}</div>
+    <div class="resultat-pct">${pct}%</div>
+    <div class="resultat-mention" style="color:${reussi?'#81c784':'#ff8080'}">
+      ${reussi ? '🎉 Félicitations ! Module validé.' : '❌ Score insuffisant (minimum 70%). Révisez et réessayez.'}
     </div>
-    <button onclick="installPWA()" style="background:#d4af37;color:#0a150a;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Installer</button>
-    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:7px;padding:8px 10px;font-size:13px;cursor:pointer;">✕</button>
-  </div>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').then(function(reg) {
-          reg.addEventListener('updatefound', function() {
-            var nw = reg.installing;
-            nw.addEventListener('statechange', function() {
-              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-                if (confirm('Nouvelle version disponible. Recharger ?')) location.reload();
-              }
-            });
-          });
-        }).catch(function(e) { console.error('SW:', e); });
-      });
-    }
-    var deferredPrompt;
-    window.addEventListener('beforeinstallprompt', function(e) {
-      e.preventDefault(); deferredPrompt = e;
-      var b = document.getElementById('pwa-banner');
-      if (b) b.style.display = 'flex';
-    });
-    function installPWA() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(function(r) {
-        if (r.outcome === 'accepted') document.getElementById('pwa-banner').style.display = 'none';
-        deferredPrompt = null;
-      });
-    }
-  </script>
+    <div class="resultat-actions">
+      ${reussi
+        ? `<button class="btn-nav btn-nav-complete" onclick="marquerComplet('${moduleId}')">✅ Valider ce module</button>`
+        : `<button class="btn-nav btn-nav-prev" onclick="location.reload()">🔄 Réessayer</button>`}
+    </div>`;
+  resEl.scrollIntoView({ behavior:'smooth' });
+}
 
-<div id="pwa-install-toast" style="display:none;position:fixed;bottom:80px;left:12px;right:12px;z-index:9999;background:linear-gradient(135deg,#0b2f25,#16503f);color:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 8px 32px rgba(0,0,0,.3);">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <img src="images/logo.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0;" alt="">
-    <div style="flex:1">
-      <div style="font-size:14px;font-weight:700;margin-bottom:2px;">Installer l'app EPPRIDAD</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.65);">Accès rapide · Fonctionne hors ligne</div>
-    </div>
-    <button onclick="installPWA()" style="background:#C9A84C;color:#1a1a1a;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">📲 Installer</button>
-    <button onclick="hidePwaToast()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:none;border-radius:8px;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-  </div>
-</div>
+async function marquerRessource(ressourceId, moduleId) {
+  await EPPRIDAD_CORE.marquerRessourceComplete(_session.matricule, _formationActive, moduleId, ressourceId);
+  toast('✅ Section marquée comme lue');
+  chargerModule(moduleId, _moduleActif.index);
+}
+
+async function marquerComplet(moduleId) {
+  showLoading(true);
+  const ressources = await EPPRIDAD_CORE.getRessourcesModule(moduleId);
+  for (const r of ressources) {
+    await EPPRIDAD_CORE.marquerRessourceComplete(_session.matricule, _formationActive, moduleId, r.id);
+  }
+  showLoading(false);
+  toast('🎉 Module complété !');
+
+  // Mettre à jour sidebar
+  const miEl = document.getElementById(`mi-${moduleId}`);
+  if (miEl) { miEl.classList.add('completed'); miEl.querySelector('.mi-num').textContent='✓'; }
+
+  // Passer au suivant automatiquement
+  const idx = _moduleActif.index;
+  if (idx < _modules.length - 1) {
+    setTimeout(() => chargerModule(_modules[idx+1].id, idx+1), 1200);
+  } else {
+    setTimeout(voirCertificat, 1200);
+  }
+}
+
+function voirCertificat() {
+  const content = document.getElementById('cours-content');
+  content.insertAdjacentHTML('beforeend', `
+    <div class="certificat-banner">
+      <div class="cert-titre">🏆 Félicitations !</div>
+      <div class="cert-sous">Vous avez complété toutes les modules de cette formation. Votre certificat est en cours de génération.</div>
+      <button class="btn-primary" style="max-width:260px;margin:0 auto" onclick="demanderCertificat()">📜 Obtenir mon certificat</button>
+    </div>`);
+  content.lastElementChild.scrollIntoView({ behavior:'smooth' });
+}
+
+function demanderCertificat() {
+  toast('📧 Votre demande de certificat a été envoyée à l\'administration EPPRIDAD.');
+}
+
+// ── ADMIN ──────────────────────────────────────
+async function chargerAdmin() {
+  const liste = await EPPRIDAD_CORE.getApprenantsEnAttente();
+  const tbody = document.getElementById('admin-tbody');
+  if (!liste.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:rgba(255,255,255,0.4)">Aucun compte en attente d\'activation</td></tr>';
+    return;
+  }
+  tbody.innerHTML = liste.map(c => `
+    <tr>
+      <td><strong>${c.matricule}</strong></td>
+      <td>${c.nom_complet||'—'}</td>
+      <td>${c.email||'—'}</td>
+      <td>${c.date_creation ? new Date(c.date_creation).toLocaleDateString('fr-FR') : '—'}</td>
+      <td><span class="badge-attente">${c.statut}</span></td>
+      <td>
+        <button class="btn-activer" onclick="activerCompteDashboard('${c.matricule}','${c.nom_complet||''}')">✅ Activer</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function activerCompteDashboard(matricule, nom) {
+  showLoading(true);
+  const res = await EPPRIDAD_CORE.activerCompte(matricule);
+  showLoading(false);
+  if (res.ok) {
+    toast(`✅ Compte de ${nom} activé !`);
+    chargerAdmin();
+    // Ouvrir WhatsApp pour notifier l'apprenant
+    const [prenom, ...reste] = nom.split(' ');
+    EPPRIDAD_CORE.envoyerWhatsApp('22799851532', 'activation', { prenom, nom: reste.join(' ') });
+  } else {
+    toast('❌ Erreur : ' + res.msg);
+  }
+}
+
+// ── NOTES ──────────────────────────────────────
+async function chargerNotes() {
+  const db = await EPPRIDAD_CORE.getDB ? EPPRIDAD_CORE.getDB() : null;
+  document.getElementById('notes-content').innerHTML = '<div class="empty-state"><div class="es-icon">📊</div><p>Connectez-vous pour voir vos notes.</p></div>';
+}
+
+// ── SCOLARITÉ ──────────────────────────────────
+async function chargerScolarite() {
+  document.getElementById('scolarite-content').innerHTML = '<div class="empty-state"><div class="es-icon">💰</div><p>Contactez l\'administration pour votre situation financière.</p></div>';
+}
+
+// ── INIT ───────────────────────────────────────
+window.addEventListener('load', () => {
+  const s = EPPRIDAD_CORE.getSession();
+  if (s) { afterLogin(s); }
+});
+
+// Enter key sur connexion
+document.getElementById('inp-mdp')?.addEventListener('keydown', e => { if(e.key==='Enter') doConnexion(); });
+document.getElementById('inp-matricule')?.addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('inp-mdp').focus(); });
+</script>
 </body>
 </html>
