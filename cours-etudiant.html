@@ -1113,7 +1113,7 @@ function showCertificat(){
 
   const dateStr=cert.date_emission?new Date(cert.date_emission).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'—';
   const nom=cert.nom_apprenant||_session.nom||_session.matricule;
-  const verifyUrl=`laoulaboukar-ship-it.github.io/eppridad/verify?cert=${cert.numero}`;
+  const verifyUrl=`www.eppridad.com/verify?cert=${cert.numero}`;
   const waMsg=encodeURIComponent(`Bonjour EPPRIDAD ! J'ai obtenu mon certificat N° ${cert.numero} pour la formation "${_formation.titre}". Mention : ${cert.mention}. Score : ${cert.score_final}%.`);
 
   main.innerHTML=`
@@ -1208,7 +1208,15 @@ function printCert(){
   .cert-qr-num{font-size:8px;color:rgba(255,255,255,.2);font-family:monospace}
   </style></head><body>${certEl.outerHTML}
   <script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script>
-  </body></html>`);
+  
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js', {scope:'/'})
+    .then(r=>console.log('[EPPRIDAD] SW actif'))
+    .catch(e=>console.log('[EPPRIDAD] SW:', e.message));
+}
+</script>
+</body></html>`);
   w.document.close();
 }
 
@@ -1360,5 +1368,13 @@ document.addEventListener('DOMContentLoaded', async()=>{
 
 </script>
 
+
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js', {scope:'/'})
+    .then(r=>console.log('[EPPRIDAD] SW actif'))
+    .catch(e=>console.log('[EPPRIDAD] SW:', e.message));
+}
+</script>
 </body>
 </html>

@@ -2171,7 +2171,7 @@ function showActivationModal({prenom, nom, matricule, pwd, formId, waUrl, tel, e
           💬 Envoyer les identifiants par WhatsApp
         </a>
         <div style="display:flex;gap:8px">
-          <button onclick="navigator.clipboard&&navigator.clipboard.writeText('Identifiant: ${matricule}\nMot de passe: ${pwd}\nPortail: https://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html').then(()=>showToast('✅ Identifiants copiés !'))"
+          <button onclick="navigator.clipboard&&navigator.clipboard.writeText('Identifiant: ${matricule}\nMot de passe: ${pwd}\nPortail: https://www.eppridad.com/cours-etudiant.html').then(()=>showToast('✅ Identifiants copiés !'))"
             style="flex:1;background:#e8f5f0;border:1px solid rgba(22,80,63,.2);color:#16503f;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
             📋 Copier les identifiants
           </button>
@@ -2262,14 +2262,24 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
       ).catch(()=>{});
     }
 
-    // 4. Envoyer email via EmailJS
-    if(typeof sendEmailJS !== 'undefined' && email){
+    // 4. Envoyer email via EmailJS — template riche avec tous les détails
+    if(email && typeof emailAccesAccorde === 'function'){
+      emailAccesAccorde(
+        email,
+        (prenom+' '+nom).trim(),
+        matricule,
+        formation_titre || 'Votre formation EPPRIDAD',
+        pwd,
+        null  // null = accès illimité
+      ).catch(()=>{});
+    } else if(email && typeof sendEmailJS !== 'undefined'){
+      // Fallback si emailAccesAccorde non disponible
       sendEmailJS(email, prenom+' '+nom,
-        'Vos accès EPPRIDAD — Formation en ligne',
-        'Bonjour '+prenom+',\n\nVotre accès à la plateforme EPPRIDAD est activé !\n\n'+
+        '🎓 Votre accès EPPRIDAD est activé',
+        'Bonjour '+prenom+',\n\nVotre accès EPPRIDAD est activé !\n\n'+
         '🔑 Identifiant : '+matricule+'\n🔐 Mot de passe : '+pwd+'\n\n'+
-        '🔗 Connectez-vous ici :\nhttps://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n'+
-        'En cas de question : +227 99 85 15 32\nBonne formation ! 🎓 L\'équipe EPPRIDAD'
+        '🔗 https://www.eppridad.com/cours-etudiant.html\n\n'+
+        '📞 +227 99 85 15 32 — Bonne formation ! 🎓'
       ).catch(()=>{});
     }
 
@@ -2282,7 +2292,7 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
       'Votre accès à la plateforme de formation en ligne EPPRIDAD est maintenant activé !\n\n'+
       '🔑 *Identifiant* : '+matricule+'\n'+
       '🔐 *Mot de passe* : '+pwd+'\n\n'+
-      '🔗 Connectez-vous ici :\nhttps://laoulaboukar-ship-it.github.io/eppridad/cours-etudiant.html\n\n'+
+      '🔗 Connectez-vous ici :\nhttps://www.eppridad.com/cours-etudiant.html\n\n'+
       '📚 Bonne formation ! Pour toute question : +227 99 85 15 32\n'+
       '🎓 L\'équipe EPPRIDAD'
     );
