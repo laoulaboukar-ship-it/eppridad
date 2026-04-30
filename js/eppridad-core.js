@@ -249,13 +249,18 @@ if ('serviceWorker' in navigator) {
 }
 
 // ── EXPORT GLOBAL ─────────────────────────────────────────────
+// initSupabase exposé pour espace-etudiant.html
+async function initSupabase() { return await getDB(); }
+
 window.EPPRIDAD_CORE = {
+  initSupabase,
   getSession, sauvegarderSession, deconnexion, connexion,
   inscrireApprenant, activerCompte, getApprenantsEnAttente,
   getFormationsEnLigne, getModulesFormation, getRessourcesModule,
   getQuizModule, getProgressionApprenant, marquerRessourceComplete,
   sauvegarderResultatQuiz, verifierAccesFormation,
-  envoyerEmailInscription, msgWhatsApp, envoyerWhatsApp
+  envoyerEmailInscription, msgWhatsApp, envoyerWhatsApp,
+  config: { whatsapp: EPPRIDAD.whatsapp }
 };
 
 console.log('[EPPRIDAD] Core V28 ✅ — www.eppridad.com');

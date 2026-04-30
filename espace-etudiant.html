@@ -611,7 +611,23 @@ body{font-family:var(--font-body);background:var(--v0);color:var(--w);min-height
   </div>
 </div>
 
-<script src="/js/eppridad-core.js"></script>
+<script>
+// Chargement sécurisé de eppridad-core.js avec fallback
+(function(){
+  const s = document.createElement('script');
+  s.src = '/js/eppridad-core.js';
+  s.onerror = function(){
+    document.getElementById('loading-screen').innerHTML =
+      '<div style="text-align:center;padding:40px">' +
+      '<div style="font-size:48px;margin-bottom:20px">⚠️</div>' +
+      '<div style="font-family:Georgia,serif;font-size:22px;color:#d4af37;margin-bottom:10px">EPPRIDAD</div>' +
+      '<div style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:20px">Erreur de chargement du portail.</div>' +
+      '<button onclick="location.reload()" style="background:#1a5d1a;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;cursor:pointer">🔄 Réessayer</button>' +
+      '</div>';
+  };
+  document.head.appendChild(s);
+})();
+</script>
 <script>
 // ═══════════════════════════════════════════════════════════
 // EPPRIDAD — PORTAIL V28.2 PREMIUM
@@ -630,7 +646,23 @@ function nc(n){if(n==null)return 'nnd';if(n>=16)return 'ntb';if(n>=14)return 'na
 function pColor(p){if(p>=80)return '#4caf50';if(p>=60)return '#d4af37';if(p>=40)return '#ff9800';return '#e53935'}
 function mention(m){if(!m)return '—';if(m>=16)return 'Très Bien';if(m>=14)return 'Bien';if(m>=12)return 'Assez Bien';if(m>=10)return 'Passable';return 'Insuffisant'}
 
-async function getDB(){if(_db)return _db;_db=await EPPRIDAD_CORE.initSupabase();return _db}
+async function getDB(){
+  if(_db)return _db;
+  // Charger Supabase SDK si nécessaire
+  if(!window.supabase){
+    await new Promise((ok,ko)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload=ok;s.onerror=ko;
+      document.head.appendChild(s);
+    });
+  }
+  _db=window.supabase.createClient(
+    'https://iethhoddmztmjdhhmgsb.supabase.co',
+    'sb_publishable_PnJERdL-4gumDe-wHQNLfg_HborRshv'
+  );
+  return _db;
+}
 
 // ── AUTH ──────────────────────────────────────────────
 function switchTab(t){
@@ -1586,14 +1618,62 @@ function closeSB(){
 }
 
 // ── INIT ──────────────────────────────────────────────
-window.addEventListener('load',()=>{
-  setTimeout(()=>{
-    const ls=document.getElementById('loading-screen');
-    ls.classList.add('fade');
-    setTimeout(()=>ls.style.display='none',600);
-  },1800);
-  const s=EPPRIDAD_CORE.getSession();
-  if(s){_s=s;document.getElementById('page-auth').style.display='none';document.getElementById('app').style.display='block';buildSidebar();goto('dashboard')}
+function hideLoading(){
+  const ls=document.getElementById('loading-screen');
+  if(!ls)return;
+  ls.classList.add('fade');
+  setTimeout(()=>{ls.style.display='none'},600);
+}
+
+function showAuth(){
+  hideLoading();
+  document.getElementById('page-auth').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+function initPortail(){
+  // Vérifier que EPPRIDAD_CORE est bien chargé
+  if(typeof EPPRIDAD_CORE === 'undefined'){
+    document.getElementById('loading-screen').innerHTML=
+      '<div style="text-align:center;padding:40px">'+
+      '<div style="font-size:48px;margin-bottom:20px">⚠️</div>'+
+      '<div style="font-family:Georgia,serif;font-size:22px;color:#d4af37;margin-bottom:10px">EPPRIDAD</div>'+
+      '<div style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:20px">Module portail introuvable. Vérifiez que eppridad-core.js est bien uploadé dans /js/</div>'+
+      '<button onclick="location.reload()" style="background:#1a5d1a;color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:14px;cursor:pointer;font-family:system-ui">🔄 Réessayer</button>'+
+      '</div>';
+    return;
+  }
+
+  try {
+    const s = EPPRIDAD_CORE.getSession();
+    if(s){
+      _s=s;
+      document.getElementById('page-auth').style.display='none';
+      document.getElementById('app').style.display='block';
+      hideLoading();
+      buildSidebar();
+      goto('dashboard');
+    } else {
+      showAuth();
+    }
+  } catch(e){
+    console.error('[EPPRIDAD] Erreur init:', e);
+    showAuth();
+  }
+}
+
+// Timeout de sécurité — si après 4s rien ne se passe, afficher la page auth
+const _safetyTimer = setTimeout(()=>{
+  if(document.getElementById('loading-screen').style.display !== 'none'){
+    console.warn('[EPPRIDAD] Timeout de sécurité déclenché');
+    showAuth();
+  }
+}, 4000);
+
+window.addEventListener('load', ()=>{
+  clearTimeout(_safetyTimer);
+  // Petit délai pour laisser le CSS s'appliquer
+  setTimeout(initPortail, 300);
 });
 
 document.addEventListener('keydown',e=>{
