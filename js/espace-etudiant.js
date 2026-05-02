@@ -3290,3 +3290,12 @@ async function openElFormationDetailById(formId){
     }
   });
 })();
+
+
+// ── ALIAS V30 — exposition des fonctions admin pour l'orchestrateur ──────────
+async function loadFormationsAdmin(){
+  try{
+    if(typeof loadAcesList==='function') await loadAcesList();
+    if(typeof loadElFormations==='function') await loadElFormations();
+  }catch(e){ console.error('[V30] loadFormationsAdmin:',e); }
+}
