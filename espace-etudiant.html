@@ -600,12 +600,15 @@ select.inp option{background:#1a3a2a;color:var(--w)}
 //  Fusion V27 (admin) + V28-autre (UX e-learning) + V30 (améliorations)
 // ════════════════════════════════════════════════════════════
 
-// ── CONFIG ───────────────────────────────────────────────────
+// ── CONFIG V30 (noms distincts pour éviter les conflits avec espace-etudiant.js) ──
+// SUPA_URL/SUPA_KEY distincts de SUPABASE_URL/SUPABASE_ANON_KEY dans supabase.js
 const SUPA_URL  = 'https://iethhoddmztmjdhhmgsb.supabase.co';
 const SUPA_KEY  = 'sb_publishable_PnJERdL-4gumDe-wHQNLfg_HborRshv';
-const WA_NUM    = '22799851532';
+// WA_NUM_V30 pour éviter le conflit avec WA_NUM_V30 dans espace-etudiant.js
+const WA_NUM_V30    = '22799851532';
 const PORTAIL   = 'https://www.eppridad.com/espace-etudiant.html';
 const SITE      = 'https://www.eppridad.com';
+// SESSION_K distinct de SESSION_KEY dans supabase.js
 const SESSION_K = 'eppr_session_v30';
 
 // ── ÉTAT GLOBAL ───────────────────────────────────────────────
@@ -615,7 +618,7 @@ let _cours = { formationId:null, modules:[], moduleIdx:0, onglet:'cours', quizRe
 let _adminData = { comptes:[], inscriptions:[], formations:[], commandes:[] };
 
 // ── SUPABASE CLIENT (SDK officiel v2) ────────────────────────
-function getDB(){
+function getDBv30(){
   if(!_db) _db = supabase.createClient(SUPA_URL, SUPA_KEY);
   return _db;
 }
@@ -628,7 +631,7 @@ function setTitle(t,s){ document.getElementById('tb-title').textContent=t; if(s)
 function fmt(n){ return (n||0).toLocaleString('fr-FR'); }
 function fmtD(d){ return d?new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'—'; }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function waLink(msg){ return `https://wa.me/${WA_NUM}?text=${encodeURIComponent(msg)}`; }
+function waLink(msg){ return `https://wa.me/${WA_NUM_V30}?text=${encodeURIComponent(msg)}`; }
 function spawnConfettis(){ const colors=['#C9A84C','#16503f','#fff','#e4c06a']; for(let i=0;i<24;i++){ const el=document.createElement('div'); el.className='confetti'; el.style.cssText=`left:${Math.random()*100}vw;top:${40+Math.random()*20}vh;background:${colors[Math.floor(Math.random()*colors.length)]};transform:rotate(${Math.random()*360}deg);animation-delay:${Math.random()*.5}s;animation-duration:${.7+Math.random()*.6}s`; document.body.appendChild(el); setTimeout(()=>el.remove(),1600); } }
 
 // ── SESSION ───────────────────────────────────────────────────
@@ -653,7 +656,7 @@ async function doLogin(){
   const btn = document.getElementById('btn-login');
   btn.disabled=true; btn.textContent='⏳ Connexion...';
   try{
-    const db = getDB();
+    const db = getDBv30();
     const { data, error } = await db.from('portail_comptes').select('*').eq('matricule',mat).single();
     if(error||!data){ err.textContent='Matricule inconnu. Vérifiez votre identifiant.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
     // Vérification mot de passe avec simpleHash (compatible avec tous les comptes existants)
@@ -688,7 +691,7 @@ async function doInscription(){
   const btn = document.getElementById('btn-ins');
   btn.disabled=true; btn.textContent='⏳...';
   try{
-    const db = getDB();
+    const db = getDBv30();
     const { data } = await db.from('portail_comptes').select('matricule,statut,role').eq('matricule',mat).single();
     if(!data){ err.textContent='Matricule non reconnu. Contactez EPPRIDAD pour obtenir votre matricule.'; btn.disabled=false; btn.textContent='✅ Créer mon compte'; return; }
     if(data.statut==='actif'){ err.textContent='Ce compte est déjà activé. Connectez-vous directement.'; btn.disabled=false; btn.textContent='✅ Créer mon compte'; return; }
@@ -744,12 +747,12 @@ const NAV_ADM = [
 function buildSidebar(){
   if(!_s) return;
   const nav = _s.role==='admin' ? NAV_ADM : _s.role==='enligne' ? NAV_ENL : NAV_ETUD;
-  const sb = document.getElementById('sb-nav');
+  const sbEl = document.getElementById('sb-nav');
   const prenom = (_s.nom||'').split(' ')[0]||'?';
   document.getElementById('sb-av').textContent = prenom[0].toUpperCase();
   document.getElementById('sb-name').textContent = _s.nom||_s.matricule;
   document.getElementById('sb-role').textContent = {admin:'Administrateur',enligne:'Apprenant en ligne',etudiant:'Étudiant diplômant'}[_s.role]||_s.role;
-  sb.innerHTML = nav.map(n=>`
+  sbEl.innerHTML = nav.map(n=>`
     <div class="sb-item" id="nav-${n.id}" onclick="goto('${n.id}')">
       <span class="sb-item-ico">${n.ico}</span>
       <span>${n.label}</span>
@@ -808,7 +811,7 @@ async function loadEnligneDashboard(){
   const el = document.getElementById('page-dashboard');
   el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div>';
   try{
-    const db = getDB();
+    const db = getDBv30();
     const { data:accesRows } = await db.from('acces_formations').select('formation_id,actif').eq('matricule',_s.matricule).eq('actif',true);
     const ids = (accesRows||[]).map(a=>a.formation_id);
     let formations = [];
@@ -948,7 +951,7 @@ async function loadFormationsEnLigne(){
   const el = document.getElementById('page-formations');
   if(_s.role==='enligne'){ await loadEnligneDashboard(); showPage('page-dashboard'); return; }
   el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div></div>';
-  const { data:formations } = await getDB().from('formations_enligne').select('*').eq('publie',true).order('ordre');
+  const { data:formations } = await getDBv30().from('formations_enligne').select('*').eq('publie',true).order('ordre');
   el.innerHTML = `
   <div class="sec-head anim"><div class="sec-title">Formations en ligne</div><div class="sec-sub">Toutes les formations disponibles</div></div>
   <div class="g3 anim d1">
@@ -963,7 +966,7 @@ async function loadFormationsEnLigne(){
 
 // ── LECTEUR COURS E-LEARNING ─────────────────────────────────
 async function ouvrirFormation(formationId, titre){
-  const db = getDB();
+  const db = getDBv30();
   // Vérifier accès
   if(_s.role!=='admin'){
     const { data:acces } = await db.from('acces_formations').select('id,actif').eq('matricule',_s.matricule).eq('formation_id',formationId).eq('actif',true).single();
@@ -998,7 +1001,7 @@ function toggleCoursSidebar(){
 }
 
 async function buildSidebarModules(){
-  const db = getDB();
+  const db = getDBv30();
   const { data:prog } = await db.from('progression_apprenant').select('module_id,complete').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId);
   const done = new Set((prog||[]).filter(p=>p.complete).map(p=>p.module_id));
   const total = _cours.modules.length;
@@ -1042,7 +1045,7 @@ async function chargerModule(idx){
 }
 
 async function chargerRessources(module){
-  const db = getDB();
+  const db = getDBv30();
   const { data:res } = await db.from('ressources_module').select('type,titre,contenu_url,url').eq('module_id',module.id).order('ordre');
   const liste = (res||[]).filter(r=>r.type==='video'||r.type==='pdf');
   const rDiv = document.getElementById('cs-ressources');
@@ -1060,7 +1063,7 @@ async function chargerRessources(module){
 async function afficherContenu(module, onglet){
   const container = document.getElementById('module-content');
   container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gris)"><div style="font-size:28px;margin-bottom:10px">⏳</div>Chargement…</div>';
-  const db = getDB();
+  const db = getDBv30();
 
   if(onglet==='cours'){
     const { data:mc } = await db.from('modules_cours').select('description,contenu_texte').eq('id',module.id).single();
@@ -1117,7 +1120,7 @@ async function soumettreExercice(moduleId){
   const rep = (document.getElementById('exReponse')?.value||'').trim();
   if(!rep){ toast('⚠️ Rédigez votre réponse avant de soumettre.'); return; }
   try{
-    await getDB().from('soumissions_exercices').insert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,reponse_texte:rep,statut:'soumis',date_soumission:new Date().toISOString()});
+    await getDBv30().from('soumissions_exercices').insert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,reponse_texte:rep,statut:'soumis',date_soumission:new Date().toISOString()});
     toast('📤 Exercice soumis ! Correction sous 48h.'); 
     afficherContenu(_cours.modules[_cours.moduleIdx],'exercice');
   }catch(e){ toast('❌ Erreur lors de la soumission.'); }
@@ -1198,9 +1201,9 @@ async function validerQuiz(questions, moduleId){
   const pct = Math.round(score/questions.length*100);
   const reussi = pct>=70;
   // Sauvegarder
-  const { data:prev } = await getDB().from('resultats_quiz').select('tentative').eq('matricule',_s.matricule).eq('module_id',moduleId).order('created_at',{ascending:false}).limit(1);
+  const { data:prev } = await getDBv30().from('resultats_quiz').select('tentative').eq('matricule',_s.matricule).eq('module_id',moduleId).order('created_at',{ascending:false}).limit(1);
   const tent = (prev?.[0]?.tentative||0)+1;
-  await getDB().from('resultats_quiz').insert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,score,score_max:questions.length,pourcentage:pct,reussi,tentative:tent}).catch(()=>{});
+  await getDBv30().from('resultats_quiz').insert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,score,score_max:questions.length,pourcentage:pct,reussi,tentative:tent}).catch(()=>{});
   
   const resEl = document.getElementById('quiz-result');
   if(resEl){
@@ -1221,7 +1224,7 @@ async function validerQuiz(questions, moduleId){
 }
 
 async function marquerTermine(moduleId){
-  await getDB().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:true,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id',ignoreDuplicates:false}).catch(()=>{});
+  await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:true,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id',ignoreDuplicates:false}).catch(()=>{});
   toast('✅ Module complété !');
   await buildSidebarModules();
   const ni = _cours.moduleIdx+1;
@@ -1230,7 +1233,7 @@ async function marquerTermine(moduleId){
 }
 
 async function trackLecture(moduleId){
-  await getDB().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:false,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id',ignoreDuplicates:true}).catch(()=>{});
+  await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:false,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id',ignoreDuplicates:true}).catch(()=>{});
 }
 
 function goModule(dir){
@@ -1241,7 +1244,7 @@ function goModule(dir){
 
 // ── CERTIFICAT ───────────────────────────────────────────────
 async function afficherCertificat(){
-  const db = getDB();
+  const db = getDBv30();
   const { data:existing } = await db.from('certificats').select('*').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId).single().catch(()=>({data:null}));
   
   let cert = existing;
@@ -1413,7 +1416,7 @@ async function loadAdmFormations(){
     </div>`;
   if(typeof loadFormationsAdmin==='function') await loadFormationsAdmin();
   else {
-    const {data:f}=await getDB().from('formations_enligne').select('*').order('ordre');
+    const {data:f}=await getDBv30().from('formations_enligne').select('*').order('ordre');
     document.getElementById('formationsCatalogList').innerHTML=`<div class="tbl-wrap"><table><thead><tr><th>Formation</th><th>Prix</th><th>Durée</th><th>Statut</th></tr></thead><tbody>${(f||[]).map(fi=>`<tr><td><strong style="color:var(--w)">${fi.emoji||'📚'} ${escH(fi.titre)}</strong><br><small style="color:var(--w3)">${escH(fi.filiere||'')}</small></td><td><span class="badge b-gold">${fmt(fi.prix_fcfa)} FCFA</span></td><td>${fi.duree_heures||'?'}h</td><td><span class="badge ${fi.publie?'b-green':'b-red'}">${fi.publie?'✅ Publié':'🔜 En construction'}</span></td></tr>`).join('')}</tbody></table></div>`;
   }
 }
@@ -1427,7 +1430,7 @@ async function loadAdmDocs(){
 }
 
 async function buildAdmFormations(){
-  const { data:f } = await getDB().from('formations_enligne').select('*').order('ordre');
+  const { data:f } = await getDBv30().from('formations_enligne').select('*').order('ordre');
   return `<div class="sec-head anim"><div class="sec-title">Formations en ligne</div></div>
   <div class="tbl-wrap anim d1"><table><thead><tr><th>Formation</th><th>Prix</th><th>Durée</th><th>Statut</th></tr></thead><tbody>
   ${(f||[]).map(fi=>`<tr><td><strong style="color:var(--w)">${fi.emoji||'📚'} ${escH(fi.titre)}</strong><br><small style="color:var(--w3)">${escH(fi.filiere||'')}</small></td><td>${fmt(fi.prix_fcfa)} FCFA</td><td>${fi.duree_heures||'?'}h</td><td><span class="badge ${fi.publie?'b-green':'b-red'}">${fi.publie?'✅ Publié':'🔜 En construction'}</span></td></tr>`).join('')}
@@ -1437,7 +1440,7 @@ async function buildAdmFormations(){
 // ── PAGES ÉTUDIANTS ───────────────────────────────────────────
 async function loadNotes(){ setTitle('Mes notes'); showPage('page-notes'); if(typeof chargerNotes==='function') await chargerNotes(); else document.getElementById('page-notes').innerHTML='<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">Notes disponibles prochainement.</div></div>'; }
 async function loadScolarite(){ setTitle('Scolarité'); showPage('page-scolarite'); if(typeof chargerScolarite==='function') await chargerScolarite(); else document.getElementById('page-scolarite').innerHTML='<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">Informations de scolarité disponibles prochainement.</div></div>'; }
-async function loadDocs(){ setTitle('Documents'); showPage('page-docs'); if(typeof loadAdminLibrary==='function') await loadAdminLibrary(); else { const {data:docs}=await getDB().from('cours_documents').select('*').eq('publie',true).order('created_at',{ascending:false}); document.getElementById('page-docs').innerHTML=docs?.length?`<div class="sec-head anim"><div class="sec-title">Documents</div></div><div class="g3 anim d1">${docs.map(d=>`<div class="scard"><div class="scard-ico">📄</div><div class="scard-lbl">${escH(d.type||'Document')}</div><div style="font-size:14px;font-weight:600;color:var(--w);margin:6px 0">${escH(d.titre)}</div><a href="${escH(d.url||'#')}" target="_blank" class="btn btn-ghost" style="margin-top:10px">⬇ Télécharger</a></div>`).join('')}</div>`:'<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucun document disponible pour le moment.</div></div>'; } }
+async function loadDocs(){ setTitle('Documents'); showPage('page-docs'); if(typeof loadAdminLibrary==='function') await loadAdminLibrary(); else { const {data:docs}=await getDBv30().from('cours_documents').select('*').eq('publie',true).order('created_at',{ascending:false}); document.getElementById('page-docs').innerHTML=docs?.length?`<div class="sec-head anim"><div class="sec-title">Documents</div></div><div class="g3 anim d1">${docs.map(d=>`<div class="scard"><div class="scard-ico">📄</div><div class="scard-lbl">${escH(d.type||'Document')}</div><div style="font-size:14px;font-weight:600;color:var(--w);margin:6px 0">${escH(d.titre)}</div><a href="${escH(d.url||'#')}" target="_blank" class="btn btn-ghost" style="margin-top:10px">⬇ Télécharger</a></div>`).join('')}</div>`:'<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucun document disponible pour le moment.</div></div>'; } }
 
 // ── DÉMARRAGE ─────────────────────────────────────────────────
 
