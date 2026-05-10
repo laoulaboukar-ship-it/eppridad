@@ -670,6 +670,7 @@ async function doLogin(){
     db.from('portail_comptes').update({dernier_acces:new Date().toISOString()}).eq('matricule',mat).then(()=>{});
     _s = { matricule:mat, nom:data.nom_complet||mat, role:data.role||'etudiant', email:data.email||null };
     saveSession(_s);
+    window._sessionUser = _s;
     afterLogin();
   }catch(e){
     err.textContent = 'Erreur de connexion. Réessayez ou contactez EPPRIDAD.';
@@ -707,6 +708,8 @@ async function doInscription(){
 function afterLogin(){
   document.getElementById('page-auth').classList.remove('active');
   document.getElementById('app').classList.add('active');
+  window._sessionUser = _s;
+  if(typeof setSession==='function') setSession(_s);
   buildSidebar();
   loadDashboard();
   hideLoading();
@@ -869,9 +872,24 @@ async function loadEnligneDashboard(){
 
 async function loadEtudDashboard(){
   const el = document.getElementById('page-dashboard');
-  // Délégation à espace-etudiant.js (V27 — chargerTableauBord ou renderAccueil)
-  if(typeof renderAccueil === 'function') { try{ renderAccueil(_s); }catch(e){ el.innerHTML = buildWelcomeEtud(); } }
-  else el.innerHTML = buildWelcomeEtud();
+  el.innerHTML='<div style="padding:40px;text-align:center;color:var(--w3)"><div style="font-size:32px;margin-bottom:12px">⏳</div>Chargement…</div>';
+  try{
+    const db2=getDBv30();
+    const [notesRes,absRes,paiRes,etuRes]=await Promise.all([
+      db2.from('notes').select('*').eq('matricule',_s.matricule).catch(()=>({data:[]})),
+      db2.from('absences').select('*').eq('matricule',_s.matricule).catch(()=>({data:[]})),
+      db2.from('paiements').select('*').eq('matricule',_s.matricule).catch(()=>({data:[]})),
+      db2.from('etudiants').select('*').eq('matricule',_s.matricule).single().catch(()=>({data:null})),
+    ]);
+    if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
+    window._adminData.notes=notesRes.data||[];
+    window._adminData.absences=absRes.data||[];
+    window._adminData.paiements=paiRes.data||[];
+    if(etuRes.data) window._adminData.etudiants=[etuRes.data];
+    window._sessionUser={..._s,...(etuRes.data||{})};
+    if(typeof renderAccueil==='function') renderAccueil(window._sessionUser);
+    else el.innerHTML=buildWelcomeEtud();
+  }catch(e){ console.error('[V31] loadEtudDashboard:',e); el.innerHTML=buildWelcomeEtud(); }
 }
 
 function buildWelcomeEtud(){
@@ -933,14 +951,24 @@ async function loadAdmDashboard(){
     document.head.appendChild(style);
   }
 
-  // Déléguer à loadAdminDashboard (V27 — charge les données + appelle renderAdminDashboard)
+  // Charger _adminData AVANT d'appeler le code V27 (évite "Cannot set innerHTML of null")
   try{
-    if(typeof loadAdminDashboard === 'function'){
-      await loadAdminDashboard();
-    }
+    const db2 = getDBv30();
+    const [cpt,etud,insc,cmd] = await Promise.all([
+      db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500).catch(()=>({data:[]})),
+      db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500).catch(()=>({data:[]})),
+      db2.from('inscriptions').select('id,prenom,nom,telephone,email,filiere,type_inscription,statut,reference,note_admin,paiement,lu,ville,message,created_at').order('created_at',{ascending:false}).limit(300).catch(()=>({data:[]})),
+      db2.from('commandes_marketplace').select('id,statut,total_fcfa,prenom,nom,created_at').order('created_at',{ascending:false}).limit(200).catch(()=>({data:[]})),
+    ]);
+    window._adminData = {
+      comptes:cpt.data||[], etudiants:etud.data||[],
+      notes:[], inscriptions:insc.data||[], commandes:cmd.data||[]
+    };
+    if(typeof renderAdminDashboard==='function') renderAdminDashboard(window._adminData);
   }catch(e){
-    console.error('[V30] loadAdmDashboard:', e);
-    toast('⚠️ Erreur chargement dashboard admin');
+    console.error('[V31] loadAdmDashboard:',e);
+    const el=document.getElementById('page-dashboard');
+    if(el) el.innerHTML='<div style="padding:40px;text-align:center;color:rgba(255,255,255,.5)"><div style="font-size:48px;margin-bottom:16px">⚠️</div>Erreur chargement. <a onclick="loadAdmDashboard()" style="color:var(--or);cursor:pointer;font-weight:700">Réessayer</a></div>';
   }
 }
 
@@ -1066,29 +1094,54 @@ async function afficherContenu(module, onglet){
   const db = getDBv30();
 
   if(onglet==='cours'){
-    const { data:mc } = await db.from('modules_cours').select('description,contenu_texte').eq('id',module.id).single();
-    // Chercher aussi les ressources vidéo/texte
-    const { data:ressources } = await db.from('ressources_module').select('*').eq('module_id',module.id).order('ordre');
-    const texteRes = (ressources||[]).find(r=>r.type==='texte'||r.type==='text');
-    const videoRes = (ressources||[]).find(r=>r.type==='video');
-    
-    let html = '';
-    // Vidéo en premier si présente
-    if(videoRes&&(videoRes.contenu_url||videoRes.url)){
-      const url = videoRes.contenu_url||videoRes.url;
-      const ytId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
-      if(ytId) html += `<div style="position:relative;padding-bottom:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:24px"><iframe src="https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none"></iframe></div>`;
+    const {data:mc}=await db.from('modules_cours').select('*').eq('id',module.id).single().catch(()=>({data:{}}));
+    const {data:ressources}=await db.from('ressources_module').select('*').eq('module_id',module.id).order('ordre').catch(()=>({data:[]}));
+    const videoRes=(ressources||[]).find(r=>r.type==='video');
+    const pdfRes=(ressources||[]).find(r=>r.type==='pdf');
+
+    let ch='';
+    // 1. Vidéo YouTube
+    const videoUrl=videoRes?.contenu_url||videoRes?.url||mc?.video_url||mc?.contenu_url;
+    if(videoUrl){
+      const ytId=videoUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      if(ytId) ch+='<div style="position:relative;padding-bottom:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:24px;box-shadow:0 4px 20px rgba(0,0,0,.2)"><iframe src="https://www.youtube.com/embed/'+ytId+'?rel=0&modestbranding=1&color=white" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none"></iframe></div>';
     }
-    const contenu = texteRes?.contenu_texte || mc?.contenu_texte || mc?.description || module.description || '<p>Contenu en cours de préparation par l\'équipe pédagogique EPPRIDAD.</p>';
-    html += `<div class="rich-content">${contenu}</div>`;
-    container.innerHTML = html;
+    // 2. Contenu texte: contenu_html > contenu_texte > description
+    const contenu=mc?.contenu_html||mc?.contenu_texte||mc?.description||module.description||"<p>Contenu en cours de préparation par l'équipe pédagogique EPPRIDAD.</p>";
+    ch+='<div class="rich-content">'+contenu+'</div>';
+    // 3. PDF
+    const pdfUrl=pdfRes?.contenu_url||pdfRes?.url||mc?.pdf_url;
+    if(pdfUrl) ch+='<div style="margin-top:20px;padding:16px 20px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;display:flex;align-items:center;gap:14px"><span style="font-size:28px">📄</span><div style="flex:1"><div style="font-weight:700;color:#166534;margin-bottom:3px">Guide PDF</div><div style="font-size:13px;color:#4d7c0f">Télécharger le guide complet</div></div><a href="'+escH(pdfUrl)+'" target="_blank" style="background:#16a34a;color:#fff;border-radius:9px;padding:9px 18px;font-weight:700;font-size:13px;text-decoration:none">⬇ Télécharger</a></div>';
+    // 4. Exercices depuis exercices_modules
+    const {data:exos}=await db.from('exercices_modules').select('titre,situation,contenu_html').eq('module_id',module.id).order('ordre').catch(()=>({data:[]}));
+    if(exos&&exos.length){
+      ch+='<div style="margin-top:24px;padding:18px 20px;background:#fefce8;border:1px solid #fde68a;border-radius:12px">';
+      ch+='<div style="font-size:14px;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">✏️ Exercice pratique</div>';
+      exos.forEach(ex=>{
+        if(ex.situation) ch+='<div style="background:#fff;border-radius:8px;padding:12px;margin-bottom:8px;border-left:4px solid #f59e0b"><strong style="color:#92400e">Mise en situation :</strong> '+escH(ex.situation)+'</div>';
+        if(ex.contenu_html) ch+='<div class="rich-content" style="font-size:14px">'+ex.contenu_html+'</div>';
+      });
+      ch+='</div>';
+    }
+    container.innerHTML=ch;
     trackLecture(module.id);
   }
 
   if(onglet==='exercice'){
-    const { data:res } = await db.from('ressources_module').select('*').eq('module_id',module.id).eq('type','exercice').single().catch(()=>({data:null}));
-    const { data:soum } = await db.from('soumissions_exercices').select('statut,note_admin').eq('matricule',_s.matricule).eq('module_id',module.id).single().catch(()=>({data:null}));
-    const contenu = res?.contenu_texte||'<p>Exercice en cours de préparation.</p>';
+    const {data:exoMods}=await db.from('exercices_modules').select('*').eq('module_id',module.id).order('ordre').catch(()=>({data:[]}));
+    const {data:resExo}=(exoMods&&exoMods.length)?{data:[]}:await db.from('ressources_module').select('*').eq('module_id',module.id).eq('type','exercice').limit(1).catch(()=>({data:[]}));
+    const {data:soum}=await db.from('soumissions_exercices').select('statut,note_admin').eq('matricule',_s.matricule).eq('module_id',module.id).single().catch(()=>({data:null}));
+    let contenu="<p>Exercice en cours de préparation par l'équipe pédagogique.</p>";
+    if(exoMods&&exoMods.length){
+      contenu=exoMods.map(ex=>{
+        let c='';
+        if(ex.situation) c+='<div style="background:#fff8e1;border-left:4px solid #f59e0b;padding:14px 16px;border-radius:0 10px 10px 0;margin-bottom:16px"><strong style="color:#92400e">📍 Mise en situation :</strong><br>'+escH(ex.situation)+'</div>';
+        c+=ex.contenu_html||('<p><strong>'+escH(ex.titre)+'</strong></p>');
+        return c;
+      }).join('');
+    } else if(resExo&&resExo.length){
+      contenu=resExo[0]?.contenu_html||resExo[0]?.contenu_texte||contenu;
+    }
     let statusHTML = '';
     if(soum){
       const sc = {soumis:{cls:'b-gold',t:'⏳ Exercice soumis — en attente de correction'},valide:{cls:'b-green',t:'✅ Validé par le formateur'},rejete:{cls:'b-red',t:'🔄 Retourné pour correction'}};
@@ -1398,7 +1451,17 @@ async function loadAdmComptes(){
         <tbody id="studentsTableBody"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--w3)">Chargement…</td></tr></tbody>
       </table></div>
     </div>`;
-  if(typeof loadAdminStudents==='function') await loadAdminStudents();
+  try{
+    const db2=getDBv30();
+    const [etudRes,cptRes]=await Promise.all([
+      db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500),
+      db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500),
+    ]);
+    if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
+    window._adminData.etudiants=etudRes.data||[];
+    window._adminData.comptes=cptRes.data||[];
+    if(typeof loadAdminStudents==='function') await loadAdminStudents();
+  }catch(e){ console.error('[V31] loadAdmComptes:',e); document.getElementById('studentsTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--rd)">Erreur. <button onclick="loadAdmComptes()" style="color:var(--or);background:none;border:none;cursor:pointer;font-weight:700">Réessayer</button></td></tr>'; }
 }
 async function loadAdmFormations(){
   setTitle('Formations en ligne','Administration'); showPage('page-adm-formations');
@@ -1492,6 +1555,45 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // SW
   if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});
 });
+
+async function voirModulesFormation(formId,formTitre){
+  const {data:mods}=await getDBv30().from('modules_cours').select('*').eq('formation_id',formId).order('ordre').catch(()=>({data:[]}));
+  const modal=document.getElementById('activationModal');
+  const content=document.getElementById('activationModalContent');
+  if(!modal||!content){toast('Erreur modale'); return;}
+  content.style.cssText='background:#fff;border-radius:16px;padding:24px;max-width:560px;width:100%;color:#1a1a1a;max-height:90vh;overflow-y:auto';
+  const modHtml=(mods||[]).map(m=>`<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:10px">
+    <div style="font-weight:700;color:#07120e;margin-bottom:10px">Module ${m.ordre} — ${escH(m.titre)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px">▶ Vidéo YouTube</label>
+      <input type="text" id="vid-${m.id}" value="${escH(m.video_url||m.contenu_url||'')}" placeholder="https://youtube.com/watch?v=..." style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:7px;font-size:12px;outline:none"></div>
+      <div><label style="font-size:11px;font-weight:700;color:#6b7280;display:block;margin-bottom:4px">📄 PDF (Google Drive)</label>
+      <input type="text" id="pdf-${m.id}" value="${escH(m.pdf_url||'')}" placeholder="https://drive.google.com/..." style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:7px;font-size:12px;outline:none"></div>
+    </div>
+    <button onclick="sauvegarderModuleURLs('${m.id}',this)" style="margin-top:8px;background:#16503f;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">💾 Sauvegarder</button>
+  </div>`).join('') || '<div style="text-align:center;padding:20px;color:#6b7280">Aucun module pour cette formation.</div>';
+  content.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:16px;font-weight:800">📋 ${escH(formTitre)}</div><button onclick="document.getElementById('activationModal').classList.remove('open')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#6b7280">✕</button></div><p style="font-size:13px;color:#6b7280;margin-bottom:14px">Ajoutez les URLs vidéo YouTube et PDF par module.</p>${modHtml}`;
+  modal.classList.add('open');
+}
+
+async function sauvegarderModuleURLs(moduleId,btn){
+  const vidUrl=document.getElementById('vid-'+moduleId)?.value.trim()||null;
+  const pdfUrl=document.getElementById('pdf-'+moduleId)?.value.trim()||null;
+  try{
+    await getDBv30().from('modules_cours').update({video_url:vidUrl||null,pdf_url:pdfUrl||null,contenu_url:vidUrl||null}).eq('id',moduleId);
+    toast('✅ URLs sauvegardées !');
+    if(btn){btn.textContent='✅ Sauvegardé';btn.style.background='#2e7d52';setTimeout(()=>{btn.textContent='💾 Sauvegarder';btn.style.background='#16503f';},2000);}
+  }catch(e){toast('❌ Erreur: '+e.message);}
+}
+
+async function togglePublicationFormation(formId,estPublie){
+  try{
+    await getDBv30().from('formations_enligne').update({publie:!estPublie}).eq('id',formId);
+    toast(!estPublie?'✅ Formation publiée !':'⬇ Formation dépubliée');
+    loadAdmFormations();
+  }catch(e){toast('❌ '+e.message);}
+}
+
 </script>
 
 <!-- IDs requis par espace-etudiant.js V27 — injectés globalement -->

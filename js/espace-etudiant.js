@@ -68,7 +68,7 @@ async function doLogin(){
     if(acc.role==='enligne'){
       // Apprenant cours en ligne → rediriger vers son espace dédié
       sessionStorage.setItem('cours_matricule', id);
-      window.location.href = 'cours-etudiant.html';
+      window.location.href = 'espace-etudiant.html';
       return;
     }
     setSession({id, role: acc.role||'etudiant'});
@@ -336,7 +336,7 @@ function toggleSidebar(){
 function buildAccueilEnligneHTML(e){
   const prenom = (e.nom||e.id||'Apprenant').split(' ')[0];
   const cards = [
-    {ico:'🎓',lbl:'Mes cours',sub:'Accès immédiat',fn:"window.open('cours-etudiant.html','_blank')"},
+    {ico:'🎓',lbl:'Mes cours',sub:'Accès immédiat',fn:"window.open('espace-etudiant.html','_blank')"},
     {ico:'📚',lbl:'Bibliothèque',sub:'Ressources PDF',fn:"sPanel('library',null)"},
     {ico:'💬',lbl:'Messages',sub:'Notifications',fn:"sPanel('messages',null)"},
     {ico:'👤',lbl:'Mon compte',sub:'Paramètres',fn:"sPanel('compte',null)"}
@@ -363,7 +363,7 @@ function buildAccueilEnligneHTML(e){
   html += '<div style="font-size:clamp(16px,2.2vw,21px);font-weight:800;color:#fff;line-height:1.25;margin-bottom:10px">Bienvenue dans la famille <span style="color:#C9A84C">EPPRIDAD</span>, '+prenom+' 👋</div>';
   html += '<div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.75;max-width:520px;margin-bottom:18px">Que vous suiviez une formation en ligne, une formation courte ou un cursus diplômant — EPPRIDAD vous accompagne vers l’excellence professionnelle au Niger et au Sahel.</div>';
   html += '<div style="display:flex;gap:10px;flex-wrap:wrap">';
-  html += '<button onclick="window.open(&quot;cours-etudiant.html&quot;,&quot;_blank&quot;)" style="background:linear-gradient(135deg,#C9A84C,#e4c06a);color:#07120e;border:none;border-radius:11px;padding:11px 22px;font-size:13.5px;font-weight:800;cursor:pointer;font-family:inherit">&#127891; Accéder à mes cours</button>';
+  html += '<button onclick="window.open(&quot;espace-etudiant.html&quot;,&quot;_blank&quot;)" style="background:linear-gradient(135deg,#C9A84C,#e4c06a);color:#07120e;border:none;border-radius:11px;padding:11px 22px;font-size:13.5px;font-weight:800;cursor:pointer;font-family:inherit">&#127891; Accéder à mes cours</button>';
   html += '<a href="https://wa.me/22799851532" target="_blank" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:11px;padding:11px 18px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px;text-decoration:none">💬 Contacter EPPRIDAD</a>';
   html += '</div></div></div>';
 
@@ -460,7 +460,7 @@ function renderAccueil(e){
       <div style="margin-bottom:16px">
         <div style="font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Accès rapide</div>
         <div class="quick-access">
-          <div class="qa-card" onclick="window.open('cours-etudiant.html','_blank')">
+          <div class="qa-card" onclick="window.open('espace-etudiant.html','_blank')">
             <div class="qa-icon">🎓</div><div class="qa-label">Mes cours</div>
           </div>
           <div class="qa-card" onclick="sPanel('library',null)">
@@ -481,7 +481,7 @@ function renderAccueil(e){
             <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:4px">Votre espace de formation EPPRIDAD</div>
             <div style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.5">Apprenez à votre rythme, où que vous soyez. Vos cours, exercices et certificats sont disponibles 24h/24.</div>
           </div>
-          <button onclick="window.open('cours-etudiant.html','_blank')" style="background:var(--accent);color:#1a1a1a;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+          <button onclick="window.open('espace-etudiant.html','_blank')" style="background:var(--accent);color:#1a1a1a;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
             Accéder à mes cours →
           </button>
         </div>
@@ -1744,7 +1744,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     _sessionUser=sess;
     if(sess.role==='admin'){await loadAdminDashboard();showPage('admin-page');}
     else if(sess.role==='enligne'){
-      // Les apprenants en ligne → leur espace est cours-etudiant.html, pas ici
+      // Les apprenants en ligne → leur espace est espace-etudiant.html, pas ici
       clearSession();
       showPage('auth-page');
     }
@@ -2155,7 +2155,7 @@ function showActivationModal({prenom, nom, matricule, pwd, formId, waUrl, tel, e
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border-radius:9px;padding:8px 14px">
             <span style="font-size:11px;color:rgba(255,255,255,.4)">Portail</span>
-            <span style="font-size:11px;color:rgba(255,255,255,.4);font-family:monospace">cours-etudiant.html</span>
+            <span style="font-size:11px;color:rgba(255,255,255,.4);font-family:monospace">espace-etudiant.html</span>
           </div>
           ${!formId ? '<div style="background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.3);border-radius:9px;padding:9px 14px;font-size:12px;color:#ffd54f;margin-top:4px">⚠️ Formation non identifiée — à assigner manuellement dans « Accès apprenants »</div>' : ''}
         </div>
@@ -2171,7 +2171,7 @@ function showActivationModal({prenom, nom, matricule, pwd, formId, waUrl, tel, e
           💬 Envoyer les identifiants par WhatsApp
         </a>
         <div style="display:flex;gap:8px">
-          <button onclick="navigator.clipboard&&navigator.clipboard.writeText('Identifiant: ${matricule}\nMot de passe: ${pwd}\nPortail: https://www.eppridad.com/cours-etudiant.html').then(()=>showToast('✅ Identifiants copiés !'))"
+          <button onclick="navigator.clipboard&&navigator.clipboard.writeText('Identifiant: ${matricule}\nMot de passe: ${pwd}\nPortail: https://www.eppridad.com/espace-etudiant.html').then(()=>showToast('✅ Identifiants copiés !'))"
             style="flex:1;background:#e8f5f0;border:1px solid rgba(22,80,63,.2);color:#16503f;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
             📋 Copier les identifiants
           </button>
@@ -2278,7 +2278,7 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
         '🎓 Votre accès EPPRIDAD est activé',
         'Bonjour '+prenom+',\n\nVotre accès EPPRIDAD est activé !\n\n'+
         '🔑 Identifiant : '+matricule+'\n🔐 Mot de passe : '+pwd+'\n\n'+
-        '🔗 https://www.eppridad.com/cours-etudiant.html\n\n'+
+        '🔗 https://www.eppridad.com/espace-etudiant.html\n\n'+
         '📞 +227 99 85 15 32 — Bonne formation ! 🎓'
       ).catch(()=>{});
     }
@@ -2292,7 +2292,7 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
       'Votre accès à la plateforme de formation en ligne EPPRIDAD est maintenant activé !\n\n'+
       '🔑 *Identifiant* : '+matricule+'\n'+
       '🔐 *Mot de passe* : '+pwd+'\n\n'+
-      '🔗 Connectez-vous ici :\nhttps://www.eppridad.com/cours-etudiant.html\n\n'+
+      '🔗 Connectez-vous ici :\nhttps://www.eppridad.com/espace-etudiant.html\n\n'+
       '📚 Bonne formation ! Pour toute question : +227 99 85 15 32\n'+
       '🎓 L\'équipe EPPRIDAD'
     );

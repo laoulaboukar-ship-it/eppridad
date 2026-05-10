@@ -51,7 +51,7 @@ async function emailAccesAccorde(to_email, to_name, matricule, formation_titre, 
     `   Identifiant : ${matricule}\n` +
     `   Mot de passe : ${mot_de_passe}\n\n` +
     `🔗 ACCÉDER À VOS COURS\n` +
-    `   https://www.eppridad.com/cours-etudiant.html\n\n` +
+    `   https://www.eppridad.com/espace-etudiant.html\n\n` +
     `${expiry}\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `EPPRIDAD — École Professionnelle de Pratiques et de Recherche\n` +
@@ -102,7 +102,7 @@ async function emailCorrectionExercice(to_email, to_name, statut, note_admin, fo
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `${note_admin ? `\n💬 COMMENTAIRE DU FORMATEUR\n"${note_admin}"\n` : ''}\n` +
     `🔗 Accédez à votre espace pour voir le détail :\n` +
-    `   https://www.eppridad.com/cours-etudiant.html\n\n` +
+    `   https://www.eppridad.com/espace-etudiant.html\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `EPPRIDAD — 📞 +227 99 85 15 32 | ✉️ eppridad@gmail.com\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
