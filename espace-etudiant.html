@@ -618,6 +618,17 @@ let _cours = { formationId:null, modules:[], moduleIdx:0, onglet:'cours', quizRe
 let _adminData = { comptes:[], inscriptions:[], formations:[], commandes:[] };
 
 // ── SUPABASE CLIENT (SDK officiel v2) ────────────────────────
+// ── Helper Supabase SDK v2 — compatible avec Promise + fallback ──
+async function sdb(queryFn, fallback){
+  try{
+    const result = await queryFn;
+    return result?.data ?? fallback;
+  }catch(e){
+    console.warn('[EPPRIDAD] Query error:', e?.message);
+    return fallback;
+  }
+}
+
 function getDBv30(){
   if(!_db) _db = supabase.createClient(SUPA_URL, SUPA_KEY);
   return _db;
@@ -875,12 +886,11 @@ async function loadEtudDashboard(){
   el.innerHTML='<div style="padding:40px;text-align:center;color:var(--w3)"><div style="font-size:32px;margin-bottom:12px">⏳</div>Chargement…</div>';
   try{
     const db2=getDBv30();
-    const [notesRes,absRes,paiRes,etuRes]=await Promise.all([
-      db2.from('notes').select('*').eq('matricule',_s.matricule).catch(()=>({data:[]})),
-      db2.from('absences').select('*').eq('matricule',_s.matricule).catch(()=>({data:[]})),
-      db2.from('paiements').select('*').eq('matricule',_s.matricule).catch(()=>({data:[]})),
-      db2.from('etudiants').select('*').eq('matricule',_s.matricule).single().catch(()=>({data:null})),
-    ]);
+    // SDK v2 : requêtes séquentielles avec destructuring { data, error }
+    const notesRes = await db2.from('notes').select('*').eq('matricule',_s.matricule);
+    const absRes   = await db2.from('absences').select('*').eq('matricule',_s.matricule);
+    const paiRes   = await db2.from('paiements').select('*').eq('matricule',_s.matricule);
+    const etuRes   = await db2.from('etudiants').select('*').eq('matricule',_s.matricule).single();
     if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
     window._adminData.notes=notesRes.data||[];
     window._adminData.absences=absRes.data||[];
@@ -954,15 +964,18 @@ async function loadAdmDashboard(){
   // Charger _adminData AVANT d'appeler le code V27 (évite "Cannot set innerHTML of null")
   try{
     const db2 = getDBv30();
-    const [cpt,etud,insc,cmd] = await Promise.all([
-      db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500).catch(()=>({data:[]})),
-      db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500).catch(()=>({data:[]})),
-      db2.from('inscriptions').select('id,prenom,nom,telephone,email,filiere,type_inscription,statut,reference,note_admin,paiement,lu,ville,message,created_at').order('created_at',{ascending:false}).limit(300).catch(()=>({data:[]})),
-      db2.from('commandes_marketplace').select('id,statut,total_fcfa,prenom,nom,created_at').order('created_at',{ascending:false}).limit(200).catch(()=>({data:[]})),
-    ]);
+    // SDK Supabase v2 : chaque query retourne {data, error} — pas de .catch() chaîné
+    // SDK v2 : requêtes séquentielles (Promise.all incompatible avec SDK Supabase v2)
+    const cptRes  = await db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500);
+    const etudRes = await db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500);
+    const inscRes = await db2.from('inscriptions').select('id,prenom,nom,telephone,email,filiere,type_inscription,statut,reference,note_admin,paiement,lu,ville,message,created_at').order('created_at',{ascending:false}).limit(300);
+    const cmdRes  = await db2.from('commandes_marketplace').select('id,statut,total_fcfa,prenom,nom,created_at').order('created_at',{ascending:false}).limit(200);
     window._adminData = {
-      comptes:cpt.data||[], etudiants:etud.data||[],
-      notes:[], inscriptions:insc.data||[], commandes:cmd.data||[]
+      comptes:    cptRes.data||[],
+      etudiants:  etudRes.data||[],
+      notes:      [],
+      inscriptions: inscRes.data||[],
+      commandes:  cmdRes.data||[],
     };
     if(typeof renderAdminDashboard==='function') renderAdminDashboard(window._adminData);
   }catch(e){
@@ -1094,8 +1107,8 @@ async function afficherContenu(module, onglet){
   const db = getDBv30();
 
   if(onglet==='cours'){
-    const {data:mc}=await db.from('modules_cours').select('*').eq('id',module.id).single().catch(()=>({data:{}}));
-    const {data:ressources}=await db.from('ressources_module').select('*').eq('module_id',module.id).order('ordre').catch(()=>({data:[]}));
+    const {data:mc}=await db.from('modules_cours').select('*').eq('id',module.id).single();
+    const {data:ressources}=await db.from('ressources_module').select('*').eq('module_id',module.id).order('ordre');
     const videoRes=(ressources||[]).find(r=>r.type==='video');
     const pdfRes=(ressources||[]).find(r=>r.type==='pdf');
 
@@ -1113,7 +1126,7 @@ async function afficherContenu(module, onglet){
     const pdfUrl=pdfRes?.contenu_url||pdfRes?.url||mc?.pdf_url;
     if(pdfUrl) ch+='<div style="margin-top:20px;padding:16px 20px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;display:flex;align-items:center;gap:14px"><span style="font-size:28px">📄</span><div style="flex:1"><div style="font-weight:700;color:#166534;margin-bottom:3px">Guide PDF</div><div style="font-size:13px;color:#4d7c0f">Télécharger le guide complet</div></div><a href="'+escH(pdfUrl)+'" target="_blank" style="background:#16a34a;color:#fff;border-radius:9px;padding:9px 18px;font-weight:700;font-size:13px;text-decoration:none">⬇ Télécharger</a></div>';
     // 4. Exercices depuis exercices_modules
-    const {data:exos}=await db.from('exercices_modules').select('titre,situation,contenu_html').eq('module_id',module.id).order('ordre').catch(()=>({data:[]}));
+    const {data:exos}=await db.from('exercices_modules').select('titre,situation,contenu_html').eq('module_id',module.id).order('ordre');
     if(exos&&exos.length){
       ch+='<div style="margin-top:24px;padding:18px 20px;background:#fefce8;border:1px solid #fde68a;border-radius:12px">';
       ch+='<div style="font-size:14px;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">✏️ Exercice pratique</div>';
@@ -1128,9 +1141,9 @@ async function afficherContenu(module, onglet){
   }
 
   if(onglet==='exercice'){
-    const {data:exoMods}=await db.from('exercices_modules').select('*').eq('module_id',module.id).order('ordre').catch(()=>({data:[]}));
-    const {data:resExo}=(exoMods&&exoMods.length)?{data:[]}:await db.from('ressources_module').select('*').eq('module_id',module.id).eq('type','exercice').limit(1).catch(()=>({data:[]}));
-    const {data:soum}=await db.from('soumissions_exercices').select('statut,note_admin').eq('matricule',_s.matricule).eq('module_id',module.id).single().catch(()=>({data:null}));
+    const {data:exoMods}=await db.from('exercices_modules').select('*').eq('module_id',module.id).order('ordre');
+    const {data:resExo}=(exoMods&&exoMods.length)?{data:[]}:await db.from('ressources_module').select('*').eq('module_id',module.id).eq('type','exercice').limit(1);
+    const {data:soum}=await db.from('soumissions_exercices').select('statut,note_admin').eq('matricule',_s.matricule).eq('module_id',module.id).single();
     let contenu="<p>Exercice en cours de préparation par l'équipe pédagogique.</p>";
     if(exoMods&&exoMods.length){
       contenu=exoMods.map(ex=>{
@@ -1256,7 +1269,7 @@ async function validerQuiz(questions, moduleId){
   // Sauvegarder
   const { data:prev } = await getDBv30().from('resultats_quiz').select('tentative').eq('matricule',_s.matricule).eq('module_id',moduleId).order('created_at',{ascending:false}).limit(1);
   const tent = (prev?.[0]?.tentative||0)+1;
-  await getDBv30().from('resultats_quiz').insert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,score,score_max:questions.length,pourcentage:pct,reussi,tentative:tent}).catch(()=>{});
+  await getDBv30().from('resultats_quiz').insert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,score,score_max:questions.length,pourcentage:pct,reussi,tentative:tent});
   
   const resEl = document.getElementById('quiz-result');
   if(resEl){
@@ -1277,7 +1290,7 @@ async function validerQuiz(questions, moduleId){
 }
 
 async function marquerTermine(moduleId){
-  await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:true,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id',ignoreDuplicates:false}).catch(()=>{});
+  await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:true,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id'});
   toast('✅ Module complété !');
   await buildSidebarModules();
   const ni = _cours.moduleIdx+1;
@@ -1286,7 +1299,7 @@ async function marquerTermine(moduleId){
 }
 
 async function trackLecture(moduleId){
-  await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:false,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id',ignoreDuplicates:true}).catch(()=>{});
+  await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:false,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id'});
 }
 
 function goModule(dir){
@@ -1298,7 +1311,7 @@ function goModule(dir){
 // ── CERTIFICAT ───────────────────────────────────────────────
 async function afficherCertificat(){
   const db = getDBv30();
-  const { data:existing } = await db.from('certificats').select('*').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId).single().catch(()=>({data:null}));
+  const { data:existing } = await db.from('certificats').select('*').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId).single();
   
   let cert = existing;
   if(!cert){
@@ -1310,7 +1323,7 @@ async function afficherCertificat(){
     const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let suf=''; for(let i=0;i<6;i++) suf+=charset[Math.floor(Math.random()*charset.length)];
     const num = `CERT-${new Date().getFullYear()}-EPP-${suf}`;
-    const { data:newCert } = await db.from('certificats').insert({matricule:_s.matricule,formation_id:_cours.formationId,numero:num,nom_apprenant:_s.nom||_s.matricule,score_final:Math.round(avg*10)/10,mention,valide:true,date_emission:new Date().toISOString()}).select().single().catch(()=>({data:null}));
+    const { data:newCert } = await db.from('certificats').insert({matricule:_s.matricule,formation_id:_cours.formationId,numero:num,nom_apprenant:_s.nom||_s.matricule,score_final:Math.round(avg*10)/10,mention,valide:true,date_emission:new Date().toISOString()}).select().single();
     cert = newCert || {numero:num,nom_apprenant:_s.nom,mention,score_final:Math.round(avg*10)/10,date_emission:new Date().toISOString()};
   }
 
@@ -1453,10 +1466,9 @@ async function loadAdmComptes(){
     </div>`;
   try{
     const db2=getDBv30();
-    const [etudRes,cptRes]=await Promise.all([
-      db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500),
-      db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500),
-    ]);
+    // SDK v2 : requêtes séquentielles
+    const etudRes = await db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500);
+    const cptRes  = await db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500);
     if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
     window._adminData.etudiants=etudRes.data||[];
     window._adminData.comptes=cptRes.data||[];
@@ -1553,11 +1565,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
     hideLoading();
   }
   // SW
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js',{scope:'/'});
 });
 
 async function voirModulesFormation(formId,formTitre){
-  const {data:mods}=await getDBv30().from('modules_cours').select('*').eq('formation_id',formId).order('ordre').catch(()=>({data:[]}));
+  const {data:mods}=await getDBv30().from('modules_cours').select('*').eq('formation_id',formId).order('ordre');
   const modal=document.getElementById('activationModal');
   const content=document.getElementById('activationModalContent');
   if(!modal||!content){toast('Erreur modale'); return;}

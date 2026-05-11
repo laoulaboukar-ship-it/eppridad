@@ -74,7 +74,7 @@ async function doLogin(){
     setSession({id, role: acc.role||'etudiant'});
     _sessionUser = {id, role: acc.role||'etudiant'};
     await loadStudentDashboard(id);
-    showPage('student-page');
+    // student-page remplacé par page-dashboard en V31
   } catch(e) {
     err.textContent=e.message;err.classList.add('show');
   } finally {
@@ -1647,9 +1647,10 @@ async function impersonateStudent(matricule){
   _impersonating=true;
   showLoadingOverlay(true,'Chargement du profil…');
   await loadStudentDashboard(matricule);
-  showPage('student-page');
+  // student-page remplacé par page-dashboard en V31
   showLoadingOverlay(false);
-  document.getElementById('impersonateBar').style.display='flex';
+  const impBar=document.getElementById('impersonateBar');
+  if(impBar) impBar.style.display='flex';
   const data=window._adminData||{};
   const e=(data.etudiants||[]).find(x=>x.matricule===matricule);
   document.getElementById('impersonateName').textContent=(e?`${e.nom} ${e.prenom}`:'')+'  ('+matricule+')';
@@ -1748,7 +1749,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
       clearSession();
       showPage('auth-page');
     }
-    else if(sess.role==='etudiant'||sess.role==='student'){await loadStudentDashboard(sess.id);showPage('student-page');}
+    else if(sess.role==='etudiant'||sess.role==='student'){await loadStudentDashboard(sess.id);}
     else{clearSession();showPage('auth-page');}
   }
   // Clavier
