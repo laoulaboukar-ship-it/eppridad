@@ -1266,7 +1266,9 @@ function loadAdminStudents(filter=''){
     e.nom.toLowerCase().includes(filter.toLowerCase())||
     e.prenom.toLowerCase().includes(filter.toLowerCase())||
     e.matricule.toLowerCase().includes(filter.toLowerCase()));
-  document.getElementById('studentsTableBody').innerHTML=rows.map(e=>{
+  const stbody=document.getElementById('studentsTableBody');
+  if(!stbody) return;
+  stbody.innerHTML=rows.map(e=>{
     const acc=compteMap[e.matricule];
     const isExpired=acc&&acc.statut==='actif'&&acc.expiry_date&&new Date(acc.expiry_date)<new Date();
     const st=acc?isExpired?'expired':acc.statut==='actif'?'active':acc.statut==='pending'?'pending':acc.statut:'none';
