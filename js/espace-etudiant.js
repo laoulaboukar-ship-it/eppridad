@@ -1655,11 +1655,12 @@ async function impersonateStudent(matricule){
   if(impBar) impBar.style.display='flex';
   const data=window._adminData||{};
   const e=(data.etudiants||[]).find(x=>x.matricule===matricule);
-  document.getElementById('impersonateName').textContent=(e?`${e.nom} ${e.prenom}`:'')+'  ('+matricule+')';
+  const impName=document.getElementById('impersonateName');
+  if(impName) impName.textContent=(e?`${e.nom} ${e.prenom}`:'')+'  ('+matricule+')';
 }
 function exitImpersonate(){
   _impersonating=false;
-  document.getElementById('impersonateBar').style.display='none';
+  const _ib=document.getElementById('impersonateBar');if(_ib)_ib.style.display='none';
   loadAdminDashboard();
   showPage('admin-page');
 }
