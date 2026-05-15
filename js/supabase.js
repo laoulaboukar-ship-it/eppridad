@@ -108,6 +108,42 @@ async function emailCorrectionExercice(to_email, to_name, statut, note_admin, fo
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 }
 
+async function emailValidationPreInscription(to_email, to_name, reference, filiere) {
+  if(!to_email) return false;
+  const prenom = (to_name||'').split(' ')[0] || to_name;
+  return sendEmailJS(to_email, to_name,
+    `✅ Pré-inscription reçue — EPPRIDAD (Réf: ${reference})`,
+    `Bonjour ${prenom},\n\n` +
+    `Nous avons bien reçu votre pré-inscription à EPPRIDAD et nous vous en remercions.\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `VOTRE DOSSIER\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `Référence    : ${reference}\n` +
+    `Formation    : ${filiere||'—'}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `PROCHAINES ÉTAPES\n\n` +
+    `Pour finaliser votre inscription, veuillez nous faire parvenir les éléments suivants :\n\n` +
+    `📄 DOCUMENTS REQUIS\n` +
+    `   • Acte de naissance\n` +
+    `   • Certificat de nationalité\n` +
+    `   • Dernier diplôme obtenu (si applicable)\n\n` +
+    `💳 FRAIS D'INSCRIPTION\n` +
+    `   Montant : 25 000 FCFA (non remboursables)\n\n` +
+    `Vous pouvez nous transmettre vos documents scannés et votre justificatif de paiement\n` +
+    `par email à : eppridad@gmail.com\n\n` +
+    `Ou les déposer directement dans nos locaux :\n` +
+    `📍 EPPRIDAD — Niamey, Niger\n` +
+    `📞 +227 99 85 15 32\n\n` +
+    `Dès réception de votre dossier complet, nous vous confirmerons votre inscription définitive.\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `EPPRIDAD — École Polytechnique Privée d'Agriculture,\n` +
+    `Développement Rural, Irrigation, Développement\n` +
+    `Agropastoral et Diversification\n` +
+    `📞 +227 99 85 15 32 | ✉️ eppridad@gmail.com\n` +
+    `🌐 www.eppridad.com\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+}
+
 // ── CLIENT SUPABASE ──
 const sb = {
   async query(table, options = {}) {

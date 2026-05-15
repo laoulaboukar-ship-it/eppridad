@@ -1646,17 +1646,90 @@ async function deleteAdminPost(id) {
 
 // ── Impersonate ───────────────────────────────────────────────
 async function impersonateStudent(matricule){
-  _impersonating=true;
-  showLoadingOverlay(true,'Chargement du profil…');
-  await loadStudentDashboard(matricule);
-  // student-page remplacé par page-dashboard en V31
-  showLoadingOverlay(false);
-  const impBar=document.getElementById('impersonateBar');
-  if(impBar) impBar.style.display='flex';
+  // V31 : afficher une modal de profil étudiant (pas d'ancien layout V27)
   const data=window._adminData||{};
   const e=(data.etudiants||[]).find(x=>x.matricule===matricule);
-  const impName=document.getElementById('impersonateName');
-  if(impName) impName.textContent=(e?`${e.nom} ${e.prenom}`:'')+'  ('+matricule+')';
+  const acc=(data.comptes||[]).find(x=>x.matricule===matricule);
+
+  // Créer/récupérer la modal
+  let modal=document.getElementById('studentProfileModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='studentProfileModal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.onclick=function(ev){if(ev.target===modal)modal.remove();};
+    document.body.appendChild(modal);
+  }
+
+  // Charger notes et paiements depuis Supabase
+  let notes=[], paiements=[];
+  try{
+    if(e&&e.id){
+      notes=await sb.select('notes',{select:'matiere,note,coefficient,semestre',filters:[{col:'etudiant_id',val:'eq.'+e.id}]}).catch(()=>[]);
+      paiements=await sb.select('paiements',{select:'montant,type_paiement,date_paiement',filters:[{col:'etudiant_id',val:'eq.'+e.id}]}).catch(()=>[]);
+    }
+  }catch(_){}
+
+  const totalVerse=(paiements||[]).filter(p=>p.type_paiement!=='remboursement').reduce((s,p)=>s+parseFloat(p.montant||0),0);
+  const scolarite=parseInt(e?.scolarite_brute||240000)-parseInt(e?.subvention||0);
+  const solde=scolarite-totalVerse;
+
+  const moyNotes=()=>{const valid=(notes||[]).filter(n=>n.note!==null);if(!valid.length)return null;return valid.reduce((s,n)=>s+parseFloat(n.note),0)/valid.length;};
+  const m=moyNotes();
+
+  const expiry=acc?.expiry_date?new Date(acc.expiry_date).toLocaleDateString('fr-FR'):'Illimité';
+  const derAcces=acc?.dernier_acces?new Date(acc.dernier_acces).toLocaleDateString('fr-FR'):'Jamais';
+
+  modal.innerHTML=`
+  <div style="background:var(--v1);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:28px 32px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.6)">
+    <button onclick="document.getElementById('studentProfileModal').remove()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.08);border:none;color:var(--w2);font-size:18px;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--v3),var(--v4));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--or);flex-shrink:0">${(e?.nom?.[0]||'?').toUpperCase()}</div>
+      <div>
+        <div style="font-family:var(--font-disp);font-size:20px;font-weight:700;color:var(--w)">${e?e.nom+' '+e.prenom:matricule}</div>
+        <div style="font-size:12px;color:var(--or);font-weight:700;letter-spacing:.5px">${matricule}</div>
+        <div style="font-size:12px;color:var(--w3);margin-top:2px">${e?.filiere||'—'} · ${e?.niveau||'—'} · Classe ${e?.classe||'—'}</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px">
+        <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Compte</div>
+        <div style="font-size:13px;font-weight:700;color:${acc?.statut==='actif'?'#4caf50':acc?.statut==='pending'?'#ff9800':'var(--w3)'}">${acc?.statut==='actif'?'✅ Actif':acc?.statut==='pending'?'⏳ En attente':'— Aucun'}</div>
+        <div style="font-size:11px;color:var(--w3);margin-top:4px">Expiry : ${expiry}</div>
+        <div style="font-size:11px;color:var(--w3)">Dernier accès : ${derAcces}</div>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px">
+        <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Moyenne</div>
+        <div style="font-size:22px;font-weight:800;color:${m?m>=10?'#4caf50':'var(--rd)':'var(--w3)'}">${m?m.toFixed(2):'—'}</div>
+        <div style="font-size:11px;color:var(--w3);margin-top:4px">${(notes||[]).length} note(s) saisie(s)</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:18px">
+      <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Scolarité</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--w3)">Montant net</span>
+        <span style="font-size:12px;font-weight:700;color:var(--w)">${fmt(scolarite)} FCFA</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--w3)">Versé</span>
+        <span style="font-size:12px;font-weight:700;color:#4caf50">${fmt(totalVerse)} FCFA</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)">
+        <span style="font-size:12px;font-weight:700;color:var(--w)">Solde restant</span>
+        <span style="font-size:14px;font-weight:800;color:${solde<=0?'#4caf50':'var(--rd)'}">${fmt(Math.max(0,solde))} FCFA</span>
+      </div>
+    </div>
+
+    ${e?.telephone||e?.email?`
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${e?.telephone?`<a href="tel:${e.telephone}" style="background:var(--v3);color:var(--w);border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;text-decoration:none">📞 ${e.telephone}</a>`:''}
+      ${e?.telephone?`<a href="https://wa.me/227${e.telephone}?text=${encodeURIComponent('Bonjour '+e.prenom+', EPPRIDAD vous contacte.')}" target="_blank" style="background:#25D366;color:#fff;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;text-decoration:none">💬 WhatsApp</a>`:''}
+      ${e?.email?`<a href="mailto:${e.email}" style="background:rgba(255,255,255,.08);color:var(--w2);border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;text-decoration:none">✉️ Email</a>`:''}
+    </div>`:''}
+  </div>`;
 }
 function exitImpersonate(){
   _impersonating=false;
@@ -2436,8 +2509,15 @@ async function loadInscriptions() {
             <button onclick="quickActiverAcces('${safeStr(i.reference)}','${safeStr(i.prenom)}','${safeStr(i.nom)}','${safeStr(i.telephone)}','${safeStr(i.email)}','${safeStr(i.filiere)}')"
               style="background:linear-gradient(135deg,#0b2f25,#16503f);color:#C9A84C;border:none;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;text-align:center;letter-spacing:.3px;box-shadow:0 4px 14px rgba(22,80,63,.35);transition:all .2s"
               onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-              🔑 Activer l'accès
+              🔑 Activer l'accès en ligne
             </button>`:''}
+            ${i.type_inscription!=='enligne'&&i.statut!=='traite'?`
+            <button onclick="updateInscriptionStatus(${i.id},'traite');if(typeof emailValidationPreInscription==='function')emailValidationPreInscription('${safeStr(i.email)}','${safeStr(i.prenom+' '+i.nom)}','${safeStr(i.reference)}','${safeStr(i.filiere)}');toast('✅ Inscription validée — email envoyé',3500);"
+              style="background:linear-gradient(135deg,#1a3a2a,#2e7d52);color:#a8e6c0;border:none;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;text-align:center;letter-spacing:.3px;box-shadow:0 4px 14px rgba(46,125,82,.3);transition:all .2s"
+              onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+              ✅ Valider l'inscription
+            </button>`:''}
+
 
             <a href="tel:${i.telephone||''}"
               style="background:var(--primary);color:#fff;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;text-decoration:none;text-align:center;transition:all .2s"
