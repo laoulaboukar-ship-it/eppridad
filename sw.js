@@ -1,11 +1,11 @@
 // ════════════════════════════════════════════════════════════
 //  EPPRIDAD Service Worker — PWA Cache & Offline
-//  Version 28 — www.eppridad.com
+//  Version 32 — www.eppridad.com
 // ════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'eppridad-v28';
-const STATIC_CACHE = 'eppridad-static-v28';
-const DYNAMIC_CACHE = 'eppridad-dynamic-v28';
+const CACHE_NAME = 'eppridad-v32';
+const STATIC_CACHE = 'eppridad-static-v32';
+const DYNAMIC_CACHE = 'eppridad-dynamic-v32';
 
 // Ressources à mettre en cache immédiatement
 const STATIC_ASSETS = [

@@ -1995,7 +1995,7 @@ async function ouvrirCorrectionExo(soumId){
       <div style="margin-bottom:16px">
         <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);display:block;margin-bottom:8px">Note (optionnel)</label>
         <div style="display:flex;align-items:center;gap:10px">
-          <input type="number" id="exo-note" min="0" max="20" value="${s.note!=null?s.note:''}" placeholder="0-20" style="width:80px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:8px 12px;font-size:14px;color:#fff;font-family:inherit;outline:none">
+          <input type="number" id="exo-note" min="0" max="20" placeholder="0-20" style="width:80px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:8px 12px;font-size:14px;color:#fff;font-family:inherit;outline:none">
           <span style="color:rgba(255,255,255,.4);font-size:13px">/20</span>
         </div>
       </div>
@@ -2030,6 +2030,9 @@ async function ouvrirCorrectionExo(soumId){
 
   window._exoCorrectionStatut = s.statut;
   document.getElementById('exo-modal').style.display='flex';
+  // Définir la note après rendu pour éviter le warning input[type=number]
+  const noteInput = document.getElementById('exo-note');
+  if(noteInput && s.note != null) noteInput.value = s.note;
 }
 
 function selStatutExo(statut, btn){
