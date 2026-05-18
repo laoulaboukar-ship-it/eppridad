@@ -928,3 +928,535 @@ function imprimerCertificat(num,nom,form,mention,score,date){
   </body></html>`);
   w.document.close();
 }
+
+
+// ── FONCTIONS ADMIN ET COMPAT (ex-inline HTML) ──
+async function loadAdmInscriptions(){
+  setTitle('Inscriptions','Administration');
+  showPage('page-adm-inscriptions');
+  // Injecter le squelette HTML attendu par loadInscriptions() V27
+  document.getElementById('page-adm-inscriptions').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w)">✍️ Inscriptions</div>
+      <button onclick="loadAdmInscriptions()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 16px;font-size:13px;font-weight:700;color:var(--w2);cursor:pointer;font-family:inherit">🔄 Actualiser</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <select id="insc-filter-type" onchange="loadInscriptions&&loadInscriptions()" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--w);font-family:inherit;outline:none">
+        <option value="">Tous les types</option><option value="diplomante">🎓 Diplômante</option><option value="courte">📜 Courte</option><option value="enligne">💻 En ligne</option>
+      </select>
+      <select id="insc-filter-statut" onchange="loadInscriptions&&loadInscriptions()" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--w);font-family:inherit;outline:none">
+        <option value="">Tous statuts</option><option value="nouveau">🔴 Nouveau</option><option value="en_cours">🟡 En cours</option><option value="traite">🟢 Traité</option><option value="annule">⚫ Annulé</option>
+      </select>
+      <div id="inscStatsBar" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div id="inscriptionsList" style="color:var(--w3);font-size:14px;padding:20px 0;text-align:center">Chargement…</div>`;
+  if(typeof loadInscriptions==='function') await loadInscriptions();
+}
+async function loadAdmComptes(){
+  setTitle('Étudiants','Administration'); showPage('page-adm-comptes');
+  document.getElementById('page-adm-comptes').innerHTML=`
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w);margin-bottom:16px">👥 Étudiants & Comptes</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <input id="students-search" type="text" placeholder="Rechercher un étudiant…" onkeyup="loadAdminStudents&&loadAdminStudents()" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 14px;font-size:13px;color:var(--w);font-family:inherit;outline:none;min-width:220px">
+      <select id="students-filter" onchange="loadAdminStudents&&loadAdminStudents()" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--w);font-family:inherit;outline:none">
+        <option value="">Tous les rôles</option><option value="etudiant">Étudiants</option><option value="enligne">Apprenants en ligne</option><option value="admin">Admin</option>
+      </select>
+    </div>
+    <div id="studentsList">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Matricule</th><th>Nom</th><th>Filière</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody id="studentsTableBody"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--w3)">Chargement…</td></tr></tbody>
+      </table></div>
+    </div>`;
+  try{
+    const db2=getDBv30();
+    // SDK v2 : requêtes séquentielles
+    const etudRes = await db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500);
+    const cptRes  = await db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500);
+    if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
+    window._adminData.etudiants=etudRes.data||[];
+    window._adminData.comptes=cptRes.data||[];
+    if(typeof loadAdminStudents==='function') await loadAdminStudents();
+  }catch(e){ console.error('[V31] loadAdmComptes:',e); document.getElementById('studentsTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--rd)">Erreur. <button onclick="loadAdmComptes()" style="color:var(--or);background:none;border:none;cursor:pointer;font-weight:700">Réessayer</button></td></tr>'; }
+}
+async function loadAdmFormations(){
+  setTitle('Formations en ligne','Administration'); showPage('page-adm-formations');
+  const el = document.getElementById('page-adm-formations');
+  el.innerHTML=`
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w);margin-bottom:4px">🎓 Formations & Accès apprenants</div>
+    <div style="font-size:13px;color:var(--w3);margin-bottom:20px">Gérez les accès et prévisualisez les formations comme un apprenant</div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button onclick="loadAdmFormations()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--w2);cursor:pointer;font-family:inherit">🔄 Actualiser</button>
+    </div>
+
+    <div style="font-size:13px;font-weight:800;color:var(--or);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">👥 Accès apprenants actifs</div>
+    <div id="acesList" style="color:var(--w3);text-align:center;padding:16px">Chargement…</div>
+
+    <div style="font-size:13px;font-weight:800;color:var(--or);text-transform:uppercase;letter-spacing:.8px;margin-top:28px;margin-bottom:16px">📚 Catalogue des formations</div>
+    <div id="formationsCatalogList">
+      <div style="text-align:center;padding:24px;color:var(--w3)">Chargement…</div>
+    </div>`;
+
+  // Charger accès
+  if(typeof loadAcesList==='function') await loadAcesList();
+
+  // Charger catalogue avec bouton Prévisualiser
+  try{
+    const db2 = getDBv30();
+    const {data:formations} = await db2.from('formations_enligne').select('*').order('ordre');
+    const {data:modules}    = await db2.from('modules_cours').select('id,formation_id,titre,publie').order('ordre');
+    const {data:quiz}       = await db2.from('quiz_questions').select('id,formation_id,module_id');
+    const {data:acces}      = await db2.from('acces_formations').select('formation_id').eq('actif',true);
+
+    const modByForm = {};
+    (modules||[]).forEach(m=>{ if(!modByForm[m.formation_id]) modByForm[m.formation_id]=[]; modByForm[m.formation_id].push(m); });
+    const quizByMod = {};
+    (quiz||[]).forEach(q=>{ if(!quizByMod[q.module_id]) quizByMod[q.module_id]=0; quizByMod[q.module_id]++; });
+    const accesCount = {};
+    (acces||[]).forEach(a=>{ accesCount[a.formation_id]=(accesCount[a.formation_id]||0)+1; });
+
+    document.getElementById('formationsCatalogList').innerHTML = (formations||[]).map(f=>{
+      const mods = modByForm[f.id]||[];
+      const totalMods = mods.length;
+      const modsAvecQuiz = mods.filter(m=>quizByMod[m.id]>0).length;
+      const nbAcces = accesCount[f.id]||0;
+      const pct = totalMods ? Math.round(modsAvecQuiz/totalMods*100) : 0;
+
+      // Indicateurs de complétude
+      const indics = [
+        {ok: totalMods>=5,      lbl: `${totalMods} module${totalMods>1?'s':''}`,    ico:'📖'},
+        {ok: modsAvecQuiz>0,    lbl: `${modsAvecQuiz} quiz`,                        ico:'❓'},
+        {ok: nbAcces>0,         lbl: `${nbAcces} apprenant${nbAcces>1?'s':''}`,     ico:'👥'},
+        {ok: f.publie,          lbl: f.publie?'Publiée':'Non publiée',              ico: f.publie?'✅':'🔜'},
+      ];
+
+      return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;margin-bottom:12px;transition:all .2s" onmouseover="this.style.borderColor='rgba(201,168,76,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.1)'">
+        <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+          <div style="font-size:36px;flex-shrink:0">${f.emoji||'📚'}</div>
+          <div style="flex:1;min-width:200px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+              <span style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff">${escH(f.titre)}</span>
+              <span style="background:${f.publie?'rgba(46,125,82,.25)':'rgba(255,255,255,.08)'};color:${f.publie?'#81c784':'rgba(255,255,255,.4)'};font-size:10px;padding:2px 8px;border-radius:6px;font-weight:700">${f.publie?'✅ PUBLIÉE':'🔜 EN CONSTRUCTION'}</span>
+            </div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:10px">${escH(f.filiere||'')} · ${f.duree_heures||'?'}h · <span style="color:var(--or);font-weight:700">${fmt(f.prix_fcfa)} FCFA</span></div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              ${indics.map(ind=>`<span style="background:${ind.ok?'rgba(46,125,82,.2)':'rgba(255,255,255,.06)'};color:${ind.ok?'#a8e6c0':'rgba(255,255,255,.4)'};border:1px solid ${ind.ok?'rgba(46,125,82,.3)':'rgba(255,255,255,.1)'};border-radius:8px;padding:3px 10px;font-size:11px;font-weight:700">${ind.ico} ${ind.lbl}</span>`).join('')}
+            </div>
+
+            ${totalMods>0?`<div style="margin-bottom:4px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+                <span style="font-size:10px;color:rgba(255,255,255,.4)">Modules avec quiz</span>
+                <span style="font-size:10px;font-weight:700;color:${pct===100?'#81c784':'rgba(255,255,255,.6)'}">${modsAvecQuiz}/${totalMods} · ${pct}%</span>
+              </div>
+              <div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:${pct===100?'#81c784':'var(--or)'};border-radius:2px"></div>
+              </div>
+            </div>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:140px">
+            <button onclick="previsualiserFormation('${f.id}')"
+              style="background:linear-gradient(135deg,var(--v3),var(--v4));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:10px 16px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s"
+              onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+              👁 Prévisualiser
+            </button>
+            <button onclick="togglePublicationFormation('${f.id}',${f.publie})"
+              style="background:${f.publie?'rgba(229,57,53,.12)':'rgba(46,125,82,.12)'};color:${f.publie?'#ef9a9a':'#81c784'};border:1px solid ${f.publie?'rgba(229,57,53,.25)':'rgba(46,125,82,.25)'};border-radius:10px;padding:8px 16px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"
+              onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+              ${f.publie?'⏸ Dépublier':'▶ Publier'}
+            </button>
+            <button onclick="voirModulesFormation('${f.id}','')"
+              style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 16px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"
+              onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">
+              ⚙️ Modules & PDF
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    document.getElementById('formationsCatalogList').innerHTML=`<div style="color:#ef9a9a;padding:16px;background:rgba(229,57,53,.1);border-radius:10px">Erreur: ${e.message}</div>`;
+  }
+}
+
+// Prévisualiser une formation comme apprenant (admin bypass accès)
+async function previsualiserFormation(formationId){
+  // Récupérer le titre depuis Supabase
+  let titre = 'Formation';
+  try{
+    const {data:f} = await getDBv30().from('formations_enligne').select('titre').eq('id',formationId).single();
+    if(f) titre = f.titre;
+  }catch(_){}
+
+  // Admin : ouvrir directement sans changer le rôle (la vérification d'accès est déjà bypassée pour admin)
+  await ouvrirFormation(formationId, titre);
+
+  // Supprimer l'ancien bandeau si présent puis en ajouter un nouveau
+  const old = document.getElementById('preview-banner');
+  if(old) old.remove();
+  const pageC = document.getElementById('page-cours');
+  if(pageC){
+    const banner = document.createElement('div');
+    banner.id = 'preview-banner';
+    banner.style.cssText = 'background:linear-gradient(90deg,var(--v2),var(--v3));color:var(--or);font-size:11px;font-weight:800;text-align:center;padding:6px;letter-spacing:.8px;text-transform:uppercase;flex-shrink:0';
+    banner.textContent = '👁 MODE PRÉVISUALISATION ADMIN — Vue identique à celle de l\'apprenant';
+    pageC.insertBefore(banner, pageC.firstChild);
+  }
+}
+async function loadAdmExercices(){
+  setTitle('Exercices soumis','Administration'); showPage('page-adm-exercices');
+  const el = document.getElementById('page-adm-exercices');
+
+  // Réponses rapides prédéfinies
+  const REPONSES_RAPIDES = [
+    'Très bon travail, exercice validé avec succès. Continuez ainsi !',
+    'Bonne réponse dans l\'ensemble, exercice validé. Quelques points à approfondir dans le module suivant.',
+    'Réponse correcte mais à approfondir. Relisez la section cas pratique du module.',
+    'Bon raisonnement mais certains points restent incomplets. Complétez et resoumettez.',
+    'Merci de revoir le module avant une nouvelle soumission. Nous restons disponibles.',
+    'Exercice validé avec mention. Excellente compréhension du sujet.',
+    'Réponse insuffisante. Merci de relire le module en entier et de retravailler l\'exercice.',
+  ];
+
+  const STATUTS = {
+    en_attente   : {lbl:'En attente',    bg:'rgba(255,152,0,.2)',   color:'#ffb74d'},
+    en_correction: {lbl:'En correction', bg:'rgba(33,150,243,.2)',  color:'#64b5f6'},
+    valide       : {lbl:'Validé',        bg:'rgba(46,125,82,.2)',   color:'#81c784'},
+    a_corriger   : {lbl:'À corriger',    bg:'rgba(255,87,34,.2)',   color:'#ff8a65'},
+    refuse       : {lbl:'Refusé',        bg:'rgba(229,57,53,.2)',   color:'#ef9a9a'},
+    complete     : {lbl:'Complété',      bg:'rgba(156,39,176,.2)',  color:'#ce93d8'},
+  };
+
+  el.innerHTML=`
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w);margin-bottom:4px">📝 Exercices soumis</div>
+    <div style="font-size:13px;color:var(--w3);margin-bottom:20px">Consultez, corrigez et répondez aux exercices des apprenants</div>
+
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <select id="exo-filtre-statut" onchange="filtrerExercices()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 14px;font-size:13px;color:var(--w2);cursor:pointer;font-family:inherit">
+        <option value="">Tous les statuts</option>
+        <option value="en_attente">En attente</option>
+        <option value="en_correction">En correction</option>
+        <option value="valide">Validé</option>
+        <option value="a_corriger">À corriger</option>
+        <option value="refuse">Refusé</option>
+        <option value="complete">Complété</option>
+      </select>
+      <button onclick="loadAdmExercices()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--w2);cursor:pointer;font-family:inherit">🔄 Actualiser</button>
+      <div id="exo-stats" style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+
+    <div id="exo-list"><div style="text-align:center;padding:32px;color:var(--w3)">Chargement…</div></div>
+
+    <!-- Modal correction -->
+    <div id="exo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fermerModalExo()">
+      <div style="background:var(--v1);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:0;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6)">
+        <div id="exo-modal-content"></div>
+      </div>
+    </div>`;
+
+  // Charger les soumissions
+  try{
+    const db2 = getDBv30();
+    const {data:soums} = await db2.from('soumissions_exercices')
+      .select('*').order('date_soumission',{ascending:false}).limit(200);
+
+    // Charger formations et modules pour les noms
+    const {data:formations} = await db2.from('formations_enligne').select('id,titre,emoji');
+    const {data:modules} = await db2.from('modules_cours').select('id,titre,ordre');
+    const {data:comptes} = await db2.from('portail_comptes').select('matricule,nom_complet');
+
+    const fMap={}; (formations||[]).forEach(f=>fMap[f.id]=f);
+    const mMap={}; (modules||[]).forEach(m=>mMap[m.id]=m);
+    const cMap={}; (comptes||[]).forEach(c=>cMap[c.matricule]=c);
+
+    window._exoData = {soums:soums||[], fMap, mMap, cMap, STATUTS, REPONSES_RAPIDES};
+
+    // Stats
+    const stats = {};
+    (soums||[]).forEach(s=>{ stats[s.statut]=(stats[s.statut]||0)+1; });
+    const statsEl = document.getElementById('exo-stats');
+    if(statsEl) statsEl.innerHTML = Object.entries(stats).map(([k,v])=>{
+      const st = STATUTS[k]||{lbl:k,bg:'rgba(255,255,255,.06)',color:'var(--w2)'};
+      return `<span style="background:${st.bg};color:${st.color};border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700">${st.lbl} : ${v}</span>`;
+    }).join('');
+
+    // Badge sidebar
+    const nb = (soums||[]).filter(s=>s.statut==='en_attente').length;
+    const badge = document.getElementById('exercBadge');
+    if(badge){ badge.textContent=nb; badge.style.display=nb>0?'':'none'; }
+
+    rendreListeExercices(soums||[], fMap, mMap, cMap, STATUTS);
+
+  }catch(e){
+    document.getElementById('exo-list').innerHTML=`<div style="color:#ef9a9a;padding:16px;background:rgba(229,57,53,.1);border-radius:10px">Erreur: ${e.message}</div>`;
+  }
+}
+
+function filtrerExercices(){
+  if(!window._exoData) return;
+  const {soums,fMap,mMap,cMap,STATUTS} = window._exoData;
+  const filtreStatut = document.getElementById('exo-filtre-statut')?.value||'';
+  const filtered = filtreStatut ? soums.filter(s=>s.statut===filtreStatut) : soums;
+  rendreListeExercices(filtered, fMap, mMap, cMap, STATUTS);
+}
+
+function rendreListeExercices(soums, fMap, mMap, cMap, STATUTS){
+  const el = document.getElementById('exo-list');
+  if(!el) return;
+  if(!soums.length){ el.innerHTML='<div style="text-align:center;padding:40px;color:var(--w3);font-size:15px">Aucun exercice soumis pour le moment.</div>'; return; }
+
+  el.innerHTML = soums.map(s=>{
+    const f = fMap[s.formation_id]||{titre:'Formation inconnue',emoji:'📚'};
+    const m = mMap[s.module_id]||{titre:'Module inconnu',ordre:'?'};
+    const c = cMap[s.matricule]||{nom_complet:s.matricule};
+    const st = STATUTS[s.statut]||{lbl:s.statut,bg:'rgba(255,255,255,.06)',color:'var(--w2)'};
+    const date = s.date_soumission ? new Date(s.date_soumission).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    const apercu = (s.reponse_texte||'').substring(0,120);
+
+    return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:18px 20px;margin-bottom:10px;transition:all .2s" onmouseover="this.style.borderColor='rgba(201,168,76,.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,.09)'">
+      <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="font-weight:800;font-size:14px;color:#fff">${escH(c.nom_complet||s.matricule)}</span>
+            <span style="font-size:11px;color:var(--or);font-weight:700">${escH(s.matricule)}</span>
+            <span style="background:${st.bg};color:${st.color};font-size:10px;padding:2px 10px;border-radius:8px;font-weight:700">${st.lbl}</span>
+          </div>
+          <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:6px">${f.emoji} ${escH(f.titre)} · Module ${m.ordre} : ${escH(m.titre)}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:8px">📅 ${date}</div>
+          ${apercu?`<div style="font-size:12px;color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);border-radius:8px;padding:8px 12px;border-left:3px solid rgba(255,255,255,.1);font-style:italic">"${escH(apercu)}${s.reponse_texte?.length>120?'…':''}"</div>`:''}
+          ${s.note_admin?`<div style="font-size:12px;color:#90caf9;margin-top:8px;background:rgba(25,118,210,.1);border-radius:8px;padding:6px 12px">💬 ${escH(s.note_admin)}</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          <button onclick="ouvrirCorrectionExo('${s.id}')" style="background:linear-gradient(135deg,var(--v3),var(--v4));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✏️ Corriger</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function ouvrirCorrectionExo(soumId){
+  const {soums,fMap,mMap,cMap,STATUTS,REPONSES_RAPIDES} = window._exoData||{};
+  const s = (soums||[]).find(x=>x.id===soumId);
+  if(!s) return;
+
+  const f = fMap[s.formation_id]||{titre:'Formation inconnue',emoji:'📚'};
+  const m = mMap[s.module_id]||{titre:'Module inconnu',ordre:'?'};
+  const c = cMap[s.matricule]||{nom_complet:s.matricule};
+  const date = s.date_soumission ? new Date(s.date_soumission).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+
+  // Mettre en correction automatiquement si en_attente
+  if(s.statut==='en_attente'){
+    try{ await getDBv30().from('soumissions_exercices').update({statut:'en_correction'}).eq('id',soumId); s.statut='en_correction'; }catch(_){}
+  }
+
+  const phone = s.matricule; // Le matricule contient parfois le tel — on utilisera le compte
+  const wa = `https://wa.me/${WA_NUM_V30}`;
+
+  document.getElementById('exo-modal-content').innerHTML = `
+    <!-- Header modal -->
+    <div style="background:linear-gradient(135deg,#0b2f25,#16503f);padding:24px 28px;border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,255,255,.1)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--or)">✏️ Correction de l'exercice</div>
+        <button onclick="fermerModalExo()" style="background:rgba(255,255,255,.08);border:none;color:var(--w2);font-size:18px;width:32px;height:32px;border-radius:8px;cursor:pointer">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+        <div style="color:rgba(255,255,255,.7)">👤 <strong style="color:#fff">${escH(c.nom_complet||s.matricule)}</strong></div>
+        <div style="color:rgba(255,255,255,.7)">🪪 <strong style="color:var(--or)">${escH(s.matricule)}</strong></div>
+        <div style="color:rgba(255,255,255,.7)" colspan="2">${f.emoji} <strong style="color:#fff">${escH(f.titre)}</strong> · Module ${m.ordre}</div>
+        <div style="color:rgba(255,255,255,.7)">📅 <strong style="color:#fff">${date}</strong></div>
+      </div>
+    </div>
+
+    <!-- Réponse apprenant -->
+    <div style="padding:24px 28px;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.4);margin-bottom:10px">Réponse de l'apprenant</div>
+      <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:16px;font-size:14px;color:rgba(255,255,255,.8);line-height:1.7;max-height:200px;overflow-y:auto;border:1px solid rgba(255,255,255,.08)">${escH(s.reponse_texte||'—').replace(/\n/g,'<br>')}</div>
+    </div>
+
+    <!-- Correction -->
+    <div style="padding:24px 28px">
+      <!-- Statut -->
+      <div style="margin-bottom:16px">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);display:block;margin-bottom:8px">Nouveau statut</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${Object.entries(STATUTS).map(([k,v])=>`<button onclick="selStatutExo('${k}',this)" data-statut="${k}" style="background:${s.statut===k?v.bg:'rgba(255,255,255,.06)'};color:${s.statut===k?v.color:'rgba(255,255,255,.5)'};border:1px solid ${s.statut===k?v.color:'rgba(255,255,255,.1)'};border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">${v.lbl}</button>`).join('')}
+        </div>
+      </div>
+
+      <!-- Note -->
+      <div style="margin-bottom:16px">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);display:block;margin-bottom:8px">Note (optionnel)</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" id="exo-note" min="0" max="20" placeholder="0-20" style="width:80px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:8px 12px;font-size:14px;color:#fff;font-family:inherit;outline:none">
+          <span style="color:rgba(255,255,255,.4);font-size:13px">/20</span>
+        </div>
+      </div>
+
+      <!-- Réponses rapides -->
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);display:block;margin-bottom:8px">Réponses rapides</label>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${REPONSES_RAPIDES.map((r,i)=>`<button onclick="utiliserReponseRapide(${i})" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.7);cursor:pointer;text-align:left;font-family:inherit;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">${escH(r)}</button>`).join('')}
+        </div>
+      </div>
+
+      <!-- Commentaire personnalisé -->
+      <div style="margin-bottom:20px">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);display:block;margin-bottom:8px">Commentaire personnalisé</label>
+        <textarea id="exo-commentaire" style="width:100%;min-height:100px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 14px;font-size:14px;color:#fff;font-family:inherit;resize:vertical;outline:none;line-height:1.6;box-sizing:border-box" placeholder="Écrivez votre correction personnalisée…" onfocus="this.style.borderColor='var(--or)'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">${escH(s.note_admin||'')}</textarea>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="sauvegarderCorrectionExo('${soumId}','${s.matricule}','${escH(f.titre)}','${escH(m.titre)}')" style="background:linear-gradient(135deg,var(--v3),var(--v4));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex:1">
+          💾 Sauvegarder
+        </button>
+        <button onclick="sauvegarderEtEnvoyerEmail('${soumId}','${s.matricule}','${escH(f.titre)}','${escH(m.titre)}')" style="background:rgba(33,150,243,.2);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex:1">
+          ✉️ Sauvegarder + Email
+        </button>
+        <a href="https://wa.me/${WA_NUM_V30}?text=${encodeURIComponent(`Correction exercice EPPRIDAD pour ${c.nom_complet||s.matricule} — Formation: ${f.titre} · Module ${m.ordre}`)}" target="_blank" style="background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:none;display:flex;align-items:center;gap:6px">
+          💬 WhatsApp
+        </a>
+      </div>
+    </div>`;
+
+  window._exoCorrectionStatut = s.statut;
+  document.getElementById('exo-modal').style.display='flex';
+  // Définir la note après rendu pour éviter le warning input[type=number]
+  const noteInput = document.getElementById('exo-note');
+  if(noteInput && s.note != null) noteInput.value = s.note;
+}
+
+function selStatutExo(statut, btn){
+  window._exoCorrectionStatut = statut;
+  document.querySelectorAll('[data-statut]').forEach(b=>{
+    const k = b.dataset.statut;
+    const st = (window._exoData?.STATUTS||{})[k]||{bg:'rgba(255,255,255,.06)',color:'rgba(255,255,255,.5)'};
+    const actif = k===statut;
+    b.style.background = actif ? st.bg : 'rgba(255,255,255,.06)';
+    b.style.color = actif ? st.color : 'rgba(255,255,255,.5)';
+    b.style.borderColor = actif ? st.color : 'rgba(255,255,255,.1)';
+  });
+}
+
+function utiliserReponseRapide(idx){
+  const r = (window._exoData?.REPONSES_RAPIDES||[])[idx];
+  if(!r) return;
+  const ta = document.getElementById('exo-commentaire');
+  if(ta) ta.value = r;
+}
+
+async function sauvegarderCorrectionExo(soumId, matricule, formationTitre, moduleTitre){
+  const statut = window._exoCorrectionStatut||'valide';
+  const note = document.getElementById('exo-note')?.value||null;
+  const commentaire = document.getElementById('exo-commentaire')?.value||'';
+  try{
+    await getDBv30().from('soumissions_exercices').update({
+      statut,
+      note_admin: commentaire||null,
+      note: note ? parseFloat(note) : null,
+      date_correction: new Date().toISOString()
+    }).eq('id',soumId);
+    toast('✅ Correction sauvegardée');
+    fermerModalExo();
+    loadAdmExercices();
+  }catch(e){ toast('❌ Erreur: '+e.message); }
+}
+
+async function sauvegarderEtEnvoyerEmail(soumId, matricule, formationTitre, moduleTitre){
+  await sauvegarderCorrectionExo(soumId, matricule, formationTitre, moduleTitre);
+  // Envoyer email à l'apprenant
+  const commentaire = document.getElementById('exo-commentaire')?.value||'Votre exercice a été corrigé.';
+  const note = document.getElementById('exo-note')?.value;
+  if(typeof emailjs !== 'undefined'){
+    const {data:compte} = await getDBv30().from('portail_comptes').select('email,nom_complet').eq('matricule',matricule).single();
+    if(compte?.email){
+      emailjs.send('service_5sapdz7','template_6iuy2mm',{
+        to_email    : compte.email,
+        to_name     : compte.nom_complet||matricule,
+        subject     : `📝 Votre exercice a été corrigé — ${formationTitre}`,
+        message_body: `Bonjour ${compte.nom_complet||matricule},\n\nVotre exercice du module "${moduleTitre}" (${formationTitre}) vient d'être corrigé par l'équipe pédagogique EPPRIDAD.\n\n${note?`Note : ${note}/20\n\n`:''}Commentaire du formateur :\n${commentaire}\n\nConnectez-vous à votre espace apprenant pour consulter votre progression :\nhttps://www.eppridad.com/espace-etudiant.html\n\nBonne continuation,\nL'équipe EPPRIDAD\n📞 +227 99 85 15 32`
+      }).then(()=>toast('✉️ Email envoyé à '+compte.email)).catch(()=>toast('⚠️ Correction sauvegardée, email échoué'));
+    }
+  }
+}
+
+
+async function loadAdmFinances(){
+  setTitle('Finances','Administration'); showPage('page-adm-finances');
+  document.getElementById('page-adm-finances').innerHTML=`
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w);margin-bottom:4px">💰 Finances</div>
+    <div style="font-size:13px;color:var(--w3);margin-bottom:24px">Suivi des paiements et revenus EPPRIDAD</div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:32px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🚧</div>
+      <div style="font-size:18px;font-weight:700;color:var(--w);margin-bottom:8px">Module en développement</div>
+      <div style="font-size:14px;color:var(--w3)">Les statistiques financières détaillées arrivent prochainement.</div>
+    </div>`;
+}
+
+function fermerModalExo(){
+  const m = document.getElementById('exo-modal');
+  if(m) m.style.display='none';
+}
+
+async function loadAdmFinances(){
+  setTitle('Finances','Administration'); showPage('page-adm-finances');
+  document.getElementById('page-adm-finances').innerHTML=`
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w);margin-bottom:4px">💰 Finances</div>
+    <div style="font-size:13px;color:var(--w3);margin-bottom:24px">Suivi des paiements et revenus EPPRIDAD</div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:32px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🚧</div>
+      <div style="font-size:18px;font-weight:700;color:var(--w);margin-bottom:8px">Module en développement</div>
+      <div style="font-size:14px;color:var(--w3)">Les statistiques financières détaillées arrivent prochainement.</div>
+    </div>`;
+}
+
+async function loadAdmDocs(){
+  setTitle('Bibliothèque','Administration'); showPage('page-adm-docs');
+  document.getElementById('page-adm-docs').innerHTML=`
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w);margin-bottom:16px">📚 Bibliothèque</div>
+    <div id="adminLibList" style="color:var(--w3);text-align:center;padding:20px">Chargement…</div>`;
+  if(typeof loadAdminLibrary_admin==='function') await loadAdminLibrary_admin();
+}
+
+async function buildAdmFormations(){
+  const { data:f } = await getDBv30().from('formations_enligne').select('*').order('ordre');
+  return `<div class="sec-head anim"><div class="sec-title">Formations en ligne</div></div>
+  <div class="tbl-wrap anim d1"><table><thead><tr><th>Formation</th><th>Prix</th><th>Durée</th><th>Statut</th></tr></thead><tbody>
+  ${(f||[]).map(fi=>`<tr><td><strong style="color:var(--w)">${fi.emoji||'📚'} ${escH(fi.titre)}</strong><br><small style="color:var(--w3)">${escH(fi.filiere||'')}</small></td><td>${fmt(fi.prix_fcfa)} FCFA</td><td>${fi.duree_heures||'?'}h</td><td><span class="badge ${fi.publie?'b-green':'b-red'}">${fi.publie?'✅ Publié':'🔜 En construction'}</span></td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+// ── PAGES ÉTUDIANTS ───────────────────────────────────────────
+async function loadNotes(){ setTitle('Mes notes'); showPage('page-notes'); if(typeof chargerNotes==='function') await chargerNotes(); else document.getElementById('page-notes').innerHTML='<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">Notes disponibles prochainement.</div></div>'; }
+async function loadScolarite(){ setTitle('Scolarité'); showPage('page-scolarite'); if(typeof chargerScolarite==='function') await chargerScolarite(); else document.getElementById('page-scolarite').innerHTML='<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">Informations de scolarité disponibles prochainement.</div></div>'; }
+async function loadDocs(){ setTitle('Documents'); showPage('page-docs'); if(typeof loadAdminLibrary==='function') await loadAdminLibrary(); else { const {data:docs}=await getDBv30().from('cours_documents').select('*').eq('publie',true).order('created_at',{ascending:false}); document.getElementById('page-docs').innerHTML=docs?.length?`<div class="sec-head anim"><div class="sec-title">Documents</div></div><div class="g3 anim d1">${docs.map(d=>`<div class="scard"><div class="scard-ico">📄</div><div class="scard-lbl">${escH(d.type||'Document')}</div><div style="font-size:14px;font-weight:600;color:var(--w);margin:6px 0">${escH(d.titre)}</div><a href="${escH(d.url||'#')}" target="_blank" class="btn btn-ghost" style="margin-top:10px">⬇ Télécharger</a></div>`).join('')}</div>`:'<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucun document disponible pour le moment.</div></div>'; } }
+
+// ── DÉMARRAGE ─────────────────────────────────────────────────
+
+// ── FONCTIONS UTILITAIRES V27 COMPATIBILITÉ ──────────────
+function showLoadingOverlay(show, msg){
+  const el = document.getElementById('loadingOverlay');
+  if(!el) return;
+  el.style.display = show ? 'flex' : 'none';
+  if(msg) { const m = document.getElementById('loadingOverlayMsg'); if(m) m.textContent = msg; }
+}
+function showSuccess(msg){ toast(msg, 5000); }
+function showError(msg){ toast('❌ '+msg, 5000); }
+function showToast(msg, color){ toast(msg); }
+function updateAdminClock(){ /* silence */ }
+// Compatibilité aPanel — redirige vers goto() V30
+function aPanel(name, btn){
+  const map = {
+    'dashboard':'dashboard','students':'page-adm-comptes',
+    'inscriptions':'page-adm-inscriptions','formations':'page-adm-formations',
+    'acces_el':'page-adm-formations','finances':'page-adm-finances',
+    'library':'page-adm-docs','commandes':'page-adm-formations',
+    'marketplace':'page-adm-formations','infos':'page-adm-formations',
+    'boutique':'page-adm-formations','settings':'dashboard',
+    'messages':'dashboard','contacts':'dashboard',
+  };
+  const target = map[name] || 'dashboard';
+  goto(target);
+}
+function sPanel(name, btn){ goto(name); }
