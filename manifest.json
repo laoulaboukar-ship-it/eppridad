@@ -1,82 +1,22 @@
 {
-  "name": "EPPRIDAD — Portail Étudiant",
-  "short_name": "EPPRIDAD",
-  "description": "École Polytechnique Privée pour le Développement Agricole Durable — Niamey, Niger",
-  "start_url": "https://www.eppridad.com/espace-etudiant.html",
-  "scope": "https://www.eppridad.com/",
+  "name": "Kassan'Mou — Marketplace Niger",
+  "short_name": "Kassan'Mou",
+  "description": "Marketplace locale nigérienne. Achetez, vendez, exportez. Sésame, paprika, maraîchage et bien plus.",
+  "start_url": "/kassanmou/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "theme_color": "#16503f",
-  "background_color": "#07120e",
+  "orientation": "portrait",
+  "background_color": "#0F1F0A",
+  "theme_color": "#0F1F0A",
   "lang": "fr",
-  "categories": [
-    "education"
-  ],
+  "scope": "/kassanmou/",
   "icons": [
-    {
-      "src": "/favicon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "/web-app-manifest-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/web-app-manifest-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
+    {"src": "/kassanmou/icon-192.png","sizes": "192x192","type": "image/png","purpose": "any maskable"},
+    {"src": "/kassanmou/icon-512.png","sizes": "512x512","type": "image/png","purpose": "any maskable"}
   ],
   "shortcuts": [
-    {
-      "name": "Mes cours",
-      "url": "https://www.eppridad.com/cours-etudiant.html",
-      "icons": [
-        {
-          "src": "/web-app-manifest-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Infos & Actualités",
-      "url": "https://www.eppridad.com/infos.html",
-      "icons": [
-        {
-          "src": "/web-app-manifest-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Inscription",
-      "url": "https://www.eppridad.com/inscription.html",
-      "icons": [
-        {
-          "src": "/web-app-manifest-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
+    {"name": "Poster un produit","short_name": "Poster","url": "/kassanmou/?page=poster","icons": [{"src": "/kassanmou/icon-192.png","sizes": "192x192"}]},
+    {"name": "Marketplace","short_name": "Acheter","url": "/kassanmou/?page=marketplace","icons": [{"src": "/kassanmou/icon-192.png","sizes": "192x192"}]},
+    {"name": "Suivi commande","short_name": "Suivi","url": "/kassanmou/?page=tracking","icons": [{"src": "/kassanmou/icon-192.png","sizes": "192x192"}]}
   ],
-  "screenshots": [
-    {
-      "src": "/images/campus_gate.jpg",
-      "sizes": "640x480",
-      "type": "image/jpeg",
-      "label": "Campus EPPRIDAD"
-    }
-  ],
-  "prefer_related_applications": false,
-  "id": "eppridad-portail"
+  "categories": ["shopping","business","food"]
 }
