@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>EPPRIDAD — Portail Étudiant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Fonts chargées de façon non-bloquante pour éviter les timeouts réseau -->
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"></noscript>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#07120e">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -711,12 +714,30 @@ select.inp option{background:#1a3a2a;color:var(--w)}
 
 // ── PANELS ADMIN (délégation vers espace-etudiant.js V27) ───
 
-document.addEventListener('DOMContentLoaded', ()=>{\n   else {
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Vérifier session existante
+  const sess = loadSession();
+  if(sess){
+    _s = sess;
+    document.getElementById('page-auth').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    buildSidebar();
+    loadDashboard();
+    hideLoading();
+  } else {
     document.getElementById('page-auth').classList.add('active');
     hideLoading();
-    
-  // SW
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js',{scope:'/'});
+  }
+  // Keyboard shortcuts
+  const mdp = document.getElementById('inp-mdp');
+  const mat = document.getElementById('inp-mat');
+  if(mdp) mdp.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  if(mat) mat.addEventListener('keydown', e=>{ if(e.key==='Enter') mdp && mdp.focus(); });
+  // Service Worker
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js',{scope:'/'})
+      .catch(e => console.warn('[SW] Erreur enregistrement:', e));
+  }
 });
 
 <script>
