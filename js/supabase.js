@@ -215,7 +215,36 @@ function _toast(msg,bg,icon) {
   setTimeout(()=>t.remove(),4000);
 }
 
+// ── HASH SÉCURISÉ — SHA-256 via Web Crypto API ───────────────
+// Remplace simpleHash (hash 32 bits maison) par SHA-256 (256 bits cryptographique)
+// Compatible avec espace-etudiant.js qui appelle simpleHash() de façon synchrone :
+// on conserve simpleHash() comme wrapper synchrone pour la vérification legacy,
+// et on expose sha256Async() pour toutes les nouvelles opérations (login, création compte)
+
+// SHA-256 asynchrone — utilisé pour login et création de compte
+async function sha256Async(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// simpleHash conservé UNIQUEMENT pour compatibilité avec espace-etudiant.js (lecture seule)
+// Ne jamais utiliser pour de nouveaux mots de passe
 function simpleHash(s){let h=0;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0}return h.toString(36);}
+
+// Vérifie un mot de passe contre un hash stocké
+// Supporte les deux formats : SHA-256 (hex 64 chars) et simpleHash (legacy court)
+async function verifyPassword(plainText, storedHash) {
+  if(!storedHash || !plainText) return false;
+  // Format SHA-256 : 64 caractères hex
+  if(storedHash.length === 64) {
+    const computed = await sha256Async(plainText);
+    return computed === storedHash;
+  }
+  // Format legacy simpleHash : court, base36
+  return simpleHash(plainText) === storedHash;
+}
+// ────────────────────────────────────────────────────────────
+
 var ADMIN_DEFAULT_HASH = window.CFG ? window.CFG.ADMIN_HASH : null;
 function getAdminHash(){return localStorage.getItem('eppr_admin_hash_v2')||ADMIN_DEFAULT_HASH;}
 var SESSION_KEY = window.CFG ? window.CFG.SESSION_KEY : 'eppr_session_v30';
@@ -251,7 +280,6 @@ function resetRateLimit(matricule){
 // ────────────────────────────────────────────────────────────
 
 async function sbLogin(matricule, password) {
-  // Vérification rate limiting avant toute requête base
   checkRateLimit(matricule);
   const rows = await sb.select('portail_comptes',{
     select:'matricule,pwd_hash,statut,expiry_date,role,nom_complet,email',
@@ -263,8 +291,14 @@ async function sbLogin(matricule, password) {
   if(acc.statut==='supprime') throw new Error("Ce compte a été supprimé. Contactez l'administration.");
   if(acc.statut!=='actif')    throw new Error("Compte non actif. Contactez l'administration.");
   if(acc.expiry_date && new Date(acc.expiry_date)<new Date()) throw new Error("Votre accès a expiré. Contactez l'administration EPPRIDAD.");
-  if(acc.pwd_hash!==simpleHash(password)) throw new Error('Mot de passe incorrect.');
-  // Login réussi — réinitialiser le compteur
+  // Vérification avec support SHA-256 + legacy simpleHash
+  const ok = await verifyPassword(password, acc.pwd_hash);
+  if(!ok) throw new Error('Mot de passe incorrect.');
+  // Upgrade automatique legacy → SHA-256 si ancien format détecté
+  if(acc.pwd_hash && acc.pwd_hash.length !== 64){
+    const newHash = await sha256Async(password);
+    sb.update('portail_comptes',{pwd_hash:newHash},{col:'matricule',val:`eq.${matricule.toUpperCase()}`}).catch(()=>{});
+  }
   resetRateLimit(matricule);
   sb.update('portail_comptes',{dernier_acces:new Date().toISOString()},{col:'matricule',val:`eq.${matricule.toUpperCase()}`}).catch(()=>{});
   return acc;
@@ -280,15 +314,17 @@ async function sbRegister(matricule, password) {
     if(existing[0].statut==='actif')   throw new Error("Ce compte existe déjà. Connectez-vous directement.");
     if(existing[0].statut==='pending') throw new Error("Votre demande est déjà en attente de validation.");
   }
-  await sb.upsert('portail_comptes',{matricule:mat,pwd_hash:simpleHash(password),statut:'pending',role:'etudiant',date_creation:new Date().toISOString()},'matricule');
+  await sb.upsert('portail_comptes',{matricule:mat,pwd_hash:await sha256Async(password),statut:'pending',role:'etudiant',date_creation:new Date().toISOString()},'matricule');
   return etud;
 }
 
 async function sbChangePassword(matricule, oldPwd, newPwd) {
   const rows=await sb.select('portail_comptes',{select:'pwd_hash',filters:[{col:'matricule',val:`eq.${matricule}`}],limit:1});
   if(!rows||!rows.length) throw new Error('Compte introuvable.');
-  if(rows[0].pwd_hash!==simpleHash(oldPwd)) throw new Error('Ancien mot de passe incorrect.');
-  await sb.update('portail_comptes',{pwd_hash:simpleHash(newPwd)},{col:'matricule',val:`eq.${matricule}`});
+  const oldOk = await verifyPassword(oldPwd, rows[0].pwd_hash);
+  if(!oldOk) throw new Error('Ancien mot de passe incorrect.');
+  const newHash = await sha256Async(newPwd);
+  await sb.update('portail_comptes',{pwd_hash:newHash},{col:'matricule',val:`eq.${matricule}`});
 }
 
 // initEmailJS appelé via retryInit ci-dessus
