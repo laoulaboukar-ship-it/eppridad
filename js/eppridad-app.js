@@ -131,10 +131,14 @@ async function doLogin(){
     const db = getDBv30();
     const { data, error } = await db.from('portail_comptes').select('*').eq('matricule',mat).single();
     if(error||!data){ err.textContent='Matricule inconnu. Vérifiez votre identifiant.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
-    // Vérification mot de passe avec simpleHash (compatible avec tous les comptes existants)
-    const hashSaisi = simpleHash(mdp);
-    const hashOk = (data.pwd_hash === hashSaisi) ;
+    // Vérification mot de passe — SHA-256 (nouveau) ou simpleHash (legacy)
+    const hashOk = await verifyPassword(mdp, data.pwd_hash);
     if(!hashOk){ err.textContent='Mot de passe incorrect.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
+    // Upgrade automatique legacy → SHA-256
+    if(data.pwd_hash && data.pwd_hash.length !== 64){
+      const newHash = await sha256Async(mdp);
+      db.from('portail_comptes').update({pwd_hash:newHash}).eq('matricule',mat).then(()=>{}).catch(()=>{});
+    }
     if(data.statut==='suspendu'){ err.textContent='Compte suspendu. Contactez EPPRIDAD.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
     if(data.statut==='pending' && data.role!=='admin'){ err.textContent="Compte en cours d'activation. Contactez EPPRIDAD au +227 99 85 15 32."; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
     if(data.expiry_date && new Date(data.expiry_date)<new Date()){ err.textContent='Accès expiré. Contactez EPPRIDAD pour le renouveler.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
@@ -173,7 +177,8 @@ async function doInscription(){
     const { data } = await db.from('portail_comptes').select('matricule,statut,role').eq('matricule',mat).single();
     if(!data){ err.textContent='Matricule non reconnu. Contactez EPPRIDAD pour obtenir votre matricule.'; btn.disabled=false; btn.textContent='✅ Créer mon compte'; return; }
     if(data.statut==='actif'){ err.textContent='Ce compte est déjà activé. Connectez-vous directement.'; btn.disabled=false; btn.textContent='✅ Créer mon compte'; return; }
-    await db.from('portail_comptes').update({ pwd_hash:simpleHash(pwd), statut:'actif' }).eq('matricule',mat);
+    const newHash = await sha256Async(pwd);
+    await db.from('portail_comptes').update({ pwd_hash: newHash, statut:'actif' }).eq('matricule',mat);
     ok.textContent='✅ Compte activé ! Vous pouvez maintenant vous connecter.';
     setTimeout(()=>switchTab('cnx'), 2000);
   }catch(e){

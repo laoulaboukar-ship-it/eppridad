@@ -19,5 +19,5 @@ window.CFG = {
   SESSION_KEY:     'eppr_session_v30',
   SESSION_KEY_OLD: 'eppr_sess_v2',
   // Hash du mot de passe admin — jamais le mot de passe en clair
-  ADMIN_HASH: '15jgj0'
+  ADMIN_HASH: '44728ea0030843ba9c056263adc3e50dedccb23178f926ed30094dc87d627d50'
 };
