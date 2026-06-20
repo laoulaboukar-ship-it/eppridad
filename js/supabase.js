@@ -281,51 +281,30 @@ async function sbLogin(matricule, password) {
   if (!res.ok) throw new Error(data.error || 'Erreur de connexion.');
   resetRateLimit(matricule);
   return data;
-
-  /* ── ANCIENNE VERSION (conservée pour référence / retour arrière) ──
-  const rows = await sb.select('portail_comptes',{
-    select:'matricule,pwd_hash,statut,expiry_date,role,nom_complet,email',
-    filters:[{col:'matricule',val:`eq.${matricule.toUpperCase()}`}],limit:1});
-  if(!rows||!rows.length) throw new Error('Identifiant introuvable. Vérifiez votre matricule ou contactez le secrétariat.');
-  const acc=rows[0];
-  if(acc.statut==='pending')  throw new Error("Compte en attente de validation. L'administration vous activera sous 24h.");
-  if(acc.statut==='suspendu') throw new Error("Compte suspendu. Contactez l'administration EPPRIDAD.");
-  if(acc.statut==='supprime') throw new Error("Ce compte a été supprimé. Contactez l'administration.");
-  if(acc.statut!=='actif')    throw new Error("Compte non actif. Contactez l'administration.");
-  if(acc.expiry_date && new Date(acc.expiry_date)<new Date()) throw new Error("Votre accès a expiré. Contactez l'administration EPPRIDAD.");
-  const ok = await verifyPassword(password, acc.pwd_hash);
-  if(!ok) throw new Error('Mot de passe incorrect.');
-  if(acc.pwd_hash && acc.pwd_hash.length !== 64){
-    const newHash = await sha256Async(password);
-    sb.update('portail_comptes',{pwd_hash:newHash},{col:'matricule',val:`eq.${matricule.toUpperCase()}`}).catch(()=>{});
-  }
-  resetRateLimit(matricule);
-  sb.update('portail_comptes',{dernier_acces:new Date().toISOString()},{col:'matricule',val:`eq.${matricule.toUpperCase()}`}).catch(()=>{});
-  return acc;
-  */
 }
 
 async function sbRegister(matricule, password) {
-  const mat=matricule.toUpperCase();
-  const etudRows=await sb.select('etudiants',{select:'matricule,nom,prenom,filiere,actif',filters:[{col:'matricule',val:`eq.${mat}`}],limit:1});
-  if(!etudRows||!etudRows.length) throw new Error("Identifiant introuvable. Vérifiez votre matricule ou contactez le secrétariat.");
-  const etud=etudRows[0];
-  const existing=await sb.select('portail_comptes',{select:'matricule,statut',filters:[{col:'matricule',val:`eq.${mat}`}],limit:1});
-  if(existing&&existing.length){
-    if(existing[0].statut==='actif')   throw new Error("Ce compte existe déjà. Connectez-vous directement.");
-    if(existing[0].statut==='pending') throw new Error("Votre demande est déjà en attente de validation.");
-  }
-  await sb.upsert('portail_comptes',{matricule:mat,pwd_hash:await sha256Async(password),statut:'pending',role:'etudiant',date_creation:new Date().toISOString()},'matricule');
-  return etud;
+  // ── NOUVELLE VERSION SÉCURISÉE (passe par l'Edge Function) ──
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/inscription-securisee`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matricule, password })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Erreur lors de l'inscription.");
+  return data;
 }
 
 async function sbChangePassword(matricule, oldPwd, newPwd) {
-  const rows=await sb.select('portail_comptes',{select:'pwd_hash',filters:[{col:'matricule',val:`eq.${matricule}`}],limit:1});
-  if(!rows||!rows.length) throw new Error('Compte introuvable.');
-  const oldOk = await verifyPassword(oldPwd, rows[0].pwd_hash);
-  if(!oldOk) throw new Error('Ancien mot de passe incorrect.');
-  const newHash = await sha256Async(newPwd);
-  await sb.update('portail_comptes',{pwd_hash:newHash},{col:'matricule',val:`eq.${matricule}`});
+  // ── NOUVELLE VERSION SÉCURISÉE (passe par l'Edge Function) ──
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/changer-mot-de-passe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matricule, oldPassword: oldPwd, newPassword: newPwd })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erreur lors du changement de mot de passe.');
+  return data;
 }
 
 // initEmailJS appelé via retryInit ci-dessus
