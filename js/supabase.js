@@ -267,6 +267,22 @@ function resetRateLimit(matricule){
 
 async function sbLogin(matricule, password) {
   checkRateLimit(matricule);
+
+  // ── NOUVELLE VERSION SÉCURISÉE (passe par l'Edge Function) ──
+  // Le mot de passe / hash ne transite plus jamais en clair entre
+  // le navigateur et la table portail_comptes : c'est la fonction
+  // login-securise, côté serveur, qui fait toute la vérification.
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/login-securise`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ matricule, password })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erreur de connexion.');
+  resetRateLimit(matricule);
+  return data;
+
+  /* ── ANCIENNE VERSION (conservée pour référence / retour arrière) ──
   const rows = await sb.select('portail_comptes',{
     select:'matricule,pwd_hash,statut,expiry_date,role,nom_complet,email',
     filters:[{col:'matricule',val:`eq.${matricule.toUpperCase()}`}],limit:1});
@@ -286,6 +302,7 @@ async function sbLogin(matricule, password) {
   resetRateLimit(matricule);
   sb.update('portail_comptes',{dernier_acces:new Date().toISOString()},{col:'matricule',val:`eq.${matricule.toUpperCase()}`}).catch(()=>{});
   return acc;
+  */
 }
 
 async function sbRegister(matricule, password) {
