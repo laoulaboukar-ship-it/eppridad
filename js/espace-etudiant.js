@@ -871,7 +871,7 @@ async function loadAdminDashboard(){
   const safetyTimer = setTimeout(()=>showLoadingOverlayV27(false), 8000);
   try{
     const [comptes,etudiants,notes,inscriptions,commandes] = await Promise.all([
-      sb.select('portail_comptes',{select:'matricule,statut,expiry_date,date_creation,dernier_acces,role',order:'date_creation.desc',limit:500}).catch(()=>[]),
+      adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]),
       sb.select('etudiants',{select:'matricule,nom,prenom,filiere,niveau,classe,actif',order:'matricule.asc'}).catch(()=>[]),
       sb.select('notes',{select:'etudiant_id,note'}).catch(()=>[]),
       sb.select('inscriptions',{select:'id,prenom,nom,telephone,email,filiere,type_inscription,statut,reference,note_admin,paiement,lu,ville,message,created_at',order:'created_at.desc',limit:300}).catch(()=>[]),
@@ -1320,8 +1320,10 @@ function openValidateModal(matricule){
     ?`<strong>${e.nom} ${e.prenom}</strong><br><span style="color:var(--text3)">${e.filiere||'—'} · ${e.niveau||'—'} · Classe ${e.classe||'—'}</span><br><span style="font-size:11px;color:var(--text3)">${acc?'Demande le '+(acc.date_creation?new Date(acc.date_creation).toLocaleDateString('fr-FR'):'—'):'Nouveau compte admin'}</span>`
     :`<strong>${matricule}</strong>`;
   document.querySelectorAll('.dur-btn').forEach((b,i)=>b.classList.toggle('sel',i===1));
-  document.getElementById('customDateWrap').style.display='none';
-  document.getElementById('validateModal').style.display='flex';
+  const cdw=document.getElementById('customDateWrap');
+  if(cdw) cdw.style.display='none';
+  const vm=document.getElementById('validateModal');
+  if(vm) vm.style.display='flex';
 }
 function closeValidateModal(){document.getElementById('validateModal').style.display='none';}
 function selDur(btn,dur){
@@ -1345,7 +1347,8 @@ async function confirmValidate(){
   const expiry=getExpiryDate(_selectedDur);
   if(!expiry){alert('Veuillez sélectionner une date d\'expiration.');return;}
   try{
-    await sb.upsert('portail_comptes',{matricule:_validateId,statut:'actif',expiry_date:expiry,role:'etudiant',date_creation:new Date().toISOString()},'matricule');
+    await adminApi('changer_statut', { matricule:_validateId, statut:'actif' });
+    await adminApi('modifier_compte', { matricule:_validateId, updates:{ expiry_date:expiry } });
     closeValidateModal();
     await loadAdminDashboard();
     showSuccess('✅ Compte validé jusqu\'au '+new Date(expiry).toLocaleDateString('fr-FR'));
@@ -1356,7 +1359,10 @@ async function createAccountForStudent(matricule){
   const defaultPwd='eppridad2025';
   try{
     const expiry=new Date();expiry.setFullYear(expiry.getFullYear()+1);
-    await sb.upsert('portail_comptes',{matricule,pwd_hash:simpleHash(defaultPwd),statut:'actif',expiry_date:expiry.toISOString().split('T')[0],role:'etudiant',date_creation:new Date().toISOString()},'matricule');
+    await adminApi('creer_compte_enligne', {
+      matricule, motDePasse:defaultPwd, nomComplet:matricule,
+      expiryDate:expiry.toISOString().split('T')[0]
+    });
     await loadAdminDashboard();
     showSuccess(`✅ Compte créé ! Matricule: ${matricule} | Mot de passe: ${defaultPwd}`);
     alert(`✅ Compte créé pour ${matricule}\n\nIdentifiant : ${matricule}\nMot de passe initial : ${defaultPwd}\n\nL'étudiant(e) pourra changer son mot de passe depuis son espace.`);
@@ -1365,25 +1371,29 @@ async function createAccountForStudent(matricule){
 
 async function rejectAccount(matricule){
   if(!confirm(`Refuser et supprimer le compte de ${matricule} ?`))return;
-  try{await sb.del('portail_comptes',{col:'matricule',val:`eq.${matricule}`});await loadAdminDashboard();showSuccess('Compte supprimé.');}
+  try{await adminApi('supprimer_compte', { matricule });await loadAdminDashboard();showSuccess('Compte supprimé.');}
   catch(e){showError('Erreur: '+e.message);}
 }
 
 async function suspendAccount(matricule){
   if(!confirm(`Suspendre le compte de ${matricule} ?`))return;
-  try{await sb.update('portail_comptes',{statut:'suspendu'},{col:'matricule',val:`eq.${matricule}`});await loadAdminDashboard();showSuccess('Compte suspendu.');}
+  try{await adminApi('changer_statut', { matricule, statut:'suspendu' });await loadAdminDashboard();showSuccess('Compte suspendu.');}
   catch(e){showError('Erreur: '+e.message);}
 }
 
 async function reactivateAccount(matricule){
   const expiry=new Date();expiry.setFullYear(expiry.getFullYear()+1);
-  try{await sb.update('portail_comptes',{statut:'actif',expiry_date:expiry.toISOString().split('T')[0]},{col:'matricule',val:`eq.${matricule}`});await loadAdminDashboard();showSuccess('Compte réactivé.');}
+  try{
+    await adminApi('changer_statut', { matricule, statut:'actif' });
+    await adminApi('modifier_compte', { matricule, updates:{ expiry_date:expiry.toISOString().split('T')[0] } });
+    await loadAdminDashboard();showSuccess('Compte réactivé.');
+  }
   catch(e){showError('Erreur: '+e.message);}
 }
 
 async function deleteAccount(matricule){
   if(!confirm(`Supprimer définitivement le compte de ${matricule} ?`))return;
-  try{await sb.del('portail_comptes',{col:'matricule',val:`eq.${matricule}`});await loadAdminDashboard();showSuccess('Compte supprimé définitivement.');}
+  try{await adminApi('supprimer_compte', { matricule });await loadAdminDashboard();showSuccess('Compte supprimé définitivement.');}
   catch(e){showError('Erreur: '+e.message);}
 }
 
@@ -2280,7 +2290,13 @@ function showActivationModal({prenom, nom, matricule, pwd, formId, waUrl, tel, e
 }
 
 
-async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre){
+// ⚠️ FONCTION MORTE — ne jamais réactiver telle quelle.
+// Toujours surchargée par quickActiverAcces() dans eppridad-app.js
+// (chargé après ce fichier), qui passe par l'Edge Function sécurisée
+// creer-apprenant-enligne. Cette version utilise encore simpleHash()
+// (hash faible) et un accès direct non sécurisé à portail_comptes.
+// Renommée pour empêcher tout appel accidentel.
+async function _DEAD_quickActiverAcces(reference, prenom, nom, tel, email, formation_titre){
   // Générer matricule propre — TOUJOURS un nouveau code, jamais la référence d'inscription
   const now = new Date();
   const yy = now.getFullYear().toString().slice(2);
@@ -3094,19 +3110,11 @@ async function giveAcces(){
   const expiry=duree?new Date(Date.now()+duree*86400000):null;
 
   try{
-    const hashPwd=typeof simpleHash!=='undefined'?simpleHash(pwd):pwd;
-
-    // Créer/mettre à jour le compte portail avec rôle enligne
-    await sb.upsert('portail_comptes',{
-      matricule,
-      pwd_hash:hashPwd,
-      statut:'actif',
-      role:'enligne',
-      nom_complet:nomComplet||null,
-      email:email||null,
-      expiry_date:expiry?expiry.toISOString().split('T')[0]:null,
-      date_creation:new Date().toISOString()
-    },'matricule');
+    // Créer/mettre à jour le compte portail avec rôle enligne — via passerelle sécurisée (SHA-256)
+    await adminApi('creer_compte_enligne', {
+      matricule, motDePasse:pwd, nomComplet:nomComplet||matricule,
+      email:email||null, expiryDate:expiry?expiry.toISOString().split('T')[0]:null
+    });
 
     // Récupérer le titre de la formation pour l'email
     let formationTitre='votre formation';
@@ -3289,10 +3297,11 @@ async function corrigerEx(id,statut){
         select:'matricule,formation_id',filters:[{col:'id',val:`eq.${id}`}],limit:1});
       if(rows&&rows.length){
         const {matricule,formation_id}=rows[0];
-        const [compteRows,fRows]=await Promise.all([
-          sb.select('portail_comptes',{select:'email,nom_complet',filters:[{col:'matricule',val:`eq.${matricule}`}],limit:1}).catch(()=>[]),
-          sb.select('formations_enligne',{select:'titre',filters:[{col:'id',val:`eq.${formation_id}`}],limit:1}).catch(()=>[])
+        const [comptesAll,fRows]=await Promise.all([
+          adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]),
+          sb.select('formations_enligne',{select:'titre',filters:[{col:'id',val:`eq.${formation_id}`}],limit:1})
         ]);
+        const compteRows = (comptesAll||[]).filter(c=>c.matricule===matricule);
         const email=compteRows&&compteRows.length?compteRows[0].email:null;
         const nomComplet=compteRows&&compteRows.length?compteRows[0].nom_complet:matricule;
         const formTitre=fRows&&fRows.length?fRows[0].titre:'votre formation';
