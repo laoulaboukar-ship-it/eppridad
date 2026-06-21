@@ -2078,39 +2078,18 @@ function afficherTableauEnLigne(comptes, accesMap, certMap, formMap){
     return;
   }
 
-  el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">
+  el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
     <thead><tr style="background:rgba(13,59,26,.8)">
-      ${['Matricule','Nom complet','Formations actives','Progression','Certificats','Statut','Expiration','Dernière connexion','Actions'].map(h=>
+      ${['Matricule','Nom complet','Statut','Actions'].map(h=>
         `<th style="padding:10px 12px;text-align:left;color:var(--or);font-size:11px;letter-spacing:.5px;font-weight:700;white-space:nowrap;border-bottom:2px solid rgba(201,168,76,.3)">${h}</th>`
       ).join('')}
     </tr></thead>
     <tbody>
     ${comptes.map((c,i)=>{
-      const accList = accesMap[c.matricule]||[];
-      const certs   = certMap[c.matricule]||[];
       const isExpired = c.expiry_date && new Date(c.expiry_date)<new Date() && c.statut==='actif';
       const bg = i%2===0?'rgba(255,255,255,.02)':'rgba(255,255,255,.04)';
       const statutColor = c.statut==='suspendu'?'#ef9a9a':isExpired?'#ffb74d':'#81c784';
       const statutLabel = c.statut==='suspendu'?'⏸ Suspendu':isExpired?'⛔ Expiré':'✅ Actif';
-      const exp = c.expiry_date ? new Date(c.expiry_date).toLocaleDateString('fr-FR') : '—';
-      const lastCnx = c.dernier_acces ? new Date(c.dernier_acces).toLocaleDateString('fr-FR') : 'jamais';
-
-      // Formations actives
-      const formHtml = accList.length
-        ? accList.map(a=>`<div style="font-size:11px;color:var(--w2)">${escH((formMap[a.formation_id]?.emoji||'📚')+' '+(formMap[a.formation_id]?.titre?.slice(0,28)||'—'))}</div>`).join('')
-        : '<span style="color:rgba(255,255,255,.25);font-style:italic">Aucune</span>';
-
-      // Progression (nb modules validés / total)
-      const totalMod = accList.reduce((s,a)=>{ const f=formMap[a.formation_id]; return s+(f?5:0); },0);
-      const progHtml = totalMod
-        ? `<div style="font-size:11px;color:var(--w3)">—</div>`
-        : '<span style="color:rgba(255,255,255,.2)">—</span>';
-
-      // Certificats
-      const certHtml = certs.length
-        ? certs.map(ct=>`<div style="font-size:11px;color:#ffd54f">🏅 ${escH((formMap[ct.formation_id]?.titre||'Formation').slice(0,22))}</div>`).join('')
-        : '<span style="color:rgba(255,255,255,.2);font-size:11px">Aucun</span>';
-
       const matJS = c.matricule.replace(/'/g,"\\'");
       const nomJS = (c.nom_complet||'').replace(/'/g,"\\'");
 
@@ -2120,27 +2099,45 @@ function afficherTableauEnLigne(comptes, accesMap, certMap, formMap){
           <div style="font-weight:700;color:var(--w)">${escH(c.nom_complet||'—')}</div>
           ${c.email?`<div style="font-size:10px;color:var(--w3)">${escH(c.email)}</div>`:''}
         </td>
-        <td style="padding:10px 12px">${formHtml}</td>
-        <td style="padding:10px 12px">${progHtml}</td>
-        <td style="padding:10px 12px">${certHtml}</td>
         <td style="padding:10px 12px;white-space:nowrap"><span style="font-size:11px;font-weight:700;color:${statutColor}">${statutLabel}</span></td>
-        <td style="padding:10px 12px;font-size:11px;color:var(--w3);white-space:nowrap">${exp}</td>
-        <td style="padding:10px 12px;font-size:11px;color:var(--w3);white-space:nowrap">${lastCnx}</td>
         <td style="padding:10px 12px">
-          <div style="display:flex;gap:5px;flex-wrap:wrap;min-width:280px">
-            <button onclick="openIdentifiantsModal('${matJS}','${nomJS}','','')" title="Identifiants" style="background:rgba(33,150,243,.18);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔑 Identif.</button>
-            <button onclick="ouvrirModifierApprenant('${matJS}')" title="Modifier" style="background:rgba(255,255,255,.08);color:var(--w);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">✏️ Modifier</button>
-            <button onclick="ouvrirGestionAcces('${matJS}','${nomJS}')" title="Accès formations" style="background:rgba(22,80,63,.25);color:#81c784;border:1px solid rgba(76,175,80,.3);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🎓 Accès</button>
-            <button onclick="ouvrirGestionCertificats('${matJS}','${nomJS}')" title="Certificats" style="background:rgba(201,168,76,.12);color:var(--or);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🏅 Certs</button>
-            ${c.statut==='suspendu'
-              ? `<button onclick="changerStatutApprenant('${matJS}','actif')" style="background:rgba(76,175,80,.15);color:#81c784;border:1px solid rgba(76,175,80,.3);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">▶️ Activer</button>`
-              : `<button onclick="changerStatutApprenant('${matJS}','suspendu')" style="background:rgba(229,57,53,.12);color:#ef9a9a;border:1px solid rgba(229,57,53,.25);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">⏸ Suspendre</button>`}
-          </div>
+          <button onclick="ouvrirFicheApprenant('${matJS}','${nomJS}')" style="background:rgba(201,168,76,.18);color:var(--or);border:1px solid rgba(201,168,76,.35);border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">👁️ Voir détail</button>
         </td>
       </tr>`;
     }).join('')}
     </tbody>
   </table></div>`;
+}
+
+// ── FICHE DÉTAILLÉE D'UN APPRENANT (remplace les 4 boutons étalés) ──
+function ouvrirFicheApprenant(matricule, nomComplet){
+  let modal = document.getElementById('ficheApprenantModal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='ficheApprenantModal';
+    modal.style.cssText='display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:16px';
+    document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{if(e.target===modal) modal.style.display='none';});
+  }
+  modal.innerHTML=`
+    <div style="background:#0f2818;border:1px solid rgba(201,168,76,.25);border-radius:16px;max-width:420px;width:100%;padding:24px;max-height:85vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff">${escH(nomComplet||matricule)}</div>
+        <button onclick="document.getElementById('ficheApprenantModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:22px;cursor:pointer">×</button>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5);font-family:monospace;margin-bottom:20px">${escH(matricule)}</div>
+      <div style="display:grid;gap:10px">
+        <button onclick="document.getElementById('ficheApprenantModal').style.display='none';openIdentifiantsModal('${matricule.replace(/'/g,"\\'")}','${(nomComplet||'').replace(/'/g,"\\'")}','','')" style="width:100%;text-align:left;background:rgba(33,150,243,.12);color:#64b5f6;border:1px solid rgba(33,150,243,.25);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🔑 Identifiants &amp; mot de passe</button>
+        <button onclick="document.getElementById('ficheApprenantModal').style.display='none';ouvrirModifierApprenant('${matricule.replace(/'/g,"\\'")}')" style="width:100%;text-align:left;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✏️ Modifier le profil</button>
+        <button onclick="document.getElementById('ficheApprenantModal').style.display='none';ouvrirGestionAcces('${matricule.replace(/'/g,"\\'")}','${(nomComplet||'').replace(/'/g,"\\'")}')" style="width:100%;text-align:left;background:rgba(22,80,63,.2);color:#81c784;border:1px solid rgba(76,175,80,.25);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🎓 Accès aux formations</button>
+        <button onclick="document.getElementById('ficheApprenantModal').style.display='none';ouvrirGestionCertificats('${matricule.replace(/'/g,"\\'")}','${(nomComplet||'').replace(/'/g,"\\'")}')" style="width:100%;text-align:left;background:rgba(201,168,76,.1);color:var(--or);border:1px solid rgba(201,168,76,.22);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🏅 Certificats</button>
+      </div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);display:flex;gap:8px">
+        <button onclick="changerStatutApprenant('${matricule.replace(/'/g,"\\'")}','suspendu');document.getElementById('ficheApprenantModal').style.display='none'" style="flex:1;background:rgba(229,57,53,.1);color:#ef9a9a;border:1px solid rgba(229,57,53,.22);border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⏸ Suspendre</button>
+        <button onclick="changerStatutApprenant('${matricule.replace(/'/g,"\\'")}','actif');document.getElementById('ficheApprenantModal').style.display='none'" style="flex:1;background:rgba(76,175,80,.1);color:#81c784;border:1px solid rgba(76,175,80,.22);border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">▶️ Réactiver</button>
+      </div>
+    </div>`;
+  modal.style.display='flex';
 }
 
 // ── MODIFIER UN APPRENANT ──────────────────────────────────
