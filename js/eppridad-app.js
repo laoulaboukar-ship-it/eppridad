@@ -83,28 +83,17 @@ async function doLogin(){
   const btn = document.getElementById('btn-login');
   btn.disabled=true; btn.textContent='⏳ Connexion...';
   try{
-    const db = getDBv30();
-    const { data, error } = await db.from('portail_comptes').select('*').eq('matricule',mat).single();
-    if(error||!data){ err.textContent='Matricule inconnu. Vérifiez votre identifiant.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
-    // Vérification mot de passe — SHA-256 (nouveau) ou simpleHash (legacy)
-    const hashOk = await verifyPassword(mdp, data.pwd_hash);
-    if(!hashOk){ err.textContent='Mot de passe incorrect.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
-    // Upgrade automatique legacy → SHA-256
-    if(data.pwd_hash && data.pwd_hash.length !== 64){
-      const newHash = await sha256Async(mdp);
-      db.from('portail_comptes').update({pwd_hash:newHash}).eq('matricule',mat).then(()=>{}).catch(()=>{});
-    }
-    if(data.statut==='suspendu'){ err.textContent='Compte suspendu. Contactez EPPRIDAD.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
-    if(data.statut==='pending' && data.role!=='admin'){ err.textContent="Compte en cours d'activation. Contactez EPPRIDAD au +227 99 85 15 32."; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
-    if(data.expiry_date && new Date(data.expiry_date)<new Date()){ err.textContent='Accès expiré. Contactez EPPRIDAD pour le renouveler.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
-    // Mise à jour dernier accès + session token unique (sécurité anti-partage)
-    var newToken = generateSessionToken();
-    db.from('portail_comptes').update({
-      dernier_acces: new Date().toISOString(),
-      session_token: data.role==='admin' ? null : newToken
-    }).eq('matricule',mat).then(()=>{});
-    if(data.role !== 'admin') localStorage.setItem('eppr_session_token_v30', newToken);
-    _s = { matricule:mat, nom:data.nom_complet||mat, role:data.role||'etudiant', email:data.email||null };
+    // ── Connexion sécurisée via Edge Function (le mot de passe/hash
+    // ne transite plus jamais en clair entre le navigateur et la base) ──
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/login-securise`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matricule: mat, password: mdp })
+    });
+    const data = await res.json();
+    if(!res.ok){ err.textContent = data.error || 'Erreur de connexion.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
+    if(data.session_token) localStorage.setItem('eppr_session_token_v30', data.session_token);
+    _s = { matricule:data.matricule, nom:data.nom_complet||data.matricule, role:data.role||'etudiant', email:data.email||null };
     saveSession(_s);
     window._sessionUser = _s;
     afterLogin();
@@ -128,11 +117,13 @@ async function doInscription(){
   const btn = document.getElementById('btn-ins');
   btn.disabled=true; btn.textContent='⏳...';
   try{
-    const db = getDBv30();
-    const { data } = await db.from('portail_comptes').select('matricule,statut,role').eq('matricule',mat).single();
-    if(!data){ err.textContent='Matricule non reconnu. Contactez EPPRIDAD pour obtenir votre matricule.'; btn.disabled=false; btn.textContent='✅ Créer mon compte'; return; }
-    if(data.statut==='actif'){ err.textContent='Ce compte est déjà activé. Connectez-vous directement.'; btn.disabled=false; btn.textContent='✅ Créer mon compte'; return; }
-    await db.from('portail_comptes').update({ pwd_hash: await sha256Async(pwd), statut:'actif' }).eq('matricule',mat);
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/activation-compte`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matricule: mat, password: pwd })
+    });
+    const data = await res.json();
+    if(!res.ok){ err.textContent = data.error || 'Erreur. Contactez EPPRIDAD au +227 99 85 15 32.'; btn.disabled=false; btn.textContent='✅ Créer mon compte'; return; }
     ok.textContent='✅ Compte activé ! Vous pouvez maintenant vous connecter.';
     setTimeout(()=>switchTab('cnx'), 2000);
   }catch(e){
@@ -152,12 +143,13 @@ function startSessionWatch(){
   _sessionCheckInterval = setInterval(async function(){
     if(!_s || _s.role==='admin') return;
     try{
-      const db = getDBv30();
-      const { data } = await db.from('portail_comptes')
-        .select('session_token,statut,expiry_date')
-        .eq('matricule',_s.matricule)
-        .single();
-      if(!data) return;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/verifier-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matricule: _s.matricule })
+      });
+      const data = await res.json();
+      if(!data || !data.ok) return;
       const localToken = localStorage.getItem('eppr_session_token_v30');
       if(data.statut==='suspendu' || data.statut==='supprime'){
         forceLogout('Votre compte a été suspendu. Contactez EPPRIDAD.');
