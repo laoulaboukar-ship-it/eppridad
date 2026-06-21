@@ -38,6 +38,25 @@ function getDBv30(){
   return _db;
 }
 
+// ── PASSERELLE ADMIN SÉCURISÉE ──────────────────────────────
+// Toute action admin sensible sur portail_comptes passe par ici.
+// _adminPwd est gardé en mémoire JS (jamais en localStorage),
+// saisi une fois à la connexion admin, effacé à la déconnexion.
+var _adminPwd = null;
+async function adminApi(action, extra){
+  if(!_s || _s.role!=='admin' || !_adminPwd){
+    throw new Error('Session admin expirée. Reconnectez-vous.');
+  }
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/passerelle-admin`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ adminMatricule:_s.matricule, adminPassword:_adminPwd, action, ...extra })
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || 'Erreur serveur.');
+  return data;
+}
+
 // ── UTILS ────────────────────────────────────────────────────
 function toast(msg, ms){ const t=document.getElementById('toast'); t.textContent=msg; t.style.opacity='1'; clearTimeout(t._tid); t._tid=setTimeout(()=>t.style.opacity='0', ms||3200); }
 function hideLoading(){ const el=document.getElementById('loading-screen'); el.classList.add('fade'); setTimeout(()=>el.style.display='none',500); }
@@ -94,6 +113,8 @@ async function doLogin(){
     if(!res.ok){ err.textContent = data.error || 'Erreur de connexion.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
     if(data.session_token) localStorage.setItem('eppr_session_token_v30', data.session_token);
     _s = { matricule:data.matricule, nom:data.nom_complet||data.matricule, role:data.role||'etudiant', email:data.email||null };
+    // Garde le mot de passe admin en mémoire (jamais stocké) pour la passerelle admin
+    if(_s.role === 'admin') _adminPwd = mdp;
     saveSession(_s);
     window._sessionUser = _s;
     afterLogin();
@@ -174,7 +195,7 @@ function forceLogout(msg){
   stopSessionWatch();
   clearSession();
   localStorage.removeItem('eppr_session_token_v30');
-  _s=null; _db=null;
+  _s=null; _db=null; _adminPwd=null;
   setTimeout(()=>{
     document.getElementById('app')?.classList.remove('active');
     document.getElementById('page-auth')?.classList.add('active');
@@ -201,7 +222,7 @@ function doLogout(){
   stopSessionWatch();
   clearSession();
   localStorage.removeItem('eppr_session_token_v30');
-  _s=null; _db=null;
+  _s=null; _db=null; _adminPwd=null;
   document.getElementById('app').classList.remove('active');
   document.getElementById('page-auth').classList.add('active');
   document.getElementById('inp-mat').value='';
@@ -362,18 +383,19 @@ async function loadEtudDashboard(){
   const el = document.getElementById('page-dashboard');
   el.innerHTML='<div style="padding:40px;text-align:center;color:var(--w3)"><div style="font-size:32px;margin-bottom:12px">⏳</div>Chargement…</div>';
   try{
-    const db2=getDBv30();
-    // SDK v2 : requêtes séquentielles avec destructuring { data, error }
-    const notesRes = await db2.from('notes').select('*').eq('matricule',_s.matricule);
-    const absRes   = await db2.from('absences').select('*').eq('matricule',_s.matricule);
-    const paiRes   = await db2.from('paiements').select('*').eq('matricule',_s.matricule);
-    const etuRes   = await db2.from('etudiants').select('*').eq('matricule',_s.matricule).single();
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/etudiant-data`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matricule: _s.matricule })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Erreur de chargement.');
     if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
-    window._adminData.notes=notesRes.data||[];
-    window._adminData.absences=absRes.data||[];
-    window._adminData.paiements=paiRes.data||[];
-    if(etuRes.data) window._adminData.etudiants=[etuRes.data];
-    window._sessionUser={..._s,...(etuRes.data||{})};
+    window._adminData.notes=data.notes||[];
+    window._adminData.absences=data.absences||[];
+    window._adminData.paiements=data.paiements||[];
+    if(data.etudiant) window._adminData.etudiants=[data.etudiant];
+    window._sessionUser={..._s,...(data.etudiant||{})};
     if(typeof renderAccueil==='function') renderAccueil(window._sessionUser);
     else el.innerHTML=buildWelcomeEtud();
   }catch(e){ console.error('[V31] loadEtudDashboard:',e); el.innerHTML=buildWelcomeEtud(); }
@@ -444,12 +466,12 @@ async function loadAdmDashboard(){
     const db2 = getDBv30();
     // SDK Supabase v2 : chaque query retourne {data, error} — pas de .catch() chaîné
     // SDK v2 : requêtes séquentielles (Promise.all incompatible avec SDK Supabase v2)
-    const cptRes  = await db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500);
+    const cptData = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
     const etudRes = await db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500);
     const inscRes = await db2.from('inscriptions').select('id,prenom,nom,telephone,email,filiere,type_inscription,statut,reference,note_admin,paiement,lu,ville,message,created_at').order('created_at',{ascending:false}).limit(300);
     const cmdRes  = await db2.from('commandes_marketplace').select('id,statut,total_fcfa,prenom,nom,created_at').order('created_at',{ascending:false}).limit(200);
     window._adminData = {
-      comptes:    cptRes.data||[],
+      comptes:    cptData||[],
       etudiants:  etudRes.data||[],
       notes:      [],
       inscriptions: inscRes.data||[],
@@ -1044,10 +1066,10 @@ async function loadAdmComptes(){
     const db2=getDBv30();
     // SDK v2 : requêtes séquentielles
     const etudRes = await db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500);
-    const cptRes  = await db2.from('portail_comptes').select('matricule,statut,role,nom_complet,email,dernier_acces').limit(500);
+    const cptData = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
     if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
     window._adminData.etudiants=etudRes.data||[];
-    window._adminData.comptes=cptRes.data||[];
+    window._adminData.comptes=cptData||[];
     if(typeof loadAdminStudents==='function') await loadAdminStudents();
   }catch(e){ console.error('[V31] loadAdmComptes:',e); document.getElementById('studentsTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--rd)">Erreur. <button onclick="loadAdmComptes()" style="color:var(--or);background:none;border:none;cursor:pointer;font-weight:700">Réessayer</button></td></tr>'; }
 }
@@ -1235,7 +1257,7 @@ async function loadAdmExercices(){
     // Charger formations et modules pour les noms
     const {data:formations} = await db2.from('formations_enligne').select('id,titre,emoji');
     const {data:modules} = await db2.from('modules_cours').select('id,titre,ordre');
-    const {data:comptes} = await db2.from('portail_comptes').select('matricule,nom_complet');
+    const comptes = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
 
     const fMap={}; (formations||[]).forEach(f=>fMap[f.id]=f);
     const mMap={}; (modules||[]).forEach(m=>mMap[m.id]=m);
@@ -1441,7 +1463,8 @@ async function sauvegarderEtEnvoyerEmail(soumId, matricule, formationTitre, modu
   const commentaire = document.getElementById('exo-commentaire')?.value||'Votre exercice a été corrigé.';
   const note = document.getElementById('exo-note')?.value;
   if(typeof emailjs !== 'undefined'){
-    const {data:compte} = await getDBv30().from('portail_comptes').select('email,nom_complet').eq('matricule',matricule).single();
+    const tousComptes = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
+    const compte = (tousComptes||[]).find(c=>c.matricule===matricule);
     if(compte?.email){
       emailjs.send('service_5sapdz7','template_6iuy2mm',{
         to_email    : compte.email,
@@ -1720,9 +1743,7 @@ async function reinitialiserMotDePasse(matricule){
     return;
   }
   try{
-    const db2 = getDBv30();
-    const newHash = await sha256Async(pwd);
-    await db2.from('portail_comptes').update({pwd_hash: newHash}).eq('matricule', matricule);
+    await adminApi('reinitialiser_mot_de_passe', { matricule, nouveauMotDePasse: pwd });
     const fb = document.getElementById('ident-feedback');
     if(fb) fb.textContent="✅ Mot de passe réinitialisé — transmettez-le maintenant à l'apprenant.";
   }catch(e){
@@ -1905,15 +1926,10 @@ async function creerApprenantenLigne(){
   if(fb) fb.textContent='⏳ Création en cours…';
   try{
     const db2=getDBv30();
-    // Créer le compte
-    const pwdHash = await sha256Async(pwd);
-    await db2.from('portail_comptes').upsert({
-      matricule:mat, pwd_hash:pwdHash, // TEMP: sera upgradé à SHA-256 à la première connexion
-      statut:'actif', role:'enligne',
-      nom_complet:nom, email:email||null,
-      expiry_date:expStr,
-      date_creation:new Date().toISOString()
-    },'matricule');
+    // Créer le compte via la passerelle admin sécurisée
+    await adminApi('creer_compte_enligne', {
+      matricule: mat, motDePasse: pwd, nomComplet: nom, email: email||null, expiryDate: expStr
+    });
     // Activer l'accès à la formation
     await db2.from('acces_formations').upsert({
       matricule:mat, formation_id:formId,
@@ -1979,16 +1995,16 @@ async function loadAdmEnLigne(){
   try{
     const db2 = getDBv30();
     const [
-      {data:comptes},
       {data:acces},
       {data:formations},
       {data:certificats},
     ] = await Promise.all([
-      db2.from('portail_comptes').select('matricule,nom_complet,email,statut,expiry_date,dernier_acces,role').in('role',['enligne','etudiant']).order('nom_complet'),
       db2.from('acces_formations').select('*').eq('actif',true),
       db2.from('formations_enligne').select('id,titre,emoji,prix_fcfa,filiere'),
       db2.from('certificats').select('matricule,formation_id,numero,mention,score_final,date_emission,valide'),
     ]);
+    const comptesAll = await adminApi('lister_comptes', { role:['enligne','etudiant'] }).then(r=>r.data).catch(()=>[]);
+    const comptes = (comptesAll||[]).sort((a,b)=>(a.nom_complet||'').localeCompare(b.nom_complet||''));
 
     // Progressions chargées séparément — table optionnelle, ne doit jamais bloquer
     let progressions = [];
@@ -2147,8 +2163,8 @@ async function ouvrirModifierApprenant(matricule){
   modal.style.display='flex';
 
   try{
-    const db2=getDBv30();
-    const {data:c}=await db2.from('portail_comptes').select('*').eq('matricule',matricule).single();
+    const tousComptes = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
+    const c = (tousComptes||[]).find(x=>x.matricule===matricule);
     if(!c){ modal.querySelector('div>div:last-child').innerHTML='<div style="color:#ef9a9a">Compte introuvable.</div>'; return; }
 
     modal.querySelector('div').innerHTML=`
@@ -2190,11 +2206,10 @@ async function sauvegarderModifApprenant(matricule){
   const statut = document.getElementById('ma-statut')?.value;
   const fb     = document.getElementById('ma-feedback');
   try{
-    const db2=getDBv30();
-    await db2.from('portail_comptes').update({
-      nom_complet:nom||null, email:email||null,
-      expiry_date:expiry||null, statut:statut||'actif'
-    }).eq('matricule',matricule);
+    await adminApi('modifier_compte', {
+      matricule, updates:{ nom_complet:nom||null, email:email||null, expiry_date:expiry||null }
+    });
+    await adminApi('changer_statut', { matricule, statut: statut||'actif' });
     if(fb) fb.textContent='✅ Modifications sauvegardées';
     window._enlData=null; // Forcer rechargement
     setTimeout(()=>{ document.getElementById('modifApprModal').style.display='none'; loadAdmEnLigne(); },1200);
@@ -2326,7 +2341,7 @@ async function toggleAcces(accesId, nouvelEtat, matricule){
 
 async function changerStatutApprenant(matricule, statut){
   try{
-    await getDBv30().from('portail_comptes').update({statut}).eq('matricule',matricule);
+    await adminApi('changer_statut', { matricule, statut });
     toast(statut==='actif'?'✅ Compte activé':'⏸ Compte suspendu');
     window._enlData=null;
     loadAdmEnLigne();
@@ -2449,10 +2464,8 @@ async function emettreManuelCertificat(matricule, nomComplet){
 // ── MISE À JOUR BADGE APPRENANTS EN LIGNE ─────────────────
 async function refreshEnligneBadge(){
   try{
-    const db2=getDBv30();
-    const {count} = await db2.from('portail_comptes')
-      .select('matricule',{count:'exact',head:true})
-      .in('role',['enligne','etudiant']);
+    const data = await adminApi('lister_comptes', { role:['enligne','etudiant'] }).then(r=>r.data).catch(()=>[]);
+    const count = (data||[]).length;
     const badge = document.getElementById('enligneBadge');
     if(badge){ badge.textContent=count||0; badge.style.display=(count&&count>0)?'':'none'; }
   }catch(_){}
@@ -2791,11 +2804,11 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
     const nomComplet = (prenom+' '+nom).trim().toLowerCase();
     let comptes = [];
     if(email){
-      const r1 = await db2.from('portail_comptes').select('*').eq('email', email);
+      const r1 = await adminApi('rechercher', { email });
       comptes = r1.data || [];
     }
     if(!comptes.length){
-      const r2 = await db2.from('portail_comptes').select('*').ilike('nom_complet', `%${nom}%`);
+      const r2 = await adminApi('rechercher', { nom });
       comptes = (r2.data||[]).filter(c => (c.nom_complet||'').toLowerCase().includes(nomComplet.split(' ')[0]) || (c.nom_complet||'').toLowerCase()===nomComplet);
     }
 
@@ -2918,75 +2931,23 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
 //           qui s'est retrouvée avec 2 matricules différents).
 // ══════════════════════════════════════════════════════════════
 async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre){
-  const now = new Date();
-  const yy = now.getFullYear().toString().slice(2);
-  const mm = String(now.getMonth()+1).padStart(2,'0');
-  const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
   showLoadingOverlayV27(true, "Activation de l'accès…");
 
   try{
-    const db2 = getDBv30();
-
-    // ── Vérifier si un compte existe DÉJÀ pour cet email ────────
-    // Si oui : on réutilise ce matricule au lieu d'en créer un nouveau.
-    let matricule = null;
-    let pwd = null;
-    let compteExistant = null;
-
-    if(email){
-      const {data:existants} = await db2.from('portail_comptes').select('*').eq('email', email).limit(1);
-      if(existants && existants.length) compteExistant = existants[0];
+    if(!_s || _s.role!=='admin' || !_adminPwd){
+      throw new Error('Session admin expirée. Reconnectez-vous.');
     }
-
-    if(compteExistant){
-      matricule = compteExistant.matricule;
-      // On garde le même matricule mais on génère un NOUVEAU mot de passe
-      // (cas où l'apprenant a perdu ses identifiants — on lui en redonne des frais)
-      pwd = 'Eppridad'+yy+'!';
-      const newHash = await sha256Async(pwd);
-      await db2.from('portail_comptes').update({
-        pwd_hash: newHash, statut:'actif', role:'enligne',
-        nom_complet:(prenom+' '+nom).trim()
-      }).eq('matricule', matricule);
-    } else {
-      let suffix = '';
-      for(let i=0;i<4;i++) suffix += charset[Math.floor(Math.random()*charset.length)];
-      matricule = 'ENL'+yy+mm+'-'+suffix;
-      pwd = 'Eppridad'+yy+'!';
-      const newHash = await sha256Async(pwd);
-      await db2.from('portail_comptes').upsert({
-        matricule, pwd_hash:newHash, statut:'actif', role:'enligne',
-        nom_complet:(prenom+' '+nom).trim(), email:email||null,
-        expiry_date:null, date_creation:new Date().toISOString()
-      },'matricule');
-    }
-
-    // ── Trouver la formation ────────────────────────────────────
-    let formId = null;
-    const {data:formations} = await db2.from('formations_enligne').select('id,titre,slug').limit(30);
-    if(formations && formations.length){
-      const slug = (formation_titre||'').toLowerCase().normalize('NFD')
-        .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-      let match = formations.find(f=>f.slug===slug)
-        || formations.find(f=>(f.titre||'').toLowerCase().includes((formation_titre||'').toLowerCase().slice(0,12)))
-        || formations.find(f=>(f.titre||'').includes(formation_titre));
-      formId = match?.id || null;
-    }
-
-    if(formId){
-      await db2.from('acces_formations').upsert({
-        matricule, formation_id:formId, actif:true, date_fin:null,
-        note_admin:'Activé le '+new Date().toLocaleDateString('fr-FR')+' — Réf: '+(reference||'—')
-      },'matricule,formation_id');
-    }
-
-    if(reference){
-      await db2.from('inscriptions').update({
-        statut:'traite',
-        note_admin:'Accès activé le '+new Date().toLocaleDateString('fr-FR')+' · ID: '+matricule
-      }).eq('reference', reference);
-    }
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/creer-apprenant-enligne`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        adminMatricule:_s.matricule, adminPassword:_adminPwd,
+        reference, prenom, nom, tel, email, formation_titre
+      })
+    });
+    const result = await res.json();
+    if(!res.ok) throw new Error(result.error || 'Erreur serveur.');
+    const { matricule, pwd, formId } = result;
 
     // ── Email ────────────────────────────────────────────────────
     if(email && typeof emailAccesAccorde === 'function'){
