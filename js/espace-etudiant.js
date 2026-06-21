@@ -1316,21 +1316,54 @@ function openValidateModal(matricule){
   const data=window._adminData||{};
   const e=(data.etudiants||[]).find(x=>x.matricule===matricule);
   const acc=(data.comptes||[]).find(x=>x.matricule===matricule);
-  document.getElementById('vModalStudentInfo').innerHTML=e
-    ?`<strong>${e.nom} ${e.prenom}</strong><br><span style="color:var(--text3)">${e.filiere||'—'} · ${e.niveau||'—'} · Classe ${e.classe||'—'}</span><br><span style="font-size:11px;color:var(--text3)">${acc?'Demande le '+(acc.date_creation?new Date(acc.date_creation).toLocaleDateString('fr-FR'):'—'):'Nouveau compte admin'}</span>`
+  const infoHtml=e
+    ?`<strong>${e.nom} ${e.prenom}</strong><br><span style="color:rgba(255,255,255,.5)">${e.filiere||'—'} · ${e.niveau||'—'} · Classe ${e.classe||'—'}</span><br><span style="font-size:11px;color:rgba(255,255,255,.4)">${acc?'Demande le '+(acc.date_creation?new Date(acc.date_creation).toLocaleDateString('fr-FR'):'—'):'Nouveau compte admin'}</span>`
     :`<strong>${matricule}</strong>`;
-  document.querySelectorAll('.dur-btn').forEach((b,i)=>b.classList.toggle('sel',i===1));
-  const cdw=document.getElementById('customDateWrap');
-  if(cdw) cdw.style.display='none';
+
   const vm=document.getElementById('validateModal');
-  if(vm) vm.style.display='flex';
+  if(!vm) return;
+  vm.innerHTML=`
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px">
+      <div style="background:#0f2818;border:1px solid rgba(201,168,76,.25);border-radius:16px;max-width:420px;width:100%;padding:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff">✏️ Modifier le compte</div>
+          <button onclick="closeValidateModal()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:22px;cursor:pointer">×</button>
+        </div>
+        <div id="vModalStudentInfo" style="font-size:13px;color:#fff;line-height:1.6;margin-bottom:18px;padding:12px;background:rgba(255,255,255,.05);border-radius:10px">${infoHtml}</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);margin-bottom:8px">Durée de validité de l'accès</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <button class="dur-btn" onclick="selDur(this,'3m')" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">3 mois</button>
+          <button class="dur-btn sel" onclick="selDur(this,'1y')" style="background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.4);color:#e8d088;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">1 an</button>
+          <button class="dur-btn" onclick="selDur(this,'2y')" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">2 ans</button>
+        </div>
+        <button class="dur-btn" onclick="selDur(this,'custom')" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px">📅 Date personnalisée</button>
+        <div id="customDateWrap" style="display:none;margin-bottom:12px">
+          <input id="customExpDate" type="date" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:#fff;font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+        <button onclick="confirmValidate()" style="width:100%;background:linear-gradient(135deg,#1a4a35,#0f2818);color:#e8d088;border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:6px">✅ Valider jusqu'à cette date</button>
+      </div>
+    </div>`;
+  vm.style.display='block';
 }
-function closeValidateModal(){document.getElementById('validateModal').style.display='none';}
+function closeValidateModal(){
+  const vm=document.getElementById('validateModal');
+  if(vm){ vm.style.display='none'; vm.innerHTML=''; }
+  _validateId=null;
+}
 function selDur(btn,dur){
   _selectedDur=dur;
-  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.dur-btn').forEach(b=>{
+    b.classList.remove('sel');
+    b.style.background='rgba(255,255,255,.07)';
+    b.style.border='1px solid rgba(255,255,255,.15)';
+    b.style.color='#fff';
+  });
   btn.classList.add('sel');
-  document.getElementById('customDateWrap').style.display=dur==='custom'?'block':'none';
+  btn.style.background='rgba(201,168,76,.18)';
+  btn.style.border='1px solid rgba(201,168,76,.4)';
+  btn.style.color='#e8d088';
+  const cdw=document.getElementById('customDateWrap');
+  if(cdw) cdw.style.display=dur==='custom'?'block':'none';
 }
 function getExpiryDate(dur){
   const d=new Date();
