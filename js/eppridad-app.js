@@ -252,6 +252,7 @@ var NAV_ADM = [
   {id:'page-adm-exercices',ico:'📝',label:'Exercices soumis',badge:'exercBadge'},
   {id:'page-adm-finances',ico:'💰',label:'Finances'},
   {id:'page-adm-docs',ico:'📚',label:'Bibliothèque'},
+  {id:'page-adm-galerie',ico:'🖼️',label:'Galerie & Vidéos'},
 ];
 
 function buildSidebar(){
@@ -301,6 +302,7 @@ function goto(id){
     'page-adm-exercices'     : () => loadAdmExercices(),
     'page-adm-finances'      : () => loadAdmFinances(),
     'page-adm-docs'          : () => loadAdmDocs(),
+    'page-adm-galerie'       : () => loadAdmGalerie(),
   };
   // Afficher la bonne page
   const pageId = id.startsWith('page-') ? id : `page-${id}`;
@@ -1545,6 +1547,184 @@ function aPanel(name, btn){
   goto(target);
 }
 function sPanel(name, btn){ goto(name); }
+
+// ── GESTION GALERIE & VIDÉOS ───────────────────────────────
+async function loadAdmGalerie(){
+  setTitle('Galerie & Vidéos','Administration');
+  showPage('page-adm-galerie');
+  const el = document.getElementById('page-adm-galerie');
+  el.innerHTML = `
+    <div style="max-width:900px;margin:0 auto;padding:8px 0">
+      <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w);margin-bottom:6px">🖼️ Galerie &amp; Vidéos</div>
+      <p style="color:var(--w3);font-size:13px;margin-bottom:24px">Ajoutez des photos ou des vidéos YouTube. Tout apparaît sur le site en temps réel.</p>
+
+      <!-- Formulaire d'ajout -->
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:20px;margin-bottom:28px">
+        <div style="font-weight:700;color:var(--or);margin-bottom:16px;font-size:15px">➕ Ajouter un contenu</div>
+        <div style="display:grid;gap:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Type</label>
+              <select id="galType" onchange="toggleGalType()" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none">
+                <option value="photo">📷 Photo</option>
+                <option value="video">▶️ Vidéo YouTube</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Catégorie</label>
+              <select id="galCat" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none">
+                <option value="campus">Campus</option>
+                <option value="terrain">Terrain &amp; Pratique</option>
+                <option value="elevage">Élevage</option>
+                <option value="sport">Sport &amp; Vie étudiante</option>
+                <option value="bureau">Administration</option>
+                <option value="evenement">Événement</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Titre</label>
+            <input id="galTitre" type="text" placeholder="Ex: Formation terrain — Juin 2025" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+          <div id="galUrlWrap">
+            <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">URL de la photo <span style="color:var(--w3);font-weight:400">(lien vers l'image)</span></label>
+            <input id="galUrl" type="url" placeholder="https://..." style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+          <div id="galYtWrap" style="display:none">
+            <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Lien YouTube</label>
+            <input id="galYt" type="url" placeholder="https://www.youtube.com/watch?v=..." style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none;box-sizing:border-box">
+            <div style="font-size:11px;color:var(--w3);margin-top:5px">Collez le lien de la vidéo YouTube — la miniature sera générée automatiquement.</div>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Description <span style="color:var(--w3);font-weight:400">(optionnel)</span></label>
+            <input id="galDesc" type="text" placeholder="Courte description..." style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+          <div id="galFeedback" style="font-size:13px;color:#81c784;display:none"></div>
+          <button onclick="ajouterContenuGalerie()" style="background:linear-gradient(135deg,#1a4a35,#0f2818);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">
+            ✅ Ajouter à la galerie
+          </button>
+        </div>
+      </div>
+
+      <!-- Liste des éléments existants -->
+      <div style="font-weight:700;color:var(--w);margin-bottom:12px;font-size:15px">📋 Contenus publiés <span id="galCount" style="color:var(--w3);font-weight:400;font-size:13px"></span></div>
+      <div id="galListe" style="display:grid;gap:10px">
+        <div style="color:var(--w3);font-size:13px;text-align:center;padding:20px">Chargement…</div>
+      </div>
+    </div>`;
+
+  await rafraichirListeGalerie();
+}
+
+function toggleGalType(){
+  const t = document.getElementById('galType').value;
+  document.getElementById('galUrlWrap').style.display = t==='photo' ? '' : 'none';
+  document.getElementById('galYtWrap').style.display  = t==='video' ? '' : 'none';
+}
+
+async function ajouterContenuGalerie(){
+  const type  = document.getElementById('galType').value;
+  const titre = document.getElementById('galTitre').value.trim();
+  const cat   = document.getElementById('galCat').value;
+  const desc  = document.getElementById('galDesc').value.trim()||null;
+  const fb    = document.getElementById('galFeedback');
+  let url, thumbnail = null;
+
+  if(type==='photo'){
+    url = document.getElementById('galUrl').value.trim();
+    if(!url){ fb.textContent='❌ URL de la photo requise.'; fb.style.display='block'; fb.style.color='#ef9a9a'; return; }
+  } else {
+    const yt = document.getElementById('galYt').value.trim();
+    if(!yt){ fb.textContent='❌ Lien YouTube requis.'; fb.style.display='block'; fb.style.color='#ef9a9a'; return; }
+    const ytId = yt.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+    if(!ytId){ fb.textContent='❌ Lien YouTube invalide.'; fb.style.display='block'; fb.style.color='#ef9a9a'; return; }
+    url = `https://www.youtube.com/watch?v=${ytId}`;
+    thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  }
+  if(!titre){ fb.textContent='❌ Le titre est requis.'; fb.style.display='block'; fb.style.color='#ef9a9a'; return; }
+
+  try{
+    const db2 = getDBv30();
+    const { error } = await db2.from('galerie').insert({
+      titre, type, url, thumbnail, categorie:cat, description:desc,
+      publie:true, ordre:999, created_at:new Date().toISOString()
+    });
+    if(error) throw error;
+    fb.textContent = '✅ Ajouté ! Visible sur le site immédiatement.';
+    fb.style.color = '#81c784';
+    fb.style.display = 'block';
+    // Réinitialiser le formulaire
+    ['galTitre','galUrl','galYt','galDesc'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.value='';
+    });
+    await rafraichirListeGalerie();
+  }catch(e){
+    fb.textContent = '❌ Erreur : '+e.message;
+    fb.style.color = '#ef9a9a';
+    fb.style.display = 'block';
+  }
+}
+
+async function rafraichirListeGalerie(){
+  const liste = document.getElementById('galListe');
+  const count = document.getElementById('galCount');
+  try{
+    const db2 = getDBv30();
+    const { data, error } = await db2.from('galerie').select('*').order('created_at',{ascending:false}).limit(100);
+    if(error) throw error;
+    if(count) count.textContent = `(${(data||[]).length} éléments)`;
+    if(!data||!data.length){
+      liste.innerHTML='<div style="color:var(--w3);font-size:13px;text-align:center;padding:20px">Aucun contenu encore. Ajoutez votre première photo ou vidéo ci-dessus.</div>';
+      return;
+    }
+    liste.innerHTML = data.map(item=>{
+      const isVideo = item.type==='video';
+      const thumb = item.thumbnail || item.url;
+      return `
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px">
+          <div style="width:64px;height:42px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#111">
+            ${thumb ? `<img src="${escH(thumb)}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : '<div style="width:100%;height:100%;background:#1a2a1a"></div>'}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;color:var(--w);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              ${isVideo?'▶️ ':'📷 '}${escH(item.titre||'Sans titre')}
+            </div>
+            <div style="font-size:11px;color:var(--w3)">${escH(item.categorie||'')} ${item.publie?'· ✅ Publié':'· ⏸ Masqué'}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button onclick="togglePubliGalerie('${item.id}',${!item.publie})"
+              style="background:rgba(255,255,255,.07);color:var(--w);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
+              ${item.publie?'Masquer':'Publier'}
+            </button>
+            <button onclick="supprimerGalerie('${item.id}')"
+              style="background:rgba(229,57,53,.1);color:#ef9a9a;border:1px solid rgba(229,57,53,.2);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">
+              🗑️
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }catch(e){
+    liste.innerHTML=`<div style="color:#ef9a9a;font-size:13px;padding:12px">Erreur : ${e.message}</div>`;
+  }
+}
+
+async function togglePubliGalerie(id, publie){
+  try{
+    const db2 = getDBv30();
+    await db2.from('galerie').update({publie}).eq('id',id);
+    await rafraichirListeGalerie();
+  }catch(e){ toast('Erreur : '+e.message); }
+}
+
+async function supprimerGalerie(id){
+  if(!confirm('Supprimer ce contenu de la galerie ?')) return;
+  try{
+    const db2 = getDBv30();
+    await db2.from('galerie').delete().eq('id',id);
+    await rafraichirListeGalerie();
+  }catch(e){ toast('Erreur : '+e.message); }
+}
 
 // ══════════════════════════════════════════════════════════════
 // V32 — SURCHARGE : loadAdminStudents avec téléphone + identifiants
