@@ -1587,8 +1587,19 @@ async function loadAdmGalerie(){
             <input id="galTitre" type="text" placeholder="Ex: Formation terrain — Juin 2025" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none;box-sizing:border-box">
           </div>
           <div id="galUrlWrap">
-            <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">URL de la photo <span style="color:var(--w3);font-weight:400">(lien vers l'image)</span></label>
-            <input id="galUrl" type="url" placeholder="https://..." style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none;box-sizing:border-box">
+            <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Photo <span style="color:var(--w3);font-weight:400">(fichier ou URL)</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <button onclick="document.getElementById('galFichier').click()" style="background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📱 Depuis mon appareil</button>
+              <button onclick="toggleGalUrlManuel()" style="background:rgba(255,255,255,.07);color:var(--w);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🔗 Coller un lien</button>
+            </div>
+            <input id="galFichier" type="file" accept="image/*" style="display:none" onchange="previewGalPhoto(this)">
+            <div id="galPreview" style="display:none;margin-bottom:8px">
+              <img id="galPreviewImg" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.15)">
+              <div id="galPreviewNom" style="font-size:11px;color:var(--w3);margin-top:4px;text-align:center"></div>
+            </div>
+            <div id="galUrlManuel" style="display:none">
+              <input id="galUrl" type="url" placeholder="https://..." style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--w);font-family:inherit;outline:none;box-sizing:border-box">
+            </div>
           </div>
           <div id="galYtWrap" style="display:none">
             <label style="font-size:11px;color:var(--w3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px">Lien YouTube</label>
@@ -1622,6 +1633,29 @@ function toggleGalType(){
   document.getElementById('galYtWrap').style.display  = t==='video' ? '' : 'none';
 }
 
+function toggleGalUrlManuel(){
+  const wrap = document.getElementById('galUrlManuel');
+  wrap.style.display = wrap.style.display==='none' ? '' : 'none';
+}
+
+function previewGalPhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  const prev = document.getElementById('galPreview');
+  const img  = document.getElementById('galPreviewImg');
+  const nom  = document.getElementById('galPreviewNom');
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.src = e.target.result;
+    nom.textContent = file.name + ' — ' + (file.size/1024/1024).toFixed(1) + ' Mo';
+    prev.style.display = 'block';
+    // Masquer le champ URL manuel si un fichier est choisi
+    document.getElementById('galUrlManuel').style.display = 'none';
+    document.getElementById('galUrl').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
 async function ajouterContenuGalerie(){
   const type  = document.getElementById('galType').value;
   const titre = document.getElementById('galTitre').value.trim();
@@ -1630,20 +1664,47 @@ async function ajouterContenuGalerie(){
   const fb    = document.getElementById('galFeedback');
   let url, thumbnail = null;
 
+  fb.style.display = 'none';
+
   if(type==='photo'){
-    url = document.getElementById('galUrl').value.trim();
-    if(!url){ fb.textContent='❌ URL de la photo requise.'; fb.style.display='block'; fb.style.color='#ef9a9a'; return; }
+    const fichier = document.getElementById('galFichier').files[0];
+    const urlManuelle = document.getElementById('galUrl')?.value.trim();
+
+    if(fichier){
+      // Upload vers Supabase Storage
+      if(fichier.size > 10 * 1024 * 1024){
+        fb.textContent='❌ Photo trop lourde (max 10 Mo). Compressez-la d\'abord sur squoosh.app';
+        fb.style.color='#ef9a9a'; fb.style.display='block'; return;
+      }
+      fb.textContent='⏳ Upload en cours…';
+      fb.style.color='rgba(255,255,255,.6)'; fb.style.display='block';
+      try{
+        const ext = fichier.name.split('.').pop().toLowerCase();
+        const nom = 'galerie/' + Date.now() + '_' + Math.random().toString(36).slice(2,7) + '.' + ext;
+        url = await sbUpload('media', nom, fichier);
+      }catch(e){
+        fb.textContent='❌ Upload échoué : '+e.message;
+        fb.style.color='#ef9a9a'; fb.style.display='block'; return;
+      }
+    } else if(urlManuelle){
+      url = urlManuelle;
+    } else {
+      fb.textContent='❌ Choisissez une photo ou collez un lien.';
+      fb.style.color='#ef9a9a'; fb.style.display='block'; return;
+    }
   } else {
     const yt = document.getElementById('galYt').value.trim();
-    if(!yt){ fb.textContent='❌ Lien YouTube requis.'; fb.style.display='block'; fb.style.color='#ef9a9a'; return; }
+    if(!yt){ fb.textContent='❌ Lien YouTube requis.'; fb.style.color='#ef9a9a'; fb.style.display='block'; return; }
     const ytId = yt.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
-    if(!ytId){ fb.textContent='❌ Lien YouTube invalide.'; fb.style.display='block'; fb.style.color='#ef9a9a'; return; }
+    if(!ytId){ fb.textContent='❌ Lien YouTube invalide.'; fb.style.color='#ef9a9a'; fb.style.display='block'; return; }
     url = `https://www.youtube.com/watch?v=${ytId}`;
     thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
   }
-  if(!titre){ fb.textContent='❌ Le titre est requis.'; fb.style.display='block'; fb.style.color='#ef9a9a'; return; }
+
+  if(!titre){ fb.textContent='❌ Le titre est requis.'; fb.style.color='#ef9a9a'; fb.style.display='block'; return; }
 
   try{
+    fb.textContent='⏳ Enregistrement…'; fb.style.color='rgba(255,255,255,.6)'; fb.style.display='block';
     const db2 = getDBv30();
     const { error } = await db2.from('galerie').insert({
       titre, type, url, thumbnail, categorie:cat, description:desc,
@@ -1651,18 +1712,18 @@ async function ajouterContenuGalerie(){
     });
     if(error) throw error;
     fb.textContent = '✅ Ajouté ! Visible sur le site immédiatement.';
-    fb.style.color = '#81c784';
-    fb.style.display = 'block';
+    fb.style.color = '#81c784'; fb.style.display='block';
     // Réinitialiser le formulaire
     ['galTitre','galUrl','galYt','galDesc'].forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) el.value='';
+      const el=document.getElementById(id); if(el) el.value='';
     });
+    document.getElementById('galFichier').value='';
+    document.getElementById('galPreview').style.display='none';
+    document.getElementById('galUrlManuel').style.display='none';
     await rafraichirListeGalerie();
   }catch(e){
     fb.textContent = '❌ Erreur : '+e.message;
-    fb.style.color = '#ef9a9a';
-    fb.style.display = 'block';
+    fb.style.color = '#ef9a9a'; fb.style.display='block';
   }
 }
 
