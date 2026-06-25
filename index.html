@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>EPPRIDAD — École Polytechnique Privée | Niamey, Niger</title>
+<meta name="description" content="EPPRIDAD – École Polytechnique Privée pour le Développement Agricole Durable. Formation professionnelle agricole au Niger. CAP, BEP, Bac Pro, TDR.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/index.css">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a5d1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EPPRIDAD">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon"><img src="images/logo.png" alt="Logo EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0;padding:2px"></div>
+    <div><div class="nav-brand-name">EPPRIDAD</div><div class="nav-brand-sub">Est. 2024 · Niamey, Niger</div></div>
+  </a>
+    <ul class="nav-menu">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="ecole.html">L'École <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="ecole.html#histoire">Notre Histoire</a><a href="ecole.html#vision">Vision &amp; Missions</a><a href="ecole.html#valeurs">Nos Valeurs</a><a href="ecole.html#pourquoi">Pourquoi EPPRIDAD ?</a></div>
+    </li>
+    <li><a href="filieres.html">Filières <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="filieres.html#environnement">Environnement &amp; Eaux-Forêts</a><a href="filieres.html#elevage">Élevage &amp; Santé Animale</a><a href="filieres.html#genie">Génie Rural</a><a href="filieres.html#agroalimentaire">Transformation Agroalimentaire</a><a href="filieres.html#socioeconomie">Socio-Économie Rurale</a><a href="filieres.html#agriculture">Agriculture &amp; Productions Végétales</a></div>
+    </li>
+    <li><a href="services.html">Services <span class="arrow">▾</span></a>
+      <div class="dropdown"><a href="services.html#academique">Formation Académique</a><a href="services.html#courtes">Formations Courtes</a><a href="services.html#accompagnement">Accompagnement Technique</a></div>
+    </li>
+    <li><a href="formations-en-ligne.html" style="color:var(--gold-light);font-weight:600;">🎓 Cours en ligne</a></li>
+    <li><a href="marketplace.html" style="color:var(--gold-light);font-weight:600;">🛒 Boutique</a></li>
+
+    <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="lang-btn">EN</button>
+        <div class="nav-cta-wrap" style="position:relative;display:inline-block">
+      <a href="inscription.html" class="nav-cta">✍️ S'inscrire</a>
+      <div class="nav-cta-drop" style="display:none;position:absolute;right:0;top:110%;background:#fff;border:1px solid rgba(22,80,63,.15);border-radius:12px;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:200;overflow:hidden">
+        <a href="inscription.html#diplomante" style="display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:13px;color:#1a2a1a;text-decoration:none;font-family:Outfit,sans-serif;border-bottom:1px solid #f0f5f1;transition:background .15s" onmouseover="this.style.background='#f0f5f1'" onmouseout="this.style.background='none'"><span style="font-size:18px">🎓</span><div><div style="font-weight:700">Formation diplômante</div><div style="font-size:11px;color:#5a7a6a">CAP · BEP · Bac Pro · TDR</div></div></a>
+        <a href="inscription.html#courte" style="display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:13px;color:#1a2a1a;text-decoration:none;font-family:Outfit,sans-serif;border-bottom:1px solid #f0f5f1;transition:background .15s" onmouseover="this.style.background='#f0f5f1'" onmouseout="this.style.background='none'"><span style="font-size:18px">📜</span><div><div style="font-weight:700">Formation courte certifiante</div><div style="font-size:11px;color:#5a7a6a">1 mois · Week-end</div></div></a>
+        <a href="inscription.html#enligne" style="display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:13px;color:#1a2a1a;text-decoration:none;font-family:Outfit,sans-serif;transition:background .15s" onmouseover="this.style.background='#f0f5f1'" onmouseout="this.style.background='none'"><span style="font-size:18px">💻</span><div><div style="font-weight:700">Formation en ligne</div><div style="font-size:11px;color:#5a7a6a">À distance · Votre rythme</div></div></a>
+      </div>
+    </div>
+    <script>
+    (function(){
+      const wrap = document.currentScript.previousElementSibling;
+      const cta = wrap?.querySelector('.nav-cta');
+      const drop = wrap?.querySelector('.nav-cta-drop');
+      if(!cta||!drop) return;
+      wrap.addEventListener('mouseenter',()=>drop.style.display='block');
+      wrap.addEventListener('mouseleave',()=>drop.style.display='none');
+      cta.addEventListener('click',(e)=>{if(drop.style.display==='block'){e.preventDefault();}});
+    })();
+    </script>
+    <div class="hamburger"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<section id="hero" style="position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden">
+  <!-- Photo hero : promotion EPPRIDAD uniforme blanc/vert -->
+  <div style="position:absolute;inset:0;z-index:0">
+    <img src="images/students_uniform.jpg" alt="Promotion EPPRIDAD 2025-2026"
+         style="width:100%;height:100%;object-fit:cover;object-position:center top"
+         onerror="this.src='images/campus_gate.jpg'">
+    <!-- Dégradé sombre pour lisibilité du texte -->
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(5,20,5,.88) 0%,rgba(10,30,10,.75) 50%,rgba(5,20,5,.60) 100%)"></div>
+  </div>
+
+  <!-- Contenu hero -->
+  <div style="position:relative;z-index:1;max-width:700px;padding:120px 6% 80px;width:100%">
+    <!-- Badge -->
+    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,.18);border:1px solid rgba(212,175,55,.4);border-radius:50px;padding:6px 16px;margin-bottom:24px">
+      <span style="width:7px;height:7px;background:#d4af37;border-radius:50%;display:inline-block;animation:pulse 2s infinite"></span>
+      <span style="font-size:12px;font-weight:700;color:#d4af37;letter-spacing:1px;text-transform:uppercase">Inscriptions 2026–2027 ouvertes</span>
+    </div>
+
+    <!-- Titre principal inspiré de l'affiche -->
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:clamp(36px,6vw,72px);font-weight:700;color:#fff;line-height:1.1;margin-bottom:16px">
+      Préparez l'avenir<br>
+      <span style="color:#d4af37">de votre enfant</span>
+    </h1>
+    <p style="font-size:clamp(15px,2vw,18px);color:rgba(255,255,255,.82);line-height:1.7;margin-bottom:12px;max-width:560px">
+      EPPRIDAD forme les bâtisseurs du monde rural. Formation pratique, discipline et excellence — depuis Niamey, pour toute l'Afrique.
+    </p>
+    <p style="font-size:14px;color:rgba(212,175,55,.9);font-weight:700;margin-bottom:32px;letter-spacing:.5px">
+      📱 Formation en ligne · 🎓 Formation diplômante · 📜 Certificats reconnus
+    </p>
+
+    <!-- Boutons -->
+    <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:48px">
+      <a href="inscription.html" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#d4af37,#b8941f);color:#0a1a0a;font-weight:800;font-size:15px;padding:14px 28px;border-radius:50px;text-decoration:none;font-family:Outfit,sans-serif;box-shadow:0 4px 20px rgba(212,175,55,.35);transition:all .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">✍️ S'inscrire maintenant</a>
+      <a href="formations-en-ligne.html" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:15px;padding:14px 28px;border-radius:50px;text-decoration:none;font-family:Outfit,sans-serif;border:1px solid rgba(255,255,255,.25);transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">🎓 Cours en ligne →</a>
+    </div>
+
+    <!-- Barre de confiance -->
+    <div style="display:flex;flex-wrap:wrap;gap:20px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:22px">✅</span>
+        <div>
+          <div style="font-size:22px;font-weight:800;color:#d4af37;font-family:'Cormorant Garamond',serif;line-height:1">28</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px">Diplômants formés 2025</div>
+        </div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.2);align-self:stretch"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:22px">🎓</span>
+        <div>
+          <div style="font-size:22px;font-weight:800;color:#d4af37;font-family:'Cormorant Garamond',serif;line-height:1">52</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px">Apprenants en ligne</div>
+        </div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.2);align-self:stretch"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:22px">🏅</span>
+        <div>
+          <div style="font-size:22px;font-weight:800;color:#d4af37;font-family:'Cormorant Garamond',serif;line-height:1">12</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px">Certificats délivrés</div>
+        </div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.2);align-self:stretch"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:22px">🇳🇪</span>
+        <div>
+          <div style="font-size:22px;font-weight:800;color:#d4af37;font-family:'Cormorant Garamond',serif;line-height:1">2024</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px">Fondée à Niamey</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="hero-scroll" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:2">
+    <div class="scroll-line"></div>Découvrir
+  </div>
+
+  <style>
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @media(max-width:600px){
+    #hero > div:nth-child(2){padding-top:100px !important;padding-bottom:60px !important}
+  }
+  </style>
+</section>
+
+
+<!-- ═══════ CARROUSEL ACTUALITÉS ═══════ -->
+<section id="news-carousel-section" style="background:var(--dark2);padding:0;display:none;">
+  <div style="max-width:1140px;margin:0 auto;padding:40px 5%;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <div>
+        <div class="section-tag" style="color:rgba(212,175,55,.8)">Actualités EPPRIDAD</div>
+        <h2 class="section-title" style="color:white;">Dernières <span class="gold">publications</span></h2>
+      </div>
+      <a href="infos.html" class="btn btn-outline" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2);font-size:13px;flex-shrink:0;">Tout voir →</a>
+    </div>
+    <!-- CAROUSEL TRACK -->
+    <div style="position:relative;overflow:hidden;" id="carouselWrap">
+      <div id="carouselTrack" style="display:flex;gap:20px;transition:transform .45s cubic-bezier(.4,0,.2,1);"></div>
+    </div>
+    <!-- DOTS & CONTROLS -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:20px;">
+      <button onclick="carouselPrev()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-size:16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='rgba(212,175,55,.3)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">‹</button>
+      <div id="carouselDots" style="display:flex;gap:6px;"></div>
+      <button onclick="carouselNext()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-size:16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='rgba(212,175,55,.3)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">›</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ TEST D'ORIENTATION ═══════ -->
+<section style="background:linear-gradient(135deg,#050e05,#0a1f0a);padding:70px 6%;position:relative;overflow:hidden">
+  <div style="position:absolute;top:-60px;right:-60px;width:300px;height:300px;background:rgba(212,175,55,.05);border-radius:50%"></div>
+  <div style="max-width:760px;margin:0 auto;text-align:center;position:relative;z-index:1">
+    <div class="section-tag" style="color:rgba(212,175,55,.8)">Trouvez votre voie en 30 secondes</div>
+    <h2 class="section-title" style="color:white">Quelle formation est <span style="color:var(--gold)">faite pour vous ?</span></h2>
+    <p style="color:rgba(255,255,255,.6);margin-bottom:36px;font-size:15px">3 clics · Résultat immédiat · Gratuit</p>
+
+    <!-- Étape 1 -->
+    <div id="orient-step-1">
+      <p style="color:rgba(255,255,255,.85);font-weight:700;margin-bottom:16px;font-size:16px">1. Qu'est-ce qui vous intéresse le plus ?</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+        <button onclick="orientStep2('agriculture')" class="orient-btn">🌱 Cultiver la terre</button>
+        <button onclick="orientStep2('elevage')" class="orient-btn">🐄 Élever des animaux</button>
+        <button onclick="orientStep2('transformation')" class="orient-btn">🍯 Transformer des produits</button>
+        <button onclick="orientStep2('irrigation')" class="orient-btn">💧 Maîtriser l'eau</button>
+        <button onclick="orientStep2('entrepreneuriat')" class="orient-btn">💼 Créer mon business</button>
+        <button onclick="orientStep2('enligne')" class="orient-btn">📱 Me former en ligne</button>
+      </div>
+    </div>
+
+    <!-- Étape 2 -->
+    <div id="orient-step-2" style="display:none">
+      <p style="color:rgba(255,255,255,.85);font-weight:700;margin-bottom:16px;font-size:16px">2. Quel est votre objectif principal ?</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+        <button onclick="orientStep3('debutant')" class="orient-btn">🌟 Apprendre les bases</button>
+        <button onclick="orientStep3('professionnel')" class="orient-btn">🎯 Me professionnaliser</button>
+        <button onclick="orientStep3('creer')" class="orient-btn">🚀 Créer une activité</button>
+        <button onclick="orientStep3('ameliorer')" class="orient-btn">📈 Améliorer mon exploitation</button>
+      </div>
+    </div>
+
+    <!-- Étape 3 -->
+    <div id="orient-step-3" style="display:none">
+      <p style="color:rgba(255,255,255,.85);font-weight:700;margin-bottom:16px;font-size:16px">3. Votre situation ?</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+        <button onclick="orientResultat('presenciel')" class="orient-btn">🏫 Je suis à Niamey</button>
+        <button onclick="orientResultat('enligne')" class="orient-btn">📱 Je suis hors de Niamey</button>
+        <button onclick="orientResultat('weekend')" class="orient-btn">📅 Je travaille, je veux les week-ends</button>
+      </div>
+    </div>
+
+    <!-- Résultat -->
+    <div id="orient-resultat" style="display:none;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:16px;padding:28px;margin-top:8px">
+      <div style="font-size:32px;margin-bottom:8px" id="orient-emoji">🎓</div>
+      <div style="font-weight:800;color:#d4af37;font-size:18px;margin-bottom:8px" id="orient-titre">Titre</div>
+      <div style="color:rgba(255,255,255,.75);font-size:14px;line-height:1.6;margin-bottom:20px" id="orient-desc">Description</div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a id="orient-lien" href="formations-en-ligne.html" style="background:linear-gradient(135deg,#d4af37,#b8941f);color:#0a1a0a;font-weight:800;padding:12px 24px;border-radius:50px;text-decoration:none;font-size:14px">Je m'inscris →</a>
+        <button onclick="orientReset()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);padding:12px 24px;border-radius:50px;font-size:14px;cursor:pointer;font-family:inherit">Recommencer</button>
+      </div>
+    </div>
+  </div>
+  <style>
+  .orient-btn{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s}
+  .orient-btn:hover{background:rgba(212,175,55,.2);border-color:rgba(212,175,55,.5);color:#d4af37}
+  </style>
+  <script>
+  var _orientDomain='';
+  var _orientObj='';
+  function orientStep2(d){_orientDomain=d;document.getElementById('orient-step-1').style.display='none';document.getElementById('orient-step-2').style.display='';}
+  function orientStep3(o){_orientObj=o;document.getElementById('orient-step-2').style.display='none';document.getElementById('orient-step-3').style.display='';}
+  function orientResultat(sit){
+    document.getElementById('orient-step-3').style.display='none';
+    var R={
+      'agriculture-enligne':['📱','Formation en ligne — Maraîchage saison sèche','Formez-vous à votre rythme depuis votre téléphone. Certificat EPPRIDAD à la clé.','formations-en-ligne.html'],
+      'elevage-presenciel':['🐄','Formation diplômante — Élevage & Santé Animale','2 ans de formation pratique intensive sur notre ferme-école. CAP ou BEP selon votre niveau.','inscription.html'],
+      'transformation-enligne':['🍯','Formation en ligne — Transformation Agroalimentaire','Apprenez à créer vos produits transformés depuis chez vous. Paiement local.','formations-en-ligne.html'],
+      'irrigation-weekend':['💧','Formation courte — Techniques d\'Irrigation','1 mois · Les week-ends · Certificat officiel EPPRIDAD.','services.html#courtes'],
+      'entrepreneuriat-creer':['💼','Formation en ligne — Créer son business agricole','De l\'idée au marché, en 5 modules pratiques. Accompagnement WhatsApp inclus.','formations-en-ligne.html'],
+      'enligne-enligne':['🎓','Espace Formation en Ligne EPPRIDAD','28 formations certifiantes accessibles depuis votre téléphone, en français, adaptées au contexte sahélien.','formations-en-ligne.html'],
+    };
+    var key = _orientDomain+'-'+(sit==='enligne'?'enligne':sit==='weekend'?'weekend':'presenciel');
+    var r = R[key]||['🎓','Nos formations EPPRIDAD','EPPRIDAD propose des formations diplômantes, courtes et en ligne adaptées à tous les profils.','formations-en-ligne.html'];
+    document.getElementById('orient-emoji').textContent=r[0];
+    document.getElementById('orient-titre').textContent=r[1];
+    document.getElementById('orient-desc').textContent=r[2];
+    document.getElementById('orient-lien').href=r[3];
+    document.getElementById('orient-resultat').style.display='';
+  }
+  function orientReset(){
+    ['orient-step-1','orient-step-2','orient-step-3'].forEach(function(id){document.getElementById(id).style.display=id==='orient-step-1'?'':'none';});
+    document.getElementById('orient-resultat').style.display='none';
+    _orientDomain='';_orientObj='';
+  }
+  </script>
+</section>
+
+<!-- ═══════ PHOTOS TERRAIN EN MOSAÏQUE ═══════ -->
+<section style="background:var(--white);padding:70px 6%">
+  <div class="reveal" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:36px;flex-wrap:wrap;gap:16px">
+    <div>
+      <div class="section-tag">Sur le terrain, chaque jour</div>
+      <h2 class="section-title">Une formation <span class="green">100% pratique</span></h2>
+    </div>
+    <a href="galerie.html" class="btn btn-outline-green btn-sm">Voir toute la galerie →</a>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:200px 200px;gap:10px">
+    <!-- Grande photo : étudiants en uniforme devant le bâtiment (Image 4) -->
+    <div class="img-frame reveal" style="grid-column:span 2;grid-row:span 2;border-radius:14px;overflow:hidden">
+      <img src="images/students_uniform.jpg" alt="Promotion EPPRIDAD 2025"
+           onerror="this.src='images/campus_gate.jpg'"
+           style="width:100%;height:100%;object-fit:cover">
+      <div class="img-overlay"></div>
+      <div style="position:absolute;bottom:14px;left:14px;background:rgba(0,0,0,.6);border-radius:8px;padding:6px 12px">
+        <div style="font-size:11px;color:#d4af37;font-weight:700">Promotion 2024-2025</div>
+      </div>
+    </div>
+    <!-- Photo terrain maraîchage (Image 11 : récolte tomates) -->
+    <div class="img-frame reveal reveal-delay-1" style="border-radius:14px;overflow:hidden">
+      <img src="images/maraichage_terrain.jpg" alt="Cours de maraîchage"
+           onerror="this.src='images/formation1.jpg'"
+           style="width:100%;height:100%;object-fit:cover">
+      <div class="img-overlay"></div>
+    </div>
+    <!-- Photo élevage (Image 13 : examen animal) -->
+    <div class="img-frame reveal reveal-delay-2" style="border-radius:14px;overflow:hidden">
+      <img src="images/elevage_terrain.jpg" alt="Cours d'élevage"
+           onerror="this.src='images/elevage1.jpg'"
+           style="width:100%;height:100%;object-fit:cover">
+      <div class="img-overlay"></div>
+    </div>
+    <!-- Photo jardinage (Image 8 : plantas verdes) -->
+    <div class="img-frame reveal reveal-delay-1" style="border-radius:14px;overflow:hidden">
+      <img src="images/jardinage_pratique.jpg" alt="Jardinage pratique"
+           onerror="this.src='images/agri1.jpg'"
+           style="width:100%;height:100%;object-fit:cover">
+      <div class="img-overlay"></div>
+    </div>
+    <!-- Photo remise prix (Image 6) -->
+    <div class="img-frame reveal reveal-delay-2" style="border-radius:14px;overflow:hidden">
+      <img src="images/remise_prix.jpg" alt="Remise de prix EPPRIDAD"
+           onerror="this.src='images/sport_club.jpg'"
+           style="width:100%;height:100%;object-fit:cover">
+      <div class="img-overlay"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ TÉMOIGNAGES ═══════ -->
+<section style="background:linear-gradient(135deg,#050e05,#0d2a0d);padding:70px 6%">
+  <div style="text-align:center;margin-bottom:48px" class="reveal">
+    <div class="section-tag" style="color:rgba(212,175,55,.8)">Ils ont réussi avec EPPRIDAD</div>
+    <h2 class="section-title" style="color:white">Leurs résultats, <span style="color:var(--gold)">leurs mots</span></h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1100px;margin:0 auto">
+
+    <!-- Témoignage 1 : Faïzatou -->
+    <div class="reveal" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;position:relative">
+      <div style="font-size:36px;color:rgba(212,175,55,.3);font-family:Georgia,serif;position:absolute;top:16px;right:20px;line-height:1">"</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#1a5d1a,#4caf50);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👩‍🌾</div>
+        <div>
+          <div style="font-weight:800;color:#fff;font-size:15px">Faïzatou Maman Ousmane</div>
+          <div style="font-size:12px;color:#d4af37">Formation : Élevage Avicole · Niamey</div>
+        </div>
+      </div>
+      <p style="color:rgba(255,255,255,.75);font-size:14px;line-height:1.7;margin-bottom:16px">
+        "Après avoir obtenu mon certificat EPPRIDAD, j'ai lancé mon mini-projet avicole chez moi. Aujourd'hui j'ai mon propre petit business et je vends mes produits. Cette formation a vraiment changé ma vie."
+      </p>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.3);border-radius:50px;padding:4px 12px;font-size:11px;font-weight:700;color:#81c784">✅ Certifiée EPPRIDAD</div>
+        <div style="background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.25);border-radius:50px;padding:4px 12px;font-size:11px;font-weight:700;color:#d4af37">🐔 Business lancé</div>
+      </div>
+    </div>
+
+    <!-- Témoignage 2 : Fadila -->
+    <div class="reveal reveal-delay-1" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;position:relative">
+      <div style="font-size:36px;color:rgba(212,175,55,.3);font-family:Georgia,serif;position:absolute;top:16px;right:20px;line-height:1">"</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0d47a1,#1976d2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👩‍💼</div>
+        <div>
+          <div style="font-weight:800;color:#fff;font-size:15px">Fadila Halidou</div>
+          <div style="font-size:12px;color:#d4af37">Formation : Pisciculture au Sahel</div>
+        </div>
+      </div>
+      <p style="color:rgba(255,255,255,.75);font-size:14px;line-height:1.7;margin-bottom:16px">
+        "Je n'ai même pas encore fini ma formation et j'ai déjà commandé mes intrants et commencé à construire mon espace de pisciculture. Les cours sont si concrets qu'on peut passer à l'action avant même de terminer !"
+      </p>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="background:rgba(33,150,243,.15);border:1px solid rgba(33,150,243,.3);border-radius:50px;padding:4px 12px;font-size:11px;font-weight:700;color:#64b5f6">🐟 En cours de formation</div>
+        <div style="background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.25);border-radius:50px;padding:4px 12px;font-size:11px;font-weight:700;color:#d4af37">🏗️ Bassin en construction</div>
+      </div>
+    </div>
+
+    <!-- Témoignage 3 : Souleymane -->
+    <div class="reveal reveal-delay-2" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;position:relative">
+      <div style="font-size:36px;color:rgba(212,175,55,.3);font-family:Georgia,serif;position:absolute;top:16px;right:20px;line-height:1">"</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#bf360c,#f4511e);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👨‍🌾</div>
+        <div>
+          <div style="font-weight:800;color:#fff;font-size:15px">Souleymane Yonli</div>
+          <div style="font-size:12px;color:#d4af37">Formation : Ferme Intégrée 400m²</div>
+        </div>
+      </div>
+      <p style="color:rgba(255,255,255,.75);font-size:14px;line-height:1.7;margin-bottom:16px">
+        "La formation m'a donné toutes les clés pour concevoir et gérer ma ferme intégrée. Je me lance désormais dans la production à grande échelle. EPPRIDAD m'a donné les outils concrets pour réussir."
+      </p>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.3);border-radius:50px;padding:4px 12px;font-size:11px;font-weight:700;color:#81c784">✅ Certifié EPPRIDAD</div>
+        <div style="background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.25);border-radius:50px;padding:4px 12px;font-size:11px;font-weight:700;color:#d4af37">🌾 Production lancée</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════ GARANTIES ═══════ -->
+<section style="background:#f8fdf9;padding:60px 6%">
+  <div style="max-width:900px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:40px" class="reveal">
+      <div class="section-tag">Sans risque pour vous</div>
+      <h2 class="section-title">Vos <span class="gold">garanties</span> EPPRIDAD</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+      <div class="reveal" style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:14px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">📱</span>
+        <div><div style="font-weight:800;color:#1a2a1a;font-size:14px;margin-bottom:4px">Accessible sur téléphone</div><div style="font-size:13px;color:#5a7a6a;line-height:1.5">Suivez vos cours depuis n'importe où, même avec une connexion lente</div></div>
+      </div>
+      <div class="reveal reveal-delay-1" style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:14px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">⚡</span>
+        <div><div style="font-weight:800;color:#1a2a1a;font-size:14px;margin-bottom:4px">Accès immédiat</div><div style="font-size:13px;color:#5a7a6a;line-height:1.5">Dès validation de votre paiement, vous recevez vos identifiants par WhatsApp</div></div>
+      </div>
+      <div class="reveal reveal-delay-2" style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:14px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">🏅</span>
+        <div><div style="font-weight:800;color:#1a2a1a;font-size:14px;margin-bottom:4px">Certificat officiel</div><div style="font-size:13px;color:#5a7a6a;line-height:1.5">Certificat EPPRIDAD avec QR code vérifiable délivré automatiquement à la fin</div></div>
+      </div>
+      <div class="reveal" style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:14px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">💬</span>
+        <div><div style="font-weight:800;color:#1a2a1a;font-size:14px;margin-bottom:4px">Accompagnement WhatsApp</div><div style="font-size:13px;color:#5a7a6a;line-height:1.5">Notre équipe répond à vos questions tout au long de votre formation</div></div>
+      </div>
+      <div class="reveal reveal-delay-1" style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:14px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">💳</span>
+        <div><div style="font-weight:800;color:#1a2a1a;font-size:14px;margin-bottom:4px">Paiement local simple</div><div style="font-size:13px;color:#5a7a6a;line-height:1.5">Nita, Aman, virement bancaire ou cash au centre — pas besoin de carte internationale</div></div>
+      </div>
+      <div class="reveal reveal-delay-2" style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;gap:14px;align-items:flex-start">
+        <span style="font-size:28px;flex-shrink:0">🌍</span>
+        <div><div style="font-weight:800;color:#1a2a1a;font-size:14px;margin-bottom:4px">Adapté à l'Afrique</div><div style="font-size:13px;color:#5a7a6a;line-height:1.5">Contenu conçu pour les réalités du Sahel, en français clair et compréhensible</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ COMMENT ÇA MARCHE (formations en ligne) ═══════ -->
+<section style="background:var(--off-white);padding:60px 6%">
+  <div style="max-width:860px;margin:0 auto;text-align:center">
+    <div class="reveal">
+      <div class="section-tag">Simple et rapide</div>
+      <h2 class="section-title">Comment se former <span class="gold">en ligne avec EPPRIDAD ?</span></h2>
+      <p style="color:#5a7a6a;margin-bottom:48px;font-size:15px">Pas besoin de compte bancaire, pas besoin d'ordinateur. Juste votre téléphone.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px">
+      <div class="reveal" style="text-align:center">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#1a5d1a,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px">1️⃣</div>
+        <div style="font-weight:800;color:#1a2a1a;font-size:15px;margin-bottom:8px">Choisissez</div>
+        <div style="font-size:13px;color:#5a7a6a;line-height:1.6">Parcourez les 28 formations et choisissez celle qui correspond à votre projet</div>
+      </div>
+      <div class="reveal reveal-delay-1" style="text-align:center">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#d4af37,#b8941f);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px">2️⃣</div>
+        <div style="font-weight:800;color:#1a2a1a;font-size:15px;margin-bottom:8px">Payez localement</div>
+        <div style="font-size:13px;color:#5a7a6a;line-height:1.6">Nita, Aman, virement ou cash. Envoyez la preuve par WhatsApp</div>
+      </div>
+      <div class="reveal reveal-delay-2" style="text-align:center">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#0d47a1,#1976d2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px">3️⃣</div>
+        <div style="font-weight:800;color:#1a2a1a;font-size:15px;margin-bottom:8px">Recevez vos accès</div>
+        <div style="font-size:13px;color:#5a7a6a;line-height:1.6">Identifiant + mot de passe par WhatsApp et email dans les 24h</div>
+      </div>
+      <div class="reveal reveal-delay-3" style="text-align:center">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#bf360c,#f4511e);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px">4️⃣</div>
+        <div style="font-weight:800;color:#1a2a1a;font-size:15px;margin-bottom:8px">Obtenez votre certificat</div>
+        <div style="font-size:13px;color:#5a7a6a;line-height:1.6">Terminez les modules, passez les quiz, recevez votre certificat avec QR code</div>
+      </div>
+    </div>
+    <div class="reveal" style="margin-top:40px">
+      <a href="formations-en-ligne.html" class="btn btn-gold" style="font-size:16px;padding:16px 36px">🎓 Voir les 28 formations disponibles</a>
+    </div>
+  </div>
+</section>
+<div style="background:var(--green);padding:9px 0;overflow:hidden;position:relative;border-bottom:2px solid var(--gold);" id="homeTickerBar">
+  <div style="position:absolute;left:0;top:0;bottom:0;z-index:3;background:var(--gold);color:var(--dark);font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:0 16px;display:flex;align-items:center;">📢 INFOS</div>
+  <div style="position:absolute;left:0;top:0;bottom:0;width:130px;z-index:2;background:linear-gradient(to right,var(--green),transparent);pointer-events:none;"></div>
+  <div style="position:absolute;right:0;top:0;bottom:0;width:80px;z-index:2;background:linear-gradient(to left,var(--green),transparent);pointer-events:none;"></div>
+  <div id="homeTickerTrack" style="display:flex;gap:60px;white-space:nowrap;padding-left:150px;animation:tickerScroll 40s linear infinite;"></div>
+</div>
+<link rel="stylesheet" href="css/index_0.css">
+
+<section class="axes-section">
+  <div class="reveal"><div class="section-tag">Une école, trois missions</div><h2 class="section-title">Trois axes <span class="gold">complémentaires</span></h2><p class="section-desc">EPPRIDAD propose trois services intégrés pour accompagner tous les profils.</p></div>
+  <div class="grid-3" style="margin-top:52px">
+    <a href="services.html#academique" class="axe-card reveal reveal-delay-1"><div class="axe-num">01</div><span class="axe-icon">🎓</span><h3>Formation Académique Diplômante</h3><p>CAP, BEP, Bac Professionnel et TDR. Pédagogie rigoureuse, 100% pratique et théorique sur notre ferme-école de 8 hectares.</p><div class="axe-link">Voir les filières →</div></a>
+    <a href="services.html#accompagnement" class="axe-card reveal reveal-delay-2"><div class="axe-num">02</div><span class="axe-icon">🌾</span><h3>Accompagnement Technique</h3><p>Nous accompagnons particuliers et entreprises dans la création de fermes, l'aménagement d'exploitations et le suivi expert.</p><div class="axe-link">En savoir plus →</div></a>
+    <a href="services.html#courtes" class="axe-card reveal reveal-delay-3"><div class="axe-num">03</div><span class="axe-icon">📜</span><h3>Formations Courtes Certifiantes</h3><p>10 formations d'1 mois, le week-end, avec certificat officiel. Accessibles à tous.</p><div class="axe-link">Voir le calendrier →</div></a>
+  </div>
+</section>
+
+<div class="gold-divider"></div>
+
+<section style="background:var(--white)">
+  <div class="grid-2">
+    <div class="pres-photos reveal">
+      <div class="pres-main"><img src="images/campus_building.jpg" alt="Campus EPPRIDAD"></div>
+      <div class="pres-secondary"><img src="images/students1.jpg" alt="Étudiants EPPRIDAD"></div>
+      <div class="pres-accent"><strong>EST. 2024</strong><span>Niamey · Niger</span></div>
+    </div>
+    <div class="pres-text reveal reveal-delay-2">
+      <div class="section-tag">Qui sommes-nous</div>
+      <h2 class="section-title">Une école <span class="green">polytechnique</span> pour l'<span class="gold">Afrique</span></h2>
+      <p><strong>EPPRIDAD</strong> est une école polytechnique privée fondée en 2024 à Niamey, Niger. Bien plus qu'une école agricole, c'est un centre de formation professionnelle moderne et un incubateur d'entrepreneurs.</p>
+      <p>Notre <strong>ferme-école de 8 hectares</strong> est un laboratoire vivant où les étudiants apprennent en faisant, encadrés par des formateurs expérimentés.</p>
+      <div class="values-mini">
+        <div class="val-item"><div class="val-icon">🎯</div><div><h4>Excellence</h4><p>Standards élevés dans chaque formation</p></div></div>
+        <div class="val-item"><div class="val-icon">🤝</div><div><h4>Discipline</h4><p>Formation du caractère et leadership</p></div></div>
+        <div class="val-item"><div class="val-icon">💡</div><div><h4>Innovation</h4><p>Pédagogie moderne et terrain</p></div></div>
+        <div class="val-item"><div class="val-icon">🌍</div><div><h4>Durabilité</h4><p>Développement respectueux de l'avenir</p></div></div>
+      </div>
+      <a href="ecole.html" class="btn btn-green">En savoir plus sur l'école</a>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--off-white)">
+  <div class="reveal" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:52px;flex-wrap:wrap;gap:20px">
+    <div><div class="section-tag">Formation professionnelle</div><h2 class="section-title">Nos <span class="green">6 filières</span> de <span class="gold">formation</span></h2></div>
+    <a href="filieres.html" class="btn btn-outline-green btn-sm">Voir toutes les filières</a>
+  </div>
+  <div class="grid-3">
+    <a href="filieres.html#environnement" class="filiere-card reveal reveal-delay-1"><div class="filiere-card-stripe" style="background:linear-gradient(to right,#1a5d1a,#4caf50)"></div><div class="filiere-card-body"><div class="filiere-icon" style="background:#e8f5e9">🌿</div><h3>Environnement &amp; Eaux-Forêts</h3><p>Gestion durable des ressources naturelles, reboisement et protection des écosystèmes sahéliens.</p><div class="filiere-link">Voir la filière →</div></div></a>
+    <a href="filieres.html#elevage" class="filiere-card reveal reveal-delay-2"><div class="filiere-card-stripe" style="background:linear-gradient(to right,#d4af37,#f0d060)"></div><div class="filiere-card-body"><div class="filiere-icon" style="background:#fdf8e1">🐄</div><h3>Élevage &amp; Santé Animale</h3><p>Zootechnie moderne, médecine vétérinaire de base et gestion d'exploitations pastorales rentables.</p><div class="filiere-link">Voir la filière →</div></div></a>
+    <a href="filieres.html#genie" class="filiere-card reveal reveal-delay-3"><div class="filiere-card-stripe" style="background:linear-gradient(to right,#1565c0,#42a5f5)"></div><div class="filiere-card-body"><div class="filiere-icon" style="background:#e3f2fd">🏗️</div><h3>Génie Rural</h3><p>Aménagement hydraulique, systèmes d'irrigation, topographie et infrastructures agricoles.</p><div class="filiere-link">Voir la filière →</div></div></a>
+    <a href="filieres.html#agroalimentaire" class="filiere-card reveal reveal-delay-1"><div class="filiere-card-stripe" style="background:linear-gradient(to right,#bf360c,#ff7043)"></div><div class="filiere-card-body"><div class="filiere-icon" style="background:#fbe9e7">🫙</div><h3>Transformation Agroalimentaire</h3><p>Conservation, transformation des produits agricoles et création d'unités de production.</p><div class="filiere-link">Voir la filière →</div></div></a>
+    <a href="filieres.html#socioeconomie" class="filiere-card reveal reveal-delay-2"><div class="filiere-card-stripe" style="background:linear-gradient(to right,#6a1b9a,#ab47bc)"></div><div class="filiere-card-body"><div class="filiere-icon" style="background:#f3e5f5">📊</div><h3>Socio-Économie Rurale</h3><p>Développement communautaire, gestion de projets agricoles et microfinance rurale.</p><div class="filiere-link">Voir la filière →</div></div></a>
+    <a href="filieres.html#agriculture" class="filiere-card reveal reveal-delay-3"><div class="filiere-card-stripe" style="background:linear-gradient(to right,#00695c,#26a69a)"></div><div class="filiere-card-body"><div class="filiere-icon" style="background:#e0f2f1">🌾</div><h3>Agriculture &amp; Productions Végétales</h3><p>Agronomie pratique, maraîchage intensif, semences améliorées et gestion des cultures.</p><div class="filiere-link">Voir la filière →</div></div></a>
+  </div>
+</section>
+
+<section class="fc-section">
+  <div style="position:relative;z-index:1">
+    <div class="grid-2 reveal" style="align-items:center">
+      <div>
+        <div class="section-tag" style="color:rgba(212,175,55,.8)">Accessible à tous</div>
+        <h2 class="section-title" style="color:white">Formations Courtes <span style="color:var(--gold)">Certifiantes</span></h2>
+        <p style="font-size:16px;color:rgba(255,255,255,.7);line-height:1.75;margin-bottom:28px">Acquérez une compétence pratique en 1 mois, le week-end. Certificat officiel EPPRIDAD délivré à la fin de chaque formation.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px">
+          <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:16px;text-align:center"><div style="font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold);font-weight:700">10</div><div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:1px;text-transform:uppercase">Formations</div></div>
+          <div style="background:rgba(255,255,255,.1);border-radius:8px;padding:16px;text-align:center"><div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);font-weight:700;margin:4px 0">1 mois</div><div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:1px;text-transform:uppercase">Durée</div></div>
+        </div>
+        <a href="services.html#courtes" class="btn btn-gold">Voir le calendrier complet</a>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fc-mini-card"><span>🥬</span><p>Maraîchage Moderne</p></div>
+        <div class="fc-mini-card"><span>🐟</span><p>Pisciculture</p></div>
+        <div class="fc-mini-card"><span>💧</span><p>Techniques d'Irrigation</p></div>
+        <div class="fc-mini-card"><span>🐔</span><p>Élevage de Volaille</p></div>
+        <div class="fc-mini-card"><span>🫙</span><p>Transformation Alim.</p></div>
+        <div class="fc-mini-card"><span>💼</span><p>Entrepreneuriat Rural</p></div>
+        <div class="fc-mini-card"><span>🐐</span><p>Petits Ruminants</p></div>
+        <div class="fc-mini-card"><span>♻️</span><p>Compostage &amp; Sol</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="accomp-section">
+  <div class="reveal" style="text-align:center;margin-bottom:52px">
+    <div class="section-tag" style="color:rgba(212,175,55,.8)">Pour tous les porteurs de projets</div>
+    <h2 class="section-title" style="color:white">Accompagnement <span class="gold">Technique</span></h2>
+    <p style="font-size:16px;color:rgba(255,255,255,.6);max-width:540px;margin:0 auto">Vous avez un projet agricole ? EPPRIDAD met son expertise au service de votre réussite.</p>
+  </div>
+  <div class="grid-3">
+    <div class="service-card reveal reveal-delay-1"><span class="service-icon">🌱</span><h3>Création de Ferme</h3><p>De zéro : étude de faisabilité, plan d'aménagement, sélection des productions, mise en place complète.</p><a href="services.html#accompagnement" class="btn btn-outline btn-sm">En savoir plus</a></div>
+    <div class="service-card reveal reveal-delay-2"><span class="service-icon">🔍</span><h3>Audit &amp; Amélioration</h3><p>Diagnostic technique complet de votre exploitation, recommandations pratiques et plan d'amélioration.</p><a href="services.html#accompagnement" class="btn btn-outline btn-sm">En savoir plus</a></div>
+    <div class="service-card reveal reveal-delay-3"><span class="service-icon">🤝</span><h3>Suivi Personnalisé</h3><p>Un technicien dédié vous accompagne jusqu'à votre autonomie complète. Visites régulières, rapports de suivi.</p><a href="services.html#accompagnement" class="btn btn-outline btn-sm">En savoir plus</a></div>
+  </div>
+  <div style="text-align:center;margin-top:40px"><a href="contact.html" class="btn btn-gold">Demander un accompagnement</a></div>
+</section>
+
+<section style="background:var(--off-white)">
+  <div class="reveal" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:36px;flex-wrap:wrap;gap:16px">
+    <div><div class="section-tag">Vie sur le campus</div><h2 class="section-title">Galerie <span class="gold">EPPRIDAD</span></h2></div>
+    <a href="galerie.html" class="btn btn-outline-green btn-sm">Voir toutes les photos</a>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:220px 220px;gap:12px">
+    <div class="img-frame reveal" style="grid-column:span 2;grid-row:span 2;border-radius:12px"><img src="images/campus_gate.jpg" alt="Entrée EPPRIDAD"><div class="img-overlay"></div></div>
+    <div class="img-frame reveal reveal-delay-1" style="border-radius:12px"><img src="images/formation1.jpg" alt="Formation"><div class="img-overlay"></div></div>
+    <div class="img-frame reveal reveal-delay-2" style="border-radius:12px"><img src="images/elevage1.jpg" alt="Élevage"><div class="img-overlay"></div></div>
+    <div class="img-frame reveal reveal-delay-1" style="border-radius:12px"><img src="images/agri1.jpg" alt="Agriculture"><div class="img-overlay"></div></div>
+    <div class="img-frame reveal reveal-delay-2" style="border-radius:12px"><img src="images/sport_club.jpg" alt="Sport"><div class="img-overlay"></div></div>
+  </div>
+</section>
+
+
+<!-- ══ DOUBLE CTA STRATÉGIQUE : COURS EN LIGNE + ESPACE ÉTUDIANT ══ -->
+<style>
+@media(max-width:780px){
+  .eppr-dual-grid{grid-template-columns:1fr !important;}
+}
+</style>
+<section style="background:linear-gradient(160deg,#050e05 0%,#0a1f0a 50%,#0f2d0a 100%);padding:80px 5%;position:relative;overflow:hidden;">
+  <!-- Orbes décoratifs -->
+  <div style="position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(212,175,55,.05),transparent 65%);top:-150px;right:-100px;pointer-events:none"></div>
+  <div style="position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(26,93,26,.2),transparent 65%);bottom:-100px;left:-80px;pointer-events:none"></div>
+
+  <div style="max-width:1140px;margin:0 auto;position:relative;z-index:1;">
+
+    <!-- Titre central -->
+    <div style="text-align:center;margin-bottom:56px;">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:30px;padding:7px 20px;margin-bottom:18px;">
+        <span style="font-size:14px">🎓</span>
+        <span style="font-size:11px;font-weight:800;color:#d4af37;letter-spacing:1.5px;text-transform:uppercase">Académie Numérique EPPRIDAD</span>
+      </div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(32px,4.5vw,50px);color:#fff;margin-bottom:12px;line-height:1.1;">
+        Apprenez. Certifiez. <span style="color:#d4af37">Réussissez.</span>
+      </h2>
+      <p style="color:rgba(255,255,255,.55);font-size:15px;max-width:560px;margin:0 auto;line-height:1.75;">
+        28 formations pratiques disponibles en ligne — depuis votre téléphone, à votre rythme, avec un certificat officiel EPPRIDAD à la clé.
+      </p>
+    </div>
+
+    <!-- DEUX CARDS CÔTE À CÔTE -->
+    <div class="eppr-dual-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+      <!-- CARD 1 : Cours en ligne -->
+      <div style="background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,rgba(212,175,55,.04) 100%);border:1.5px solid rgba(212,175,55,.2);border-radius:22px;padding:36px;position:relative;overflow:hidden;transition:all .3s;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#d4af37,#f0d060,#d4af37)"></div>
+
+        <!-- Badge -->
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);border-radius:20px;padding:5px 14px;margin-bottom:20px;">
+          <span style="font-size:12px">🔥</span>
+          <span style="font-size:11px;font-weight:700;color:#d4af37;letter-spacing:.8px;text-transform:uppercase">28 formations disponibles</span>
+        </div>
+
+        <div style="font-size:36px;margin-bottom:14px;">📚</div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#fff;margin-bottom:10px;line-height:1.2;">Nos cours <span style="color:#d4af37">en ligne</span></h3>
+        <p style="color:rgba(255,255,255,.6);font-size:14px;line-height:1.75;margin-bottom:24px;">Agriculture, élevage, transformation, environnement. Des formations courtes et certifiantes accessibles depuis votre mobile. Dès 10 000 FCFA.</p>
+
+        <!-- Mini stats -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px;">
+          <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px 8px;text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:#d4af37;font-weight:700">28</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px">formations</div>
+          </div>
+          <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px 8px;text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:#d4af37;font-weight:700">6</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px">filières</div>
+          </div>
+          <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px 8px;text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:#d4af37;font-weight:700">🏅</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px">certifiantes</div>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.75);">
+            <span style="color:#4caf50;font-size:16px">✓</span> Cours + exercices pratiques + quiz de validation
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.75);">
+            <span style="color:#4caf50;font-size:16px">✓</span> PDF téléchargeables à conserver
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.75);">
+            <span style="color:#4caf50;font-size:16px">✓</span> Certificat officiel avec QR code vérifiable
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.75);">
+            <span style="color:#4caf50;font-size:16px">✓</span> Support WhatsApp inclus
+          </div>
+        </div>
+
+        <a href="formations-en-ligne.html" style="display:block;background:linear-gradient(135deg,#d4af37,#f0d060);color:#0a150a;border-radius:13px;padding:15px 24px;font-size:15px;font-weight:800;text-align:center;text-decoration:none;transition:all .2s;">
+          Voir le catalogue complet →
+        </a>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:12px;">1 formation gratuite disponible · Paiement : Amana · Nita · Wave</p>
+      </div>
+
+      <!-- CARD 2 : Espace étudiant -->
+      <div style="background:linear-gradient(135deg,rgba(26,93,26,.15) 0%,rgba(26,93,26,.05) 100%);border:1.5px solid rgba(76,175,80,.2);border-radius:22px;padding:36px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#4caf50,#81c784,#4caf50)"></div>
+
+        <!-- Badge -->
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.25);border-radius:20px;padding:5px 14px;margin-bottom:20px;">
+          <span style="font-size:12px">🔒</span>
+          <span style="font-size:11px;font-weight:700;color:#81c784;letter-spacing:.8px;text-transform:uppercase">Accès apprenants</span>
+        </div>
+
+        <div style="font-size:36px;margin-bottom:14px;">🎓</div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#fff;margin-bottom:10px;line-height:1.2;">Espace <span style="color:#81c784">Étudiant</span></h3>
+        <p style="color:rgba(255,255,255,.6);font-size:14px;line-height:1.75;margin-bottom:24px;">Déjà inscrit ? Connectez-vous pour reprendre vos cours là où vous vous êtes arrêté, valider vos modules et obtenir votre certificat.</p>
+
+        <!-- Étapes visuelles -->
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px;">
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:28px;height:28px;background:rgba(76,175,80,.2);border:1px solid rgba(76,175,80,.35);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">1</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5">Connectez-vous avec votre matricule et mot de passe reçus par WhatsApp</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:28px;height:28px;background:rgba(76,175,80,.2);border:1px solid rgba(76,175,80,.35);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">2</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5">Accédez à vos cours, téléchargez vos PDF et soumettez vos exercices</div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:28px;height:28px;background:rgba(212,175,55,.2);border:1px solid rgba(212,175,55,.35);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🏅</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5">Validez vos quiz et téléchargez votre certificat officiel</div>
+          </div>
+        </div>
+
+        <!-- Bloc rassurant -->
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">🔐</span>
+          <div style="font-size:12.5px;color:rgba(255,255,255,.55);line-height:1.6;">Accès personnel et sécurisé. Votre progression est sauvegardée automatiquement.</div>
+        </div>
+
+        <a href="espace-etudiant.html" style="display:block;background:linear-gradient(135deg,#1a5d1a,#2e7d2e);color:#fff;border:1px solid rgba(76,175,80,.3);border-radius:13px;padding:15px 24px;font-size:15px;font-weight:800;text-align:center;text-decoration:none;transition:all .2s;">
+          Accéder à mon espace →
+        </a>
+        <p style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:12px;">Identifiants reçus après validation du paiement · WhatsApp sous 24h</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="cta-final">
+  <div style="display:inline-block;background:rgba(212,175,55,.2);border:1px solid rgba(212,175,55,.4);border-radius:6px;padding:6px 16px;margin-bottom:12px;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase">✅ Rentrée 2025–2026 actuellement en cours</div><h2 class="reveal">Préparez la Rentrée 2026–2027</h2>
+  <p class="reveal reveal-delay-1">Les inscriptions sont ouvertes. Construisez votre avenir avec nous.</p>
+  <div class="cta-btns reveal reveal-delay-2">
+    <a href="inscription.html" class="btn btn-gold">S'inscrire maintenant</a>
+    <a href="contact.html" class="btn btn-outline">Nous contacter</a>
+  </div>
+</div>
+
+<div class="gold-divider"></div>
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><div style="width:38px;height:38px;background:linear-gradient(135deg,#1a5d1a,#4caf50);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #d4af37;padding:2px"><img src="images/logo.png" alt="EPPRIDAD" style="width:100%;height:100%;object-fit:contain;border-radius:0"></div><div><div class="footer-brand-name">EPPRIDAD</div><div style="color:rgba(255,255,255,.35);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase">Est. 2024</div></div></div>
+      <p>École Polytechnique Privée pour le Développement Agricole Durable. Former les bâtisseurs du monde rural.</p>
+    </div>
+    <div class="footer-col"><h4>Navigation</h4><ul><li><a href="index.html">Accueil</a></li><li><a href="ecole.html">L'École</a></li><li><a href="filieres.html">Filières</a></li><li><a href="services.html">Services</a></li><li><a href="formations-en-ligne.html" style="color:var(--gold-light);font-weight:600;">🎓 Cours en ligne</a></li>
+    <li><a href="marketplace.html" style="color:var(--gold-light);font-weight:600;">🛒 Boutique</a></li>
+    <li><a href="inscription.html">S\'inscrire</a></li><li><a href="infos.html" style="color:var(--gold);font-weight:600;">🔔 Infos</a></li>
+    <li><a href="galerie.html">Galerie</a></li><li><a href="contact.html">Contact</a></li>
+    <li><a href="espace-etudiant.html" style="color:var(--gold,#d4af37);font-weight:700;">Espace Étudiant 🎓</a></li></ul></div>
+    <div class="footer-col"><h4>Formations</h4><ul><li><a href="filieres.html#environnement">Environnement</a></li><li><a href="filieres.html#elevage">Élevage</a></li><li><a href="filieres.html#genie">Génie Rural</a></li><li><a href="filieres.html#agroalimentaire">Agroalimentaire</a></li><li><a href="filieres.html#agriculture">Agriculture</a></li><li><a href="services.html#courtes">Formations Courtes</a></li></ul></div>
+    <div class="footer-col"><h4>Contact</h4><div class="footer-contact-item"><span class="icon">📍</span><span>Niamey, Rive Droite — Niger</span></div><div class="footer-contact-item"><span class="icon">📞</span><a href="tel:+22799851532">+227 99 85 15 32</a></div><div class="footer-contact-item"><span class="icon">✉️</span><a href="mailto:eppridad@gmail.com">eppridad@gmail.com</a></div></div>
+  </div>
+  <div class="footer-bottom"><p>© 2025 <span class="gold">EPPRIDAD</span> — Tous droits réservés. Niger.</p><p>Conçu pour former les <span class="gold">bâtisseurs de demain</span></p></div>
+</footer>
+<script src="js/supabase.js"></script>
+
+<script src="js/forms.js"></script>
+<script src="js/main.js"></script>
+
+
+
+<script src="js/index.js"></script>
+
+
+  <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a5d1a,#0d3d0d);color:#fff;padding:12px 16px;align-items:center;gap:10px;z-index:99999;box-shadow:0 -4px 18px rgba(0,0,0,.3);font-family:sans-serif;">
+    <img src="/web-app-manifest-192x192.png" style="width:42px;height:42px;border-radius:9px;flex-shrink:0;" alt="EPPRIDAD">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:700;">Installer l'app EPPRIDAD</div>
+      <div style="font-size:11px;opacity:.7;">Accès rapide · Fonctionne hors ligne</div>
+    </div>
+    <button onclick="installPWA()" style="background:#d4af37;color:#0a150a;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Installer</button>
+    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:7px;padding:8px 10px;font-size:13px;cursor:pointer;">✕</button>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          reg.addEventListener('updatefound', function() {
+            var nw = reg.installing;
+            nw.addEventListener('statechange', function() {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('Nouvelle version disponible. Recharger ?')) location.reload();
+              }
+            });
+          });
+        }).catch(function(e) { console.error('SW:', e); });
+      });
+    }
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault(); deferredPrompt = e;
+      var b = document.getElementById('pwa-banner');
+      if (b) b.style.display = 'flex';
+    });
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(r) {
+        if (r.outcome === 'accepted') document.getElementById('pwa-banner').style.display = 'none';
+        deferredPrompt = null;
+      });
+    }
+  </script>
+<script src="js/chatbot.js"></script>
+</body>
+</html>
