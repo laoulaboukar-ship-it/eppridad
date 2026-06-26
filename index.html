@@ -272,46 +272,66 @@
     </div>
     <a href="galerie.html" class="btn btn-outline-green btn-sm">Voir toute la galerie →</a>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:200px 200px;gap:10px">
-    <!-- Grande photo : étudiants en uniforme devant le bâtiment (Image 4) -->
-    <div class="img-frame reveal" style="grid-column:span 2;grid-row:span 2;border-radius:14px;overflow:hidden">
-      <img src="images/students_uniform.jpg" alt="Promotion EPPRIDAD 2025"
-           onerror="this.src='images/campus_gate.jpg'"
-           style="width:100%;height:100%;object-fit:cover">
+
+  <!-- Desktop : mosaïque asymétrique -->
+  <div class="gal-desktop" style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:200px 200px;gap:10px">
+    <div class="img-frame reveal" style="grid-column:span 2;grid-row:span 2;border-radius:14px;overflow:hidden;position:relative">
+      <img src="images/students_uniform.jpg" alt="Promotion EPPRIDAD 2025" onerror="this.src='images/campus_gate.jpg'" style="width:100%;height:100%;object-fit:cover">
       <div class="img-overlay"></div>
-      <div style="position:absolute;bottom:14px;left:14px;background:rgba(0,0,0,.6);border-radius:8px;padding:6px 12px">
-        <div style="font-size:11px;color:#d4af37;font-weight:700">Promotion 2024-2025</div>
-      </div>
+      <div style="position:absolute;bottom:14px;left:14px;background:rgba(0,0,0,.65);border-radius:8px;padding:6px 12px;font-size:11px;color:#d4af37;font-weight:700">🎓 Promotion 2024–2025</div>
     </div>
-    <!-- Photo terrain maraîchage (Image 11 : récolte tomates) -->
-    <div class="img-frame reveal reveal-delay-1" style="border-radius:14px;overflow:hidden">
-      <img src="images/maraichage_terrain.jpg" alt="Cours de maraîchage"
-           onerror="this.src='images/formation1.jpg'"
-           style="width:100%;height:100%;object-fit:cover">
+    <div class="img-frame reveal reveal-delay-1" style="border-radius:14px;overflow:hidden;position:relative">
+      <img src="images/maraichage_terrain.jpg" alt="Maraîchage" onerror="this.src='images/agri1.jpg'" style="width:100%;height:100%;object-fit:cover">
       <div class="img-overlay"></div>
+      <div style="position:absolute;bottom:8px;left:10px;font-size:11px;color:rgba(255,255,255,.85);font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8)">🌱 Maraîchage</div>
     </div>
-    <!-- Photo élevage (Image 13 : examen animal) -->
-    <div class="img-frame reveal reveal-delay-2" style="border-radius:14px;overflow:hidden">
-      <img src="images/elevage_terrain.jpg" alt="Cours d'élevage"
-           onerror="this.src='images/elevage1.jpg'"
-           style="width:100%;height:100%;object-fit:cover">
+    <div class="img-frame reveal reveal-delay-2" style="border-radius:14px;overflow:hidden;position:relative">
+      <img src="images/elevage_terrain.jpg" alt="Élevage" onerror="this.src='images/elevage1.jpg'" style="width:100%;height:100%;object-fit:cover">
       <div class="img-overlay"></div>
+      <div style="position:absolute;bottom:8px;left:10px;font-size:11px;color:rgba(255,255,255,.85);font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8)">🐄 Élevage</div>
     </div>
-    <!-- Photo jardinage (Image 8 : plantas verdes) -->
-    <div class="img-frame reveal reveal-delay-1" style="border-radius:14px;overflow:hidden">
-      <img src="images/jardinage_pratique.jpg" alt="Jardinage pratique"
-           onerror="this.src='images/agri1.jpg'"
-           style="width:100%;height:100%;object-fit:cover">
+    <div class="img-frame reveal reveal-delay-1" style="border-radius:14px;overflow:hidden;position:relative">
+      <img src="images/jardinage_pratique.jpg" alt="Jardinage" onerror="this.src='images/terrain1.jpg'" style="width:100%;height:100%;object-fit:cover">
       <div class="img-overlay"></div>
+      <div style="position:absolute;bottom:8px;left:10px;font-size:11px;color:rgba(255,255,255,.85);font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8)">🌿 Jardinage</div>
     </div>
-    <!-- Photo remise prix (Image 6) -->
-    <div class="img-frame reveal reveal-delay-2" style="border-radius:14px;overflow:hidden">
-      <img src="images/remise_prix.jpg" alt="Remise de prix EPPRIDAD"
-           onerror="this.src='images/sport_club.jpg'"
-           style="width:100%;height:100%;object-fit:cover">
+    <div class="img-frame reveal reveal-delay-2" style="border-radius:14px;overflow:hidden;position:relative">
+      <img src="images/remise_prix.jpg" alt="Remise de prix" onerror="this.src='images/sport_club.jpg'" style="width:100%;height:100%;object-fit:cover">
       <div class="img-overlay"></div>
+      <div style="position:absolute;bottom:8px;left:10px;font-size:11px;color:rgba(255,255,255,.85);font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8)">🏆 Excellence</div>
     </div>
   </div>
+
+  <!-- Mobile : grille 2 colonnes simple -->
+  <div class="gal-mobile" style="display:none;grid-template-columns:1fr 1fr;gap:8px">
+    <div style="grid-column:span 2;border-radius:10px;overflow:hidden;height:180px;position:relative">
+      <img src="images/students_uniform.jpg" alt="Promotion EPPRIDAD" onerror="this.src='images/campus_gate.jpg'" style="width:100%;height:100%;object-fit:cover">
+      <div style="position:absolute;bottom:8px;left:10px;background:rgba(0,0,0,.65);border-radius:6px;padding:4px 10px;font-size:11px;color:#d4af37;font-weight:700">🎓 Promotion 2024–2025</div>
+    </div>
+    <div style="border-radius:10px;overflow:hidden;height:130px;position:relative">
+      <img src="images/maraichage_terrain.jpg" alt="Maraîchage" onerror="this.src='images/agri1.jpg'" style="width:100%;height:100%;object-fit:cover">
+      <div style="position:absolute;bottom:6px;left:8px;font-size:11px;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9)">🌱 Maraîchage</div>
+    </div>
+    <div style="border-radius:10px;overflow:hidden;height:130px;position:relative">
+      <img src="images/elevage_terrain.jpg" alt="Élevage" onerror="this.src='images/elevage1.jpg'" style="width:100%;height:100%;object-fit:cover">
+      <div style="position:absolute;bottom:6px;left:8px;font-size:11px;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9)">🐄 Élevage</div>
+    </div>
+    <div style="border-radius:10px;overflow:hidden;height:130px;position:relative">
+      <img src="images/jardinage_pratique.jpg" alt="Jardinage" onerror="this.src='images/terrain1.jpg'" style="width:100%;height:100%;object-fit:cover">
+      <div style="position:absolute;bottom:6px;left:8px;font-size:11px;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9)">🌿 Jardinage</div>
+    </div>
+    <div style="border-radius:10px;overflow:hidden;height:130px;position:relative">
+      <img src="images/remise_prix.jpg" alt="Excellence" onerror="this.src='images/sport_club.jpg'" style="width:100%;height:100%;object-fit:cover">
+      <div style="position:absolute;bottom:6px;left:8px;font-size:11px;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9)">🏆 Excellence</div>
+    </div>
+  </div>
+
+  <style>
+  @media(max-width:640px){
+    .gal-desktop{display:none !important}
+    .gal-mobile{display:grid !important}
+  }
+  </style>
 </section>
 
 <!-- ═══════ TÉMOIGNAGES ═══════ -->
@@ -550,21 +570,6 @@
   </div>
   <div style="text-align:center;margin-top:40px"><a href="contact.html" class="btn btn-gold">Demander un accompagnement</a></div>
 </section>
-
-<section style="background:var(--off-white)">
-  <div class="reveal" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:36px;flex-wrap:wrap;gap:16px">
-    <div><div class="section-tag">Vie sur le campus</div><h2 class="section-title">Galerie <span class="gold">EPPRIDAD</span></h2></div>
-    <a href="galerie.html" class="btn btn-outline-green btn-sm">Voir toutes les photos</a>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:220px 220px;gap:12px">
-    <div class="img-frame reveal" style="grid-column:span 2;grid-row:span 2;border-radius:12px"><img src="images/campus_gate.jpg" alt="Entrée EPPRIDAD"><div class="img-overlay"></div></div>
-    <div class="img-frame reveal reveal-delay-1" style="border-radius:12px"><img src="images/formation1.jpg" alt="Formation"><div class="img-overlay"></div></div>
-    <div class="img-frame reveal reveal-delay-2" style="border-radius:12px"><img src="images/elevage1.jpg" alt="Élevage"><div class="img-overlay"></div></div>
-    <div class="img-frame reveal reveal-delay-1" style="border-radius:12px"><img src="images/agri1.jpg" alt="Agriculture"><div class="img-overlay"></div></div>
-    <div class="img-frame reveal reveal-delay-2" style="border-radius:12px"><img src="images/sport_club.jpg" alt="Sport"><div class="img-overlay"></div></div>
-  </div>
-</section>
-
 
 <!-- ══ DOUBLE CTA STRATÉGIQUE : COURS EN LIGNE + ESPACE ÉTUDIANT ══ -->
 <style>
