@@ -555,6 +555,7 @@ select.form-input:focus{background:#fff;}
       <button class="cat-filter" onclick="filterCourses('environnement',this)">🌿 Environnement</button>
       <button class="cat-filter" onclick="filterCourses('genie',this)">⚙️ Génie Rural</button>
       <button class="cat-filter" onclick="filterCourses('socioeco',this)">📊 Socio-Économie</button>
+      <button class="cat-filter" onclick="filterCourses('enfants',this)" style="background:rgba(76,175,80,.12);border-color:rgba(76,175,80,.3);color:#2e7d32">🌱 Jeunes Fermiers</button>
     </div>
     <div class="courses-grid" id="courses-grid"></div>
   </div>
@@ -959,9 +960,12 @@ var COURSES=[
   {id:28,filiere:'agriculture',titre:'Mon jardin productif',duree:'8h',niveau:'Débutant',prix:25000,dispo:false,
    emoji:'🏡',desc:'Transformer sa cour en source de revenus — concevoir un jardin productif, choisir les cultures rentables, produire toute l\'année et réduire ses dépenses alimentaires.',
    modules:['Concevoir un jardin productif dans une petite cour','Choisir les cultures les plus rentables','Organiser l\'eau, les planches et les espaces','Produire toute l\'année avec des techniques simples','Réduire ses dépenses alimentaires et vendre ses surplus']},
+  {id:29,filiere:'enfants',titre:"L'agriculture à la maison pour les enfants",duree:'4h',niveau:'Enfants (6-13 ans)',prix:5000,dispo:true,
+   emoji:'🌱',desc:'Une initiation ludique et pratique à l\'agriculture pour les enfants de 6 à 13 ans. Apprendre à cultiver, à s\'occuper des animaux et à devenir un petit fermier responsable.',
+   modules:['Je prépare mon petit coin de ferme','Je fais grandir mes plantes','Je m\'occupe de mes poules','Mon carnet de petit fermier']},
 ];
 
-var FILIERE_LABELS={agriculture:'Agriculture & Productions Végétales',elevage:'Élevage & Santé Animale',agroalim:'Transformation Agroalimentaire',environnement:'Environnement & Eaux-Forêts',genie:'Génie Rural',socioeco:'Socio-Économie Rurale'};
+var FILIERE_LABELS={agriculture:'Agriculture & Productions Végétales',elevage:'Élevage & Santé Animale',agroalim:'Transformation Agroalimentaire',environnement:'Environnement & Eaux-Forêts',genie:'Génie Rural',socioeco:'Socio-Économie Rurale',enfants:'🌱 Jeunes Fermiers (6-13 ans)'};
 var currentFilter='tous';
 
 function filterCourses(f,btn){
@@ -985,14 +989,47 @@ var _supaFormations = [];
 async function chargerFormationsSupabase(){
   try{
     var SUPA_URL = window.CFG ? window.CFG.SUPABASE_URL : 'https://iethhoddmztmjdhhmgsb.supabase.co';
-    const SUPA_KEY = 'sb_publishable_PnJERdL-4gumDe-wHQNLfg_HborRshv';
-    const res = await fetch(`${SUPA_URL}/rest/v1/formations_enligne?select=id,titre,slug,emoji,filiere,niveau,duree_heures,prix_fcfa,publie,description,ordre&order=ordre`,{
-      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
-    });
-    if(res.ok) _supaFormations = await res.json();
+    const SUPA_KEY = window.CFG ? window.CFG.SUPABASE_ANON_KEY : 'sb_publishable_PnJERdL-4gumDe-wHQNLfg_HborRshv';
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/formations_enligne?select=id,titre,slug,emoji,filiere,niveau,duree_heures,prix_fcfa,publie,description,ordre&publie=eq.true&order=ordre`,
+      {headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}
+    );
+    if(res.ok){
+      _supaFormations = await res.json();
+
+      // Ajouter dynamiquement les formations Supabase qui ne sont pas dans COURSES
+      const titresExistants = COURSES.map(c=>c.titre.toLowerCase().trim());
+      (_supaFormations||[]).forEach(function(sup){
+        const dejaDans = titresExistants.some(function(t){
+          return t===sup.titre.toLowerCase().trim() ||
+                 sup.titre.toLowerCase().includes(t.substring(0,15)) ||
+                 t.includes(sup.titre.toLowerCase().substring(0,15));
+        });
+        if(!dejaDans && sup.publie){
+          COURSES.push({
+            id: 'sup_'+sup.id,
+            filiere: sup.filiere || 'agriculture',
+            titre: sup.titre,
+            duree: (sup.duree_heures||'?')+'h',
+            niveau: sup.niveau || 'Tous niveaux',
+            prix: sup.prix_fcfa || 0,
+            dispo: sup.publie,
+            emoji: sup.emoji || '📚',
+            desc: sup.description || '',
+            modules: [],
+            supaId: sup.id,
+            slug: sup.slug,
+          });
+          titresExistants.push(sup.titre.toLowerCase().trim());
+        }
+      });
+    }
   }catch(_){}
-  // Filtrer selon le filtre actif
-  var rawList = currentFilter==='tous' ? COURSES : COURSES.filter(function(c){ return c.filiere===currentFilter; });
+
+  // Appliquer le filtre actif
+  var rawList = currentFilter==='tous'
+    ? COURSES
+    : COURSES.filter(function(c){ return c.filiere===currentFilter; });
   renderCourses(rawList);
 }
 

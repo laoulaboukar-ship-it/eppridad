@@ -179,86 +179,186 @@
 <section style="background:linear-gradient(135deg,#050e05,#0a1f0a);padding:70px 6%;position:relative;overflow:hidden">
   <div style="position:absolute;top:-60px;right:-60px;width:300px;height:300px;background:rgba(212,175,55,.05);border-radius:50%"></div>
   <div style="max-width:760px;margin:0 auto;text-align:center;position:relative;z-index:1">
-    <div class="section-tag" style="color:rgba(212,175,55,.8)">Trouvez votre voie en 30 secondes</div>
+    <div class="section-tag" style="color:rgba(212,175,55,.8)">Trouvez votre voie en 4 clics</div>
     <h2 class="section-title" style="color:white">Quelle formation est <span style="color:var(--gold)">faite pour vous ?</span></h2>
-    <p style="color:rgba(255,255,255,.6);margin-bottom:36px;font-size:15px">3 clics · Résultat immédiat · Gratuit</p>
+    <p style="color:rgba(255,255,255,.55);margin-bottom:40px;font-size:15px">Répondez à 4 questions simples — résultat immédiat et gratuit</p>
 
-    <!-- Étape 1 -->
+    <!-- Indicateur de progression -->
+    <div id="orient-progress" style="display:flex;justify-content:center;gap:8px;margin-bottom:32px">
+      <div id="op1" style="width:32px;height:4px;border-radius:2px;background:#d4af37;transition:all .3s"></div>
+      <div id="op2" style="width:32px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);transition:all .3s"></div>
+      <div id="op3" style="width:32px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);transition:all .3s"></div>
+      <div id="op4" style="width:32px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);transition:all .3s"></div>
+    </div>
+
+    <!-- CLIC 1 : Diplômant ou en ligne ? -->
     <div id="orient-step-1">
-      <p style="color:rgba(255,255,255,.85);font-weight:700;margin-bottom:16px;font-size:16px">1. Qu'est-ce qui vous intéresse le plus ?</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
-        <button onclick="orientStep2('agriculture')" class="orient-btn">🌱 Cultiver la terre</button>
-        <button onclick="orientStep2('elevage')" class="orient-btn">🐄 Élever des animaux</button>
-        <button onclick="orientStep2('transformation')" class="orient-btn">🍯 Transformer des produits</button>
-        <button onclick="orientStep2('irrigation')" class="orient-btn">💧 Maîtriser l'eau</button>
-        <button onclick="orientStep2('entrepreneuriat')" class="orient-btn">💼 Créer mon business</button>
-        <button onclick="orientStep2('enligne')" class="orient-btn">📱 Me former en ligne</button>
+      <p style="color:rgba(255,255,255,.9);font-weight:700;margin-bottom:8px;font-size:17px">1. Quel type de parcours vous correspond ?</p>
+      <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">C'est la question de départ — tout le reste dépend de votre réponse</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:580px;margin:0 auto">
+        <button onclick="orientStep2('diplomant')" style="background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.35);border-radius:14px;padding:22px 16px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit" onmouseover="this.style.background='rgba(212,175,55,.2)'" onmouseout="this.style.background='rgba(212,175,55,.1)'">
+          <div style="font-size:36px;margin-bottom:10px">🏫</div>
+          <div style="font-weight:800;color:#d4af37;font-size:15px;margin-bottom:6px">Je veux étudier à l'école</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.5">Formation diplômante sur 2 ans · CAP / BEP · À Niamey, en présentiel</div>
+        </button>
+        <button onclick="orientStep2('enligne')" style="background:rgba(76,175,80,.08);border:1.5px solid rgba(76,175,80,.3);border-radius:14px;padding:22px 16px;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit" onmouseover="this.style.background='rgba(76,175,80,.18)'" onmouseout="this.style.background='rgba(76,175,80,.08)'">
+          <div style="font-size:36px;margin-bottom:10px">📱</div>
+          <div style="font-weight:800;color:#81c784;font-size:15px;margin-bottom:6px">Je veux me former en ligne</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.5">Formation courte · Depuis votre téléphone · Certificat en quelques jours</div>
+        </button>
       </div>
     </div>
 
-    <!-- Étape 2 -->
-    <div id="orient-step-2" style="display:none">
-      <p style="color:rgba(255,255,255,.85);font-weight:700;margin-bottom:16px;font-size:16px">2. Quel est votre objectif principal ?</p>
+    <!-- CLIC 2A : Diplômant → quelle filière ? -->
+    <div id="orient-step-2a" style="display:none">
+      <p style="color:rgba(255,255,255,.9);font-weight:700;margin-bottom:8px;font-size:17px">2. Quelle filière vous attire le plus ?</p>
+      <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">EPPRIDAD propose 6 filières diplômantes à Niamey</p>
       <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
-        <button onclick="orientStep3('debutant')" class="orient-btn">🌟 Apprendre les bases</button>
-        <button onclick="orientStep3('professionnel')" class="orient-btn">🎯 Me professionnaliser</button>
-        <button onclick="orientStep3('creer')" class="orient-btn">🚀 Créer une activité</button>
-        <button onclick="orientStep3('ameliorer')" class="orient-btn">📈 Améliorer mon exploitation</button>
+        <button onclick="orientStep3('diplomant','agriculture')" class="orient-btn">🌾 Agriculture & Productions Végétales</button>
+        <button onclick="orientStep3('diplomant','elevage')" class="orient-btn">🐄 Élevage & Santé Animale</button>
+        <button onclick="orientStep3('diplomant','agroalim')" class="orient-btn">🍯 Transformation Agroalimentaire</button>
+        <button onclick="orientStep3('diplomant','environnement')" class="orient-btn">🌿 Eaux & Forêts / Environnement</button>
+        <button onclick="orientStep3('diplomant','genie')" class="orient-btn">⚙️ Génie Rural</button>
+        <button onclick="orientStep3('diplomant','socioeco')" class="orient-btn">📊 Socio-Économie Rurale</button>
       </div>
+      <button onclick="orientBack(1)" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;margin-top:20px;font-family:inherit">← Retour</button>
     </div>
 
-    <!-- Étape 3 -->
+    <!-- CLIC 2B : En ligne → quel domaine ? -->
+    <div id="orient-step-2b" style="display:none">
+      <p style="color:rgba(255,255,255,.9);font-weight:700;margin-bottom:8px;font-size:17px">2. Quel domaine vous intéresse ?</p>
+      <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">29 formations disponibles, choisissez votre univers</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+        <button onclick="orientStep3('enligne','cultiver')" class="orient-btn">🌱 Cultiver la terre</button>
+        <button onclick="orientStep3('enligne','elever')" class="orient-btn">🐄 Élever des animaux</button>
+        <button onclick="orientStep3('enligne','transformer')" class="orient-btn">🍯 Transformer des produits</button>
+        <button onclick="orientStep3('enligne','irriguer')" class="orient-btn">💧 Maîtriser l'eau</button>
+        <button onclick="orientStep3('enligne','entreprendre')" class="orient-btn">💼 Créer mon business</button>
+        <button onclick="orientStep3('enligne','enfants')" class="orient-btn">🌱 Pour mon enfant (6-13 ans)</button>
+      </div>
+      <button onclick="orientBack(1)" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;margin-top:20px;font-family:inherit">← Retour</button>
+    </div>
+
+    <!-- CLIC 3 : Objectif -->
     <div id="orient-step-3" style="display:none">
-      <p style="color:rgba(255,255,255,.85);font-weight:700;margin-bottom:16px;font-size:16px">3. Votre situation ?</p>
+      <p style="color:rgba(255,255,255,.9);font-weight:700;margin-bottom:8px;font-size:17px">3. Quel est votre objectif principal ?</p>
+      <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">Pour vous proposer la formation la plus adaptée</p>
       <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
-        <button onclick="orientResultat('presenciel')" class="orient-btn">🏫 Je suis à Niamey</button>
-        <button onclick="orientResultat('enligne')" class="orient-btn">📱 Je suis hors de Niamey</button>
-        <button onclick="orientResultat('weekend')" class="orient-btn">📅 Je travaille, je veux les week-ends</button>
+        <button onclick="orientStep4('debutant')" class="orient-btn">🌟 Apprendre les bases</button>
+        <button onclick="orientStep4('professionnel')" class="orient-btn">🎯 Me professionnaliser</button>
+        <button onclick="orientStep4('creer')" class="orient-btn">🚀 Créer une activité rentable</button>
+        <button onclick="orientStep4('ameliorer')" class="orient-btn">📈 Améliorer mon exploitation</button>
       </div>
+      <button onclick="orientBack(2)" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;margin-top:20px;font-family:inherit">← Retour</button>
     </div>
 
-    <!-- Résultat -->
-    <div id="orient-resultat" style="display:none;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:16px;padding:28px;margin-top:8px">
-      <div style="font-size:32px;margin-bottom:8px" id="orient-emoji">🎓</div>
-      <div style="font-weight:800;color:#d4af37;font-size:18px;margin-bottom:8px" id="orient-titre">Titre</div>
-      <div style="color:rgba(255,255,255,.75);font-size:14px;line-height:1.6;margin-bottom:20px" id="orient-desc">Description</div>
+    <!-- CLIC 4 : Situation pratique -->
+    <div id="orient-step-4" style="display:none">
+      <p style="color:rgba(255,255,255,.9);font-weight:700;margin-bottom:8px;font-size:17px">4. Dernière question — votre situation pratique ?</p>
+      <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">Pour adapter notre recommandation à votre quotidien</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+        <button onclick="orientResultat('niamey')" class="orient-btn">🏙️ Je suis à Niamey</button>
+        <button onclick="orientResultat('hors')" class="orient-btn">🌍 Je suis hors de Niamey</button>
+        <button onclick="orientResultat('travaille')" class="orient-btn">⏰ Je travaille, je veux apprendre à mon rythme</button>
+        <button onclick="orientResultat('parent')" class="orient-btn">👨‍👧 Je cherche pour mon enfant</button>
+      </div>
+      <button onclick="orientBack(3)" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;margin-top:20px;font-family:inherit">← Retour</button>
+    </div>
+
+    <!-- RÉSULTAT -->
+    <div id="orient-resultat" style="display:none;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.28);border-radius:16px;padding:28px;margin-top:8px">
+      <div style="font-size:40px;margin-bottom:10px" id="orient-emoji">🎓</div>
+      <div style="font-weight:800;color:#d4af37;font-size:19px;margin-bottom:10px" id="orient-titre"></div>
+      <div style="color:rgba(255,255,255,.7);font-size:14px;line-height:1.7;margin-bottom:22px" id="orient-desc"></div>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        <a id="orient-lien" href="formations-en-ligne.html" style="background:linear-gradient(135deg,#d4af37,#b8941f);color:#0a1a0a;font-weight:800;padding:12px 24px;border-radius:50px;text-decoration:none;font-size:14px">Je m'inscris →</a>
-        <button onclick="orientReset()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);padding:12px 24px;border-radius:50px;font-size:14px;cursor:pointer;font-family:inherit">Recommencer</button>
+        <a id="orient-lien" href="formations-en-ligne.html" style="background:linear-gradient(135deg,#d4af37,#b8941f);color:#0a1a0a;font-weight:800;padding:13px 26px;border-radius:50px;text-decoration:none;font-size:14px">Je commence maintenant →</a>
+        <button onclick="orientReset()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.18);padding:13px 26px;border-radius:50px;font-size:14px;cursor:pointer;font-family:inherit">Recommencer</button>
       </div>
     </div>
   </div>
+
   <style>
-  .orient-btn{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:50px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s}
-  .orient-btn:hover{background:rgba(212,175,55,.2);border-color:rgba(212,175,55,.5);color:#d4af37}
+  .orient-btn{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:50px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;transition:all .2s}
+  .orient-btn:hover{background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.45);color:#d4af37}
+  @media(max-width:600px){
+    #orient-step-1 > div{grid-template-columns:1fr !important}
+  }
   </style>
+
   <script>
-  var _orientDomain='';
-  var _orientObj='';
-  function orientStep2(d){_orientDomain=d;document.getElementById('orient-step-1').style.display='none';document.getElementById('orient-step-2').style.display='';}
-  function orientStep3(o){_orientObj=o;document.getElementById('orient-step-2').style.display='none';document.getElementById('orient-step-3').style.display='';}
+  var _oType='', _oDom='', _oObj='';
+
+  function orientProgress(step){
+    [1,2,3,4].forEach(function(i){
+      var el=document.getElementById('op'+i);
+      if(el) el.style.background = i<=step ? '#d4af37' : 'rgba(255,255,255,.15)';
+    });
+  }
+
+  function _hideAll(){
+    ['orient-step-1','orient-step-2a','orient-step-2b','orient-step-3','orient-step-4','orient-resultat']
+      .forEach(function(id){ document.getElementById(id).style.display='none'; });
+  }
+
+  function orientStep2(type){
+    _oType=type; _hideAll(); orientProgress(2);
+    document.getElementById(type==='diplomant'?'orient-step-2a':'orient-step-2b').style.display='';
+  }
+
+  function orientStep3(type,dom){
+    _oType=type; _oDom=dom; _hideAll(); orientProgress(3);
+    document.getElementById('orient-step-3').style.display='';
+  }
+
+  function orientStep4(obj){
+    _oObj=obj; _hideAll(); orientProgress(4);
+    document.getElementById('orient-step-4').style.display='';
+  }
+
+  function orientBack(toStep){
+    _hideAll(); orientProgress(toStep);
+    if(toStep===1) document.getElementById('orient-step-1').style.display='';
+    else if(toStep===2) document.getElementById(_oType==='diplomant'?'orient-step-2a':'orient-step-2b').style.display='';
+    else if(toStep===3) document.getElementById('orient-step-3').style.display='';
+  }
+
   function orientResultat(sit){
-    document.getElementById('orient-step-3').style.display='none';
+    _hideAll(); orientProgress(4);
     var R={
-      'agriculture-enligne':['📱','Formation en ligne — Maraîchage saison sèche','Formez-vous à votre rythme depuis votre téléphone. Certificat EPPRIDAD à la clé.','formations-en-ligne.html'],
-      'elevage-presenciel':['🐄','Formation diplômante — Élevage & Santé Animale','2 ans de formation pratique intensive sur notre ferme-école. CAP ou BEP selon votre niveau.','inscription.html'],
-      'transformation-enligne':['🍯','Formation en ligne — Transformation Agroalimentaire','Apprenez à créer vos produits transformés depuis chez vous. Paiement local.','formations-en-ligne.html'],
-      'irrigation-weekend':['💧','Formation courte — Techniques d\'Irrigation','1 mois · Les week-ends · Certificat officiel EPPRIDAD.','services.html#courtes'],
-      'entrepreneuriat-creer':['💼','Formation en ligne — Créer son business agricole','De l\'idée au marché, en 5 modules pratiques. Accompagnement WhatsApp inclus.','formations-en-ligne.html'],
-      'enligne-enligne':['🎓','Espace Formation en Ligne EPPRIDAD','28 formations certifiantes accessibles depuis votre téléphone, en français, adaptées au contexte sahélien.','formations-en-ligne.html'],
+      'diplomant|agriculture': ['🌾','Formation diplômante — Agriculture & Productions Végétales','2 ans de formation intensive sur notre ferme-école de 8 ha. CAP ou BEP reconnu. Présentiel à Niamey, Rive Droite.','inscription.html'],
+      'diplomant|elevage':     ['🐄','Formation diplômante — Élevage & Santé Animale','Apprenez à diagnostiquer, soigner et gérer des troupeaux. Formation pratique sur animaux réels.','inscription.html'],
+      'diplomant|agroalim':    ['🍯','Formation diplômante — Transformation Agroalimentaire','De la matière première au produit transformé. Fromage, huile, conserves, hygiène alimentaire.','inscription.html'],
+      'diplomant|environnement':['🌿','Formation diplômante — Eaux & Forêts','Gestion durable des ressources naturelles, reboisement, gestion de l\'eau en zone sahélienne.','inscription.html'],
+      'diplomant|genie':       ['⚙️','Formation diplômante — Génie Rural','Irrigation, construction rurale, topographie, aménagement des terres agricoles.','inscription.html'],
+      'diplomant|socioeco':    ['📊','Formation diplômante — Socio-Économie Rurale','Gestion, comptabilité agricole, microfinance rurale, développement communautaire.','inscription.html'],
+      'enligne|cultiver':      ['🌱','Formation en ligne — Maraîchage en saison sèche','Apprenez à cultiver toute l\'année depuis votre téléphone. Certificat EPPRIDAD en quelques jours.','formations-en-ligne.html#maraichage'],
+      'enligne|elever':        ['🐔','Formation en ligne — Élevage Avicole Rentable','Lancez votre mini-élevage de volailles à la maison. Résultats concrets dès la fin de la formation.','formations-en-ligne.html#elevage'],
+      'enligne|transformer':   ['🍯','Formation en ligne — Huile de sésame & Karité','Extraction artisanale, qualité, commercialisation. Idéal pour démarrer un petit commerce.','formations-en-ligne.html#agroalim'],
+      'enligne|irriguer':      ['💧','Formation en ligne — Maîtriser l\'irrigation goutte-à-goutte','Économiser l\'eau et produire plus. La formation la plus technique, très appréciée au Sahel.','formations-en-ligne.html#genie'],
+      'enligne|entreprendre':  ['💼','Formation en ligne — Créer son business agricole rentable','De l\'idée au plan d\'affaires. Lancer, gérer et rentabiliser une activité agricole.','formations-en-ligne.html#entrepreneuriat'],
+      'enligne|enfants':       ['🌱','Formation enfant — L\'agriculture à la maison pour les enfants','Initiation ludique à l\'agriculture pour les 6-13 ans. 4 modules, PDF illustrés, certificat personnalisé.','formations-en-ligne.html#enfants'],
     };
-    var key = _orientDomain+'-'+(sit==='enligne'?'enligne':sit==='weekend'?'weekend':'presenciel');
-    var r = R[key]||['🎓','Nos formations EPPRIDAD','EPPRIDAD propose des formations diplômantes, courtes et en ligne adaptées à tous les profils.','formations-en-ligne.html'];
+    var key = _oType+'|'+_oDom;
+    var r = R[key];
+    // Ajuster selon la situation pratique si diplômant hors Niamey → rediriger vers enligne
+    if(_oType==='diplomant' && (sit==='hors'||sit==='travaille')){
+      r=['🎓','Formation en ligne recommandée','Vous n\'êtes pas disponible à Niamey en présentiel ? Nos 29 formations en ligne sont accessibles depuis votre téléphone, à votre rythme.','formations-en-ligne.html'];
+    }
+    if(sit==='parent' || _oDom==='enfants'){
+      r=['🌱','Formation jeunes — L\'agriculture à la maison pour les enfants','Une formation ludique et pratique pour les enfants de 6 à 13 ans. Cultivez l\'amour de la nature dès le plus jeune âge.','formations-en-ligne.html#enfants'];
+    }
+    if(!r) r=['🎓','Nos formations EPPRIDAD','Découvrez nos 29 formations certifiantes et nos 6 filières diplômantes.','formations-en-ligne.html'];
     document.getElementById('orient-emoji').textContent=r[0];
     document.getElementById('orient-titre').textContent=r[1];
     document.getElementById('orient-desc').textContent=r[2];
     document.getElementById('orient-lien').href=r[3];
     document.getElementById('orient-resultat').style.display='';
   }
+
   function orientReset(){
-    ['orient-step-1','orient-step-2','orient-step-3'].forEach(function(id){document.getElementById(id).style.display=id==='orient-step-1'?'':'none';});
-    document.getElementById('orient-resultat').style.display='none';
-    _orientDomain='';_orientObj='';
+    _oType=''; _oDom=''; _oObj='';
+    _hideAll(); orientProgress(1);
+    document.getElementById('orient-step-1').style.display='';
   }
   </script>
 </section>
