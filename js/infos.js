@@ -6,7 +6,11 @@
 // ═══════════════════════════════════════════════════════════
 
 // ── Config ───────────────────────────────────────────────────
-const INFOS_ADMIN_PWD = 'eppridad2025'; // mot de passe local page infos
+// Hash SHA-256 du mot de passe admin de la page infos
+// (mot de passe réel connu de l'admin uniquement — jamais stocker le texte en clair)
+const INFOS_ADMIN_HASH = window.CFG && window.CFG.ADMIN_HASH
+  ? window.CFG.ADMIN_HASH
+  : '8f9c2b5a3e7d1f4b6c0a2e5d8b1f3c6a9e2d5b8a4f7c0e3d6b9a1f4c7e0d3b6'; // fallback à remplacer
 const INFOS_SESS_KEY  = 'eppr_infos_admin_v2';
 
 function isInfosAdmin()  { return sessionStorage.getItem(INFOS_SESS_KEY) === '1'; }
@@ -223,9 +227,11 @@ function closeAdminPanel(){
   document.getElementById('adminPwdInput').value='';
   document.getElementById('adminLoginErr').style.display='none';
 }
-function checkAdminLogin(){
+async function checkAdminLogin(){
   const pwd=document.getElementById('adminPwdInput').value;
-  if(pwd===INFOS_ADMIN_PWD){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash===INFOS_ADMIN_HASH){
     setInfosAdmin(true);
     document.getElementById('adminLoginSection').style.display='none';
     document.getElementById('adminPostSection').style.display='block';
