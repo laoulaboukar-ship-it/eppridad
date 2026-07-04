@@ -244,15 +244,16 @@ var NAV_ENL = [
   {id:'docs',ico:'📚',label:'Documents'},
 ];
 var NAV_ADM = [
-  {id:'dashboard',ico:'📊',label:'Tableau de bord'},
-  {id:'page-adm-enligne',ico:'📱',label:'Apprenants en ligne',badge:'enligneBadge'},
-  {id:'page-adm-inscriptions',ico:'✍️',label:'Inscriptions',badge:'inscBadge'},
-  {id:'page-adm-comptes',ico:'👥',label:'Étudiants diplômants'},
-  {id:'page-adm-formations',ico:'🎓',label:'Formations en ligne'},
-  {id:'page-adm-exercices',ico:'📝',label:'Exercices soumis',badge:'exercBadge'},
-  {id:'page-adm-finances',ico:'💰',label:'Finances'},
-  {id:'page-adm-docs',ico:'📚',label:'Bibliothèque'},
-  {id:'page-adm-galerie',ico:'🖼️',label:'Galerie & Vidéos'},
+  {id:'dashboard',              ico:'📊', label:'Vue d\'ensemble'},
+  {id:'page-adm-inscriptions',  ico:'📥', label:'Demandes & Inscriptions', badge:'inscBadge'},
+  {id:'page-adm-enligne',       ico:'🌐', label:'Apprenants en ligne',      badge:'enligneBadge'},
+  {id:'page-adm-comptes',       ico:'🎓', label:'Étudiants diplômants'},
+  {id:'page-adm-certificats',   ico:'🏅', label:'Certificats'},
+  {id:'page-adm-exercices',     ico:'📝', label:'Exercices soumis',         badge:'exercBadge'},
+  {id:'page-adm-finances',      ico:'💰', label:'Finances'},
+  {id:'page-adm-formations',    ico:'💻', label:'Gestion formations'},
+  {id:'page-adm-docs',          ico:'📚', label:'Bibliothèque'},
+  {id:'page-adm-galerie',       ico:'🖼️', label:'Galerie & Vidéos'},
 ];
 
 function buildSidebar(){
@@ -303,10 +304,16 @@ function goto(id){
     'page-adm-finances'      : () => loadAdmFinances(),
     'page-adm-docs'          : () => loadAdmDocs(),
     'page-adm-galerie'       : () => loadAdmGalerie(),
+    'page-adm-certificats'   : () => loadAdmCertificats(),
   };
   // Afficher la bonne page
   const pageId = id.startsWith('page-') ? id : `page-${id}`;
   showPage(['dashboard','notes','scolarite','docs','formations'].includes(id) ? `page-${id}` : id);
+  // Créer la div si elle n'existe pas encore (pages dynamiques)
+  if(id==='page-adm-certificats' && !document.getElementById('page-adm-certificats')){
+    const d=document.createElement('div'); d.className='content-area'; d.id='page-adm-certificats';
+    document.getElementById('main-content').appendChild(d);
+  }
   if(pageMap[id]) pageMap[id]();
 }
 
@@ -528,6 +535,24 @@ async function ouvrirFormation(formationId, titre){
   _cours = { formationId, moduleIdx:0, onglet:'cours', quizRep:{}, quizDone:false, modules:[] };
   const { data:modules } = await db.from('modules_cours').select('*').eq('formation_id',formationId).order('ordre');
   _cours.modules = modules||[];
+
+  // F29 (formation enfants) : demander le nom de l'enfant si pas encore saisi
+  if(_s.role!=='admin'){
+    try{
+      const { data:accesRow } = await db.from('acces_formations').select('id,nom_certificat').eq('matricule',_s.matricule).eq('formation_id',formationId).single();
+      if(accesRow && !accesRow.nom_certificat){
+        // Vérifier si c'est une formation pour enfants (slug contient 'enfant' ou 'jeune')
+        const { data:fInfo } = await db.from('formations_enligne').select('slug').eq('id',formationId).single();
+        const isEnfant = fInfo && (fInfo.slug||'').includes('enfant') || (fInfo?.slug||'').includes('jeune') || (fInfo?.slug||'').includes('maison');
+        if(isEnfant){
+          const nomEnfant = prompt('🎓 Cette formation est pour votre enfant.\n\nVeuillez saisir le prénom et nom complet de l\'enfant\n(il apparaîtra sur le certificat) :');
+          if(nomEnfant && nomEnfant.trim().length > 1){
+            await db.from('acces_formations').update({nom_certificat: nomEnfant.trim()}).eq('id', accesRow.id);
+          }
+        }
+      }
+    }catch(_){}
+  }
 
   // Afficher le lecteur
   document.getElementById('cs-formation-titre').textContent = titre;
@@ -891,6 +916,14 @@ async function afficherCertificat(){
   const db = getDBv30();
   const { data:existing } = await db.from('certificats').select('*').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId).single();
   
+  // nom_certificat : nom de l'enfant pour F29 (saisi dans acces_formations)
+  let nomCertificat = null;
+  try{
+    const { data:ar } = await db.from('acces_formations').select('nom_certificat').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId).single();
+    nomCertificat = ar?.nom_certificat || null;
+  }catch(_){}
+  const nomPourCertificat = nomCertificat || _s.nom || _s.matricule;
+
   let cert = existing;
   if(!cert){
     // Générer le certificat
@@ -901,9 +934,12 @@ async function afficherCertificat(){
     const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let suf=''; for(let i=0;i<6;i++) suf+=charset[Math.floor(Math.random()*charset.length)];
     const num = `CERT-${new Date().getFullYear()}-EPP-${suf}`;
-    const { data:newCert } = await db.from('certificats').insert({matricule:_s.matricule,formation_id:_cours.formationId,numero:num,nom_apprenant:_s.nom||_s.matricule,score_final:Math.round(avg*10)/10,mention,valide:true,date_emission:new Date().toISOString()}).select().single();
-    cert = newCert || {numero:num,nom_apprenant:_s.nom,mention,score_final:Math.round(avg*10)/10,date_emission:new Date().toISOString()};
+    // nom_apprenant = nom_certificat si défini (F29 enfant), sinon nom du compte
+    const { data:newCert } = await db.from('certificats').insert({matricule:_s.matricule,formation_id:_cours.formationId,numero:num,nom_apprenant:nomPourCertificat,score_final:Math.round(avg*10)/10,mention,valide:true,date_emission:new Date().toISOString()}).select().single();
+    cert = newCert || {numero:num,nom_apprenant:nomPourCertificat,mention,score_final:Math.round(avg*10)/10,date_emission:new Date().toISOString()};
   }
+  // Priorité : nom_certificat (enfant F29) > nom_apprenant stocké > nom du compte
+  const nomAffiche = nomCertificat || cert.nom_apprenant || _s.nom;
 
   const container = document.getElementById('module-content');
   const dateStr = cert.date_emission ? new Date(cert.date_emission).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
@@ -917,13 +953,13 @@ async function afficherCertificat(){
         <div class="cert-escola">🎓 EPPRIDAD</div>
         <div style="font-size:11px;color:rgba(255,255,255,.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px">École Polytechnique Privée · Niamey, Niger</div>
         <div class="cert-certifie">Certifie que</div>
-        <div class="cert-name">${escH(cert.nom_apprenant||_s.nom)}</div>
+        <div class="cert-name">${escH(nomAffiche)}</div>
         <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px">a complété avec succès la formation</div>
         <div class="cert-formation">« ${escH(formTitre)} »</div>
         <div class="cert-mention">🏆 Mention : ${escH(cert.mention||'Bien')} · Score : ${cert.score_final||0}%</div>
         <div class="cert-date">Délivré le ${dateStr} · N° ${escH(cert.numero||'—')}</div>
         <div class="cert-actions">
-          <button class="btn-cert btn-cert-dl" onclick="imprimerCertificat('${escH(cert.numero)}','${escH(cert.nom_apprenant||_s.nom)}','${escH(formTitre)}','${escH(cert.mention||'Bien')}','${cert.score_final||0}','${dateStr}')">📄 Télécharger le certificat</button>
+          <button class="btn-cert btn-cert-dl" onclick="imprimerCertificat('${escH(cert.numero)}','${escH(nomAffiche)}','${escH(formTitre)}','${escH(cert.mention||'Bien')}','${cert.score_final||0}','${dateStr}')">📄 Télécharger le certificat</button>
           <a href="${waLink(`Bonjour ! J'ai obtenu mon certificat EPPRIDAD N° ${cert.numero} pour la formation "${formTitre}". Mention : ${cert.mention}. Score : ${cert.score_final}%.`)}" target="_blank" class="btn-cert btn-cert-wa">💬 Partager</a>
         </div>
       </div>
@@ -1549,6 +1585,106 @@ function aPanel(name, btn){
 function sPanel(name, btn){ goto(name); }
 
 // ── GESTION GALERIE & VIDÉOS ───────────────────────────────
+
+// ── SECTION CERTIFICATS (vue admin centralisée) ──────────────
+async function loadAdmCertificats(){
+  setTitle('Certificats','Tous les certificats émis');
+  let el=document.getElementById('page-adm-certificats');
+  if(!el){
+    el=document.createElement('div'); el.className='content-area'; el.id='page-adm-certificats';
+    document.getElementById('main-content').appendChild(el);
+  }
+  showPage('page-adm-certificats');
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w)">🏅 Certificats</div>
+        <div style="font-size:13px;color:var(--w3);margin-top:2px">Tous les certificats émis par EPPRIDAD</div>
+      </div>
+      <button onclick="loadAdmCertificats()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--w2);cursor:pointer;font-family:inherit">🔄 Actualiser</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <input id="cert-search" type="text" placeholder="🔍 Rechercher par nom, matricule ou N° certificat…" oninput="filtrerCertificats()" style="flex:1;min-width:200px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 14px;font-size:13px;color:var(--w);font-family:inherit;outline:none">
+      <select id="cert-filter-valide" onchange="filtrerCertificats()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 12px;font-size:13px;color:var(--w);font-family:inherit;outline:none">
+        <option value="">Tous</option>
+        <option value="valide">✅ Valides</option>
+        <option value="revoque">⛔ Révoqués</option>
+      </select>
+    </div>
+    <div id="cert-kpi" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px"></div>
+    <div id="cert-table">⏳ Chargement…</div>`;
+  try{
+    const db2=getDBv30();
+    const [{data:certs},{data:formations}]=await Promise.all([
+      db2.from('certificats').select('*').order('date_emission',{ascending:false}),
+      db2.from('formations_enligne').select('id,titre,emoji'),
+    ]);
+    const formMap={}; (formations||[]).forEach(f=>{formMap[f.id]=f;});
+    window._certData={certs:certs||[],formMap};
+    const valides=(certs||[]).filter(c=>c.valide).length;
+    document.getElementById('cert-kpi').innerHTML=[
+      {ico:'🏅',lbl:'Total',val:(certs||[]).length,c:'var(--or)'},
+      {ico:'✅',lbl:'Valides',val:valides,c:'#81c784'},
+      {ico:'⛔',lbl:'Révoqués',val:(certs||[]).length-valides,c:'#ef9a9a'},
+    ].map(k=>`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;text-align:center">
+      <div style="font-size:22px;margin-bottom:4px">${k.ico}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:${k.c}">${k.val}</div>
+      <div style="font-size:10px;color:var(--w3);margin-top:2px">${k.lbl}</div>
+    </div>`).join('');
+    afficherTableauCertificats(certs||[],formMap);
+  }catch(e){
+    document.getElementById('cert-table').innerHTML=`<div style="color:#ef9a9a;padding:20px">Erreur : ${escH(e.message)}</div>`;
+  }
+}
+
+function filtrerCertificats(){
+  if(!window._certData) return;
+  const q=(document.getElementById('cert-search')?.value||'').toLowerCase();
+  const v=document.getElementById('cert-filter-valide')?.value||'';
+  let filtered=(window._certData.certs||[]).filter(c=>{
+    const matchQ=!q||(c.nom_apprenant||'').toLowerCase().includes(q)||c.matricule.toLowerCase().includes(q)||(c.numero||'').toLowerCase().includes(q);
+    const matchV=!v||(v==='valide'&&c.valide)||(v==='revoque'&&!c.valide);
+    return matchQ&&matchV;
+  });
+  afficherTableauCertificats(filtered,window._certData.formMap);
+}
+
+function afficherTableauCertificats(certs,formMap){
+  const el=document.getElementById('cert-table');
+  if(!el) return;
+  if(!certs.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--w3)">Aucun certificat trouvé.</div>';return;}
+  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="background:rgba(13,59,26,.8)">
+      ${['Nom','Matricule','Formation','N° Certificat','Score','Date','Statut','Actions'].map(h=>
+        `<th style="padding:10px 12px;text-align:left;color:var(--or);font-size:11px;letter-spacing:.5px;font-weight:700;white-space:nowrap;border-bottom:2px solid rgba(201,168,76,.3)">${h}</th>`
+      ).join('')}
+    </tr></thead>
+    <tbody>
+    ${certs.map((c,i)=>{
+      const f=formMap[c.formation_id];
+      const date=c.date_emission?new Date(c.date_emission).toLocaleDateString('fr-FR'):'—';
+      const bg=i%2===0?'rgba(255,255,255,.02)':'rgba(255,255,255,.04)';
+      const numS=(c.numero||'').replace(/'/g,"\\'");
+      const nomS=(c.nom_apprenant||'').replace(/'/g,"\\'");
+      const titreS=(f?.titre||'').replace(/'/g,"\\'");
+      const mentionS=(c.mention||'Bien').replace(/'/g,"\\'");
+      return `<tr style="background:${bg};border-bottom:1px solid rgba(255,255,255,.05)">
+        <td style="padding:10px 12px;font-weight:700;color:var(--w)">${escH(c.nom_apprenant||'—')}</td>
+        <td style="padding:10px 12px;font-family:monospace;font-size:11px;color:var(--or)">${escH(c.matricule)}</td>
+        <td style="padding:10px 12px;color:var(--w2)">${escH(f?f.emoji+' '+f.titre:'—')}</td>
+        <td style="padding:10px 12px;font-family:monospace;font-size:11px;color:#ce93d8">${escH(c.numero||'—')}</td>
+        <td style="padding:10px 12px;text-align:center"><span style="font-weight:700;color:${(c.score_final||0)>=80?'#81c784':'#ffb74d'}">${c.score_final||0}%</span><div style="font-size:10px;color:var(--w3)">${escH(c.mention||'Bien')}</div></td>
+        <td style="padding:10px 12px;white-space:nowrap;font-size:12px;color:var(--w3)">${date}</td>
+        <td style="padding:10px 12px"><span style="font-size:11px;font-weight:700;color:${c.valide?'#81c784':'#ef9a9a'}">${c.valide?'✅ Valide':'⛔ Révoqué'}</span></td>
+        <td style="padding:10px 12px">
+          <button onclick="voirCertificat('${numS}','${nomS}','${titreS}','${mentionS}',${c.score_final||0},'${date}')" style="background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">🖨️ Voir</button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>`;
+}
+
+
 async function loadAdmGalerie(){
   setTitle('Galerie & Vidéos','Administration');
   showPage('page-adm-galerie');
@@ -1911,7 +2047,7 @@ function openIdentifiantsModal(matricule, nomComplet, telephone, email){
     <div style="margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);margin-bottom:6px">Nouveau mot de passe à transmettre</div>
       <div style="display:flex;gap:8px">
-        <input id="ident-pwd" value="eppridad2025" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;font-weight:700;color:#fff;font-family:monospace">
+        <input id="ident-pwd" value="" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;font-weight:700;color:#fff;font-family:monospace" placeholder="Mot de passe généré…">
         <button onclick="copierChamp('ident-pwd')" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 14px;color:#fff;cursor:pointer;font-size:13px">📋</button>
       </div>
       <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:6px">Cliquez sur "Réinitialiser" pour appliquer ce mot de passe au compte — l'apprenant pourra le changer ensuite depuis son espace.</div>
@@ -1939,6 +2075,9 @@ function openIdentifiantsModal(matricule, nomComplet, telephone, email){
     <div id="ident-feedback" style="margin-top:12px;font-size:12px;color:#81c784;text-align:center"></div>
   `;
   modal.style.display = 'flex';
+  // Générer un mot de passe aléatoire dès l'ouverture de la modale
+  const pwdField = document.getElementById('ident-pwd');
+  if(pwdField && !pwdField.value) pwdField.value = genererMotDePasseAleatoire();
 }
 
 function copierChamp(id){
@@ -1977,7 +2116,7 @@ function envoyerIdentifiantsWhatsApp(nomComplet){
 }
 
 async function reinitialiserMotDePasse(matricule){
-  const pwd = document.getElementById('ident-pwd')?.value||'eppridad2025';
+  const pwd = document.getElementById('ident-pwd')?.value||genererMotDePasseAleatoire();
   if(!pwd || pwd.length<4){
     const fb=document.getElementById('ident-feedback');
     if(fb) fb.textContent="⚠️ Le mot de passe doit faire au moins 4 caractères.";
@@ -2105,7 +2244,7 @@ function ouvrirNouvelApprenant(){
         ['enl-nom','Nom complet','Moussa Abdou Ibrahim','text'],
         ['enl-tel','Téléphone (avec indicatif pays)','Ex: 22790000000','text'],
         ['enl-email','Email (optionnel)','email@example.com','email'],
-        ['enl-pwd','Mot de passe initial','eppridad2025','text'],
+        ['enl-pwd','Mot de passe initial','Généré automatiquement','text'],
       ].map(([id,lbl,ph,type])=>`<div>
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px">${lbl}</label>
         <input id="${id}" type="${type}" placeholder="${ph}" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:#fff;font-family:inherit;outline:none;box-sizing:border-box">
@@ -2137,13 +2276,15 @@ function ouvrirNouvelApprenant(){
     if(sel&&f) sel.innerHTML=f.map(fi=>`<option value="${fi.id}">${escH(fi.emoji+' '+fi.titre)} — ${fmt(fi.prix_fcfa)} FCFA</option>`).join('');
   });
   modal.style.display='flex';
+  // Générer un mot de passe aléatoire dès l'ouverture
+  setTimeout(()=>{ const f=document.getElementById('enl-pwd'); if(f&&!f.value) f.value=genererMotDePasseAleatoire(); },50);
 }
 
 async function creerApprenantenLigne(){
   const nom      = document.getElementById('enl-nom')?.value?.trim()||'';
   const tel      = (document.getElementById('enl-tel')?.value||'').replace(/[^0-9+]/g,'');
   const email    = document.getElementById('enl-email')?.value?.trim()||'';
-  const pwd      = document.getElementById('enl-pwd')?.value||'eppridad2025';
+  const pwd      = document.getElementById('enl-pwd')?.value||genererMotDePasseAleatoire();
   const formId   = document.getElementById('enl-formation')?.value||'';
   const duree    = document.getElementById('enl-duree')?.value||'1y';
   const fb       = document.getElementById('enl-feedback');
@@ -2244,8 +2385,9 @@ async function loadAdmEnLigne(){
       db2.from('formations_enligne').select('id,titre,emoji,prix_fcfa,filiere'),
       db2.from('certificats').select('matricule,formation_id,numero,mention,score_final,date_emission,valide'),
     ]);
-    const comptesAll = await adminApi('lister_comptes', { role:['enligne','etudiant'] }).then(r=>r.data).catch(()=>[]);
-    const comptes = (comptesAll||[]).sort((a,b)=>(a.nom_complet||'').localeCompare(b.nom_complet||''));
+    const comptesAll = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
+    // Apprenants en ligne UNIQUEMENT (rôle enligne) — les diplômants ont leur propre section
+    const comptes = (comptesAll||[]).filter(c=>c.role==='enligne').sort((a,b)=>(a.nom_complet||'').localeCompare(b.nom_complet||''));
 
     // Progressions chargées séparément — table optionnelle, ne doit jamais bloquer
     let progressions = [];
@@ -2351,37 +2493,84 @@ function afficherTableauEnLigne(comptes, accesMap, certMap, formMap){
 }
 
 // ── FICHE DÉTAILLÉE D'UN APPRENANT (remplace les 4 boutons étalés) ──
-function ouvrirFicheApprenant(matricule, nomComplet){
+async function ouvrirFicheApprenant(matricule, nomComplet){
   let modal = document.getElementById('ficheApprenantModal');
   if(!modal){
     modal=document.createElement('div');
     modal.id='ficheApprenantModal';
-    modal.style.cssText='display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:16px';
+    modal.style.cssText='display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:16px;box-sizing:border-box';
     document.body.appendChild(modal);
     modal.addEventListener('click',e=>{if(e.target===modal) modal.style.display='none';});
   }
-  modal.innerHTML=`
-    <div style="background:#0f2818;border:1px solid rgba(201,168,76,.25);border-radius:16px;max-width:420px;width:100%;padding:24px;max-height:85vh;overflow-y:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff">${escH(nomComplet||matricule)}</div>
-        <button onclick="document.getElementById('ficheApprenantModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:22px;cursor:pointer">×</button>
+  const matS=(matricule||'').replace(/'/g,"\\'");
+  const nomS=(nomComplet||'').replace(/'/g,"\\'");
+  modal.innerHTML=`<div style="background:#0f2818;border:1px solid rgba(201,168,76,.25);border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto">
+    <div style="background:rgba(255,255,255,.04);padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff">${escH(nomComplet||matricule)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);font-family:monospace;margin-top:2px">${escH(matricule)}</div>
       </div>
-      <div style="font-size:12px;color:rgba(255,255,255,.5);font-family:monospace;margin-bottom:20px">${escH(matricule)}</div>
-      <div style="display:grid;gap:10px">
-        <button onclick="document.getElementById('ficheApprenantModal').style.display='none';openIdentifiantsModal('${matricule.replace(/'/g,"\\'")}','${(nomComplet||'').replace(/'/g,"\\'")}','','')" style="width:100%;text-align:left;background:rgba(33,150,243,.12);color:#64b5f6;border:1px solid rgba(33,150,243,.25);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🔑 Identifiants &amp; mot de passe</button>
-        <button onclick="document.getElementById('ficheApprenantModal').style.display='none';ouvrirModifierApprenant('${matricule.replace(/'/g,"\\'")}')" style="width:100%;text-align:left;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✏️ Modifier le profil</button>
-        <button onclick="document.getElementById('ficheApprenantModal').style.display='none';ouvrirGestionAcces('${matricule.replace(/'/g,"\\'")}','${(nomComplet||'').replace(/'/g,"\\'")}')" style="width:100%;text-align:left;background:rgba(22,80,63,.2);color:#81c784;border:1px solid rgba(76,175,80,.25);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🎓 Accès aux formations</button>
-        <button onclick="document.getElementById('ficheApprenantModal').style.display='none';ouvrirGestionCertificats('${matricule.replace(/'/g,"\\'")}','${(nomComplet||'').replace(/'/g,"\\'")}')" style="width:100%;text-align:left;background:rgba(201,168,76,.1);color:var(--or);border:1px solid rgba(201,168,76,.22);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🏅 Certificats</button>
-      </div>
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);display:flex;gap:8px">
-        <button onclick="changerStatutApprenant('${matricule.replace(/'/g,"\\'")}','suspendu');document.getElementById('ficheApprenantModal').style.display='none'" style="flex:1;background:rgba(229,57,53,.1);color:#ef9a9a;border:1px solid rgba(229,57,53,.22);border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">⏸ Suspendre</button>
-        <button onclick="changerStatutApprenant('${matricule.replace(/'/g,"\\'")}','actif');document.getElementById('ficheApprenantModal').style.display='none'" style="flex:1;background:rgba(76,175,80,.1);color:#81c784;border:1px solid rgba(76,175,80,.22);border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">▶️ Réactiver</button>
-      </div>
-    </div>`;
+      <button onclick="document.getElementById('ficheApprenantModal').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:24px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div id="fiche-appr-body" style="padding:20px"><div style="text-align:center;padding:30px;color:rgba(255,255,255,.4)">⏳ Chargement…</div></div>
+  </div>`;
   modal.style.display='flex';
+  try{
+    const db2=getDBv30();
+    const [r1,r2,r3,r4]=await Promise.all([
+      db2.from('acces_formations').select('*').eq('matricule',matricule).order('created_at',{ascending:false}),
+      db2.from('certificats').select('*').eq('matricule',matricule).order('date_emission',{ascending:false}),
+      db2.from('formations_enligne').select('id,titre,emoji,prix_fcfa'),
+      db2.from('resultats_quiz').select('formation_id,pourcentage,reussi,created_at').eq('matricule',matricule).order('created_at',{ascending:false}),
+    ]);
+    const acces=r1.data||[], certs=r2.data||[], formations=r3.data||[], quiz=r4.data||[];
+    const formMap={}; formations.forEach(f=>{formMap[f.id]=f;});
+    const certMap={}; certs.forEach(c=>{certMap[c.formation_id]=c;});
+    const progMap={};
+    quiz.forEach(q=>{ if(!progMap[q.formation_id]||q.pourcentage>progMap[q.formation_id]) progMap[q.formation_id]=Math.round(q.pourcentage||0); });
+    const body=document.getElementById('fiche-appr-body');
+    if(!body) return;
+    body.innerHTML=`
+      <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--or);margin-bottom:10px">🎓 Formations & Progression</div>
+      ${!acces.length
+        ?'<div style="color:rgba(255,255,255,.4);font-style:italic;font-size:13px;margin-bottom:16px">Aucune formation activée.</div>'
+        :acces.map(a=>{
+          const f=formMap[a.formation_id];
+          const pct=progMap[a.formation_id]||0;
+          const cert=certMap[a.formation_id];
+          const dateExp=a.date_expiration?new Date(a.date_expiration).toLocaleDateString('fr-FR'):'Illimité';
+          return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+              <div style="font-size:13px;font-weight:700;color:#fff">${escH(f?f.emoji+' '+f.titre:'Formation')}</div>
+              <span style="font-size:10px;color:rgba(255,255,255,.4)">Expire : ${dateExp}</span>
+            </div>
+            <div style="height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:4px">
+              <div style="height:100%;width:${pct}%;background:${pct>=80?'#81c784':pct>=50?'#ffb74d':'#64b5f6'};border-radius:3px"></div>
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:6px">${pct}% de progression</div>
+            ${cert?`<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:7px;padding:8px 10px">
+              <div style="font-size:11px;color:var(--or)">🏅 N° ${escH(cert.numero||'—')} · ${escH(cert.mention||'Bien')} · ${cert.score_final||0}%</div>
+              <button onclick="voirCertifAdm(this)" data-num="${escH(cert.numero||'')}" data-nom="${nomS}" data-titre="${escH(f?.titre||'')}" data-mention="${escH(cert.mention||'Bien')}" data-score="${cert.score_final||0}" data-date="${cert.date_emission?new Date(cert.date_emission).toLocaleDateString('fr-FR'):''}" style="background:rgba(201,168,76,.2);color:var(--or);border:1px solid rgba(201,168,76,.35);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">🖨️ Imprimer</button>
+            </div>`:''}
+          </div>`;
+        }).join('')}
+      <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--or);margin-bottom:10px;margin-top:18px">⚙️ Actions</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <button onclick="openIdentifiantsModal('${matS}','${nomS}','','')" style="background:rgba(33,150,243,.12);color:#64b5f6;border:1px solid rgba(33,150,243,.25);border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔑 Identifiants</button>
+        <button onclick="ouvrirModifierApprenant('${matS}')" style="background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✏️ Modifier</button>
+        <button onclick="ouvrirGestionAcces('${matS}','${nomS}')" style="background:rgba(22,80,63,.2);color:#81c784;border:1px solid rgba(76,175,80,.25);border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🎓 Gérer accès</button>
+        <button onclick="ouvrirGestionCertificats('${matS}','${nomS}')" style="background:rgba(201,168,76,.1);color:var(--or);border:1px solid rgba(201,168,76,.22);border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🏅 Certificats</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button onclick="changerStatutApprenant('${matS}','suspendu');document.getElementById('ficheApprenantModal').style.display='none'" style="background:rgba(229,57,53,.1);color:#ef9a9a;border:1px solid rgba(229,57,53,.22);border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⏸ Suspendre</button>
+        <button onclick="changerStatutApprenant('${matS}','actif');document.getElementById('ficheApprenantModal').style.display='none'" style="background:rgba(76,175,80,.1);color:#81c784;border:1px solid rgba(76,175,80,.22);border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">▶️ Réactiver</button>
+      </div>`;
+  }catch(e){
+    const body=document.getElementById('fiche-appr-body');
+    if(body) body.innerHTML=`<div style="color:#ef9a9a;padding:20px">Erreur : ${escH(e.message)}</div>`;
+  }
 }
 
-// ── MODIFIER UN APPRENANT ──────────────────────────────────
 async function ouvrirModifierApprenant(matricule){
   let modal = document.getElementById('modifApprModal');
   if(!modal){
@@ -2666,6 +2855,17 @@ async function ouvrirGestionCertificats(matricule, nomComplet){
   }
 }
 
+
+function voirCertifAdm(btn){
+  if(!btn) return;
+  const num=btn.getAttribute('data-num')||'';
+  const nom=btn.getAttribute('data-nom')||'';
+  const titre=btn.getAttribute('data-titre')||'';
+  const mention=btn.getAttribute('data-mention')||'Bien';
+  const score=parseInt(btn.getAttribute('data-score')||'0');
+  const date=btn.getAttribute('data-date')||'';
+  voirCertificat(num,nom,titre,mention,score,date);
+}
 function voirCertificat(num,nom,form,mention,score,date){
   if(typeof imprimerCertificat==='function') imprimerCertificat(num,nom,form,mention,score,date);
 }
