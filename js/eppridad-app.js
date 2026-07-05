@@ -65,6 +65,11 @@ function setTitle(t,s){ document.getElementById('tb-title').textContent=t; if(s)
 function fmt(n){ return (n||0).toLocaleString('fr-FR'); }
 function fmtD(d){ return d?new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'—'; }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/`/g,'&#96;').replace(/\$/g,'&#36;'); }
+function genererMotDePasseAleatoire(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#';
+  let pwd=''; for(let i=0;i<9;i++) pwd+=chars[Math.floor(Math.random()*chars.length)];
+  return pwd;
+}
 // safeStr — échappe une chaîne pour insertion sûre dans un attribut onclick='...'
 // Utilisée par espace-etudiant.js (legacy) — neutralise apostrophes, guillemets, retours ligne
 function safeStr(s){
