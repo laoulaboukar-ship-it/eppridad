@@ -399,6 +399,15 @@ async function loadEtudDashboard(){
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || 'Erreur de chargement.');
+    // Stocker dans _sessionData pour que Notes et Scolarite y accèdent
+    window._sessionData = {
+      notes:     data.notes    || [],
+      scolarite: data.scolarite|| [],
+      absences:  data.absences || [],
+      documents: data.documents|| [],
+      actualites:data.actualites||[],
+      etudiant:  data.etudiant || null,
+    };
     if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
     window._adminData.notes=data.notes||[];
     window._adminData.absences=data.absences||[];
@@ -1664,8 +1673,123 @@ async function buildAdmFormations(){
 }
 
 // ── PAGES ÉTUDIANTS ───────────────────────────────────────────
-async function loadNotes(){ setTitle('Mes notes'); showPage('page-notes'); if(typeof chargerNotes==='function') await chargerNotes(); else document.getElementById('page-notes').innerHTML='<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">Notes disponibles prochainement.</div></div>'; }
-async function loadScolarite(){ setTitle('Scolarité'); showPage('page-scolarite'); if(typeof chargerScolarite==='function') await chargerScolarite(); else document.getElementById('page-scolarite').innerHTML='<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">Informations de scolarité disponibles prochainement.</div></div>'; }
+async function loadNotes(){
+  setTitle('Mes notes');
+  showPage('page-notes');
+  const el = document.getElementById('page-notes');
+  if(!el) return;
+  // Charger les données si pas encore en mémoire
+  if(!window._sessionData?.notes) await loadEtudDashboard();
+  const notes = window._sessionData?.notes || [];
+  const scol  = window._sessionData?.scolarite || [];
+
+  // Grouper par année scolaire
+  const parAnnee = {};
+  notes.forEach(n=>{
+    const a = n.annee_scolaire||'—';
+    if(!parAnnee[a]) parAnnee[a]=[];
+    parAnnee[a].push(n);
+  });
+
+  if(!Object.keys(parAnnee).length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">Aucune note disponible pour le moment.</div></div>';
+    return;
+  }
+
+  el.innerHTML = Object.keys(parAnnee).sort((a,b)=>b.localeCompare(a)).map(annee=>{
+    const lignes = parAnnee[annee];
+    const moyAnn = lignes.find(n=>n.semestre==='Annuel'||n.type_eval==='moyenne_annuelle');
+    const moyS1  = lignes.find(n=>n.semestre==='S1');
+    const moyS2  = lignes.find(n=>n.semestre==='S2');
+    const autres = lignes.filter(n=>n.semestre!=='S1'&&n.semestre!=='S2'&&n.semestre!=='Annuel'&&n.type_eval!=='moyenne_annuelle');
+    const moy    = parseFloat(moyAnn?.note||0);
+    const couleur= moy>=14?'#ffd700':moy>=12?'#81c784':moy>=10?'#ffb74d':'#ef9a9a';
+    const mention= moy>=16?'Très Bien':moy>=14?'Bien':moy>=12?'Assez Bien':moy>=10?'Passable':'Ajourné';
+
+    return `<div style="margin-bottom:24px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--w);margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        📅 Année ${escH(annee)}
+        ${moyAnn?`<span style="font-size:13px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.08);color:${couleur}">${parseFloat(moyAnn.note).toFixed(2)}/20 — ${mention}</span>`:''}
+      </div>
+      ${moyS1||moyS2?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        ${moyS1?`<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--w3);margin-bottom:4px">Semestre 1</div>
+          <div style="font-size:20px;font-weight:800;color:${parseFloat(moyS1.note)>=10?'#81c784':'#ef9a9a'}">${parseFloat(moyS1.note).toFixed(2)}</div>
+        </div>`:''}
+        ${moyS2?`<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--w3);margin-bottom:4px">Semestre 2</div>
+          <div style="font-size:20px;font-weight:800;color:${parseFloat(moyS2.note)>=10?'#81c784':'#ef9a9a'}">${parseFloat(moyS2.note).toFixed(2)}</div>
+        </div>`:''}
+      </div>`:''}
+      ${autres.length?`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:rgba(255,255,255,.05)">
+            <th style="padding:8px 12px;text-align:left;color:var(--w3);font-weight:600">Matière</th>
+            <th style="padding:8px 12px;text-align:left;color:var(--w3);font-weight:600">Semestre</th>
+            <th style="padding:8px 12px;text-align:right;color:var(--w3);font-weight:600">Note</th>
+          </tr></thead>
+          <tbody>${autres.map((n,i)=>`
+            <tr style="border-top:1px solid rgba(255,255,255,.05);background:${i%2?'rgba(255,255,255,.02)':''}">
+              <td style="padding:8px 12px;color:var(--w)">${escH(n.matiere)}</td>
+              <td style="padding:8px 12px;color:var(--w3)">${escH(n.semestre||'—')}</td>
+              <td style="padding:8px 12px;text-align:right;font-weight:700;color:${parseFloat(n.note)>=10?'#81c784':'#ef9a9a'}">${parseFloat(n.note).toFixed(2)}/20</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function loadScolarite(){
+  setTitle('Scolarité');
+  showPage('page-scolarite');
+  const el = document.getElementById('page-scolarite');
+  if(!el) return;
+  if(!window._sessionData?.scolarite) await loadEtudDashboard();
+  const rows = window._sessionData?.scolarite || [];
+
+  if(!rows.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">Informations de scolarité disponibles prochainement.</div></div>';
+    return;
+  }
+
+  el.innerHTML = `<div style="margin-bottom:20px">
+    <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--w);margin-bottom:4px">💳 Ma scolarité</div>
+    <div style="font-size:13px;color:var(--w3)">Situation financière par année scolaire</div>
+  </div>` + rows.map(r=>{
+    const solde = parseFloat(r.solde||0);
+    const verse = parseFloat(r.verse||0);
+    const nette = parseFloat(r.nette||0);
+    const pct   = nette>0 ? Math.min(100,Math.round(verse/nette*100)) : 100;
+    const stColor = solde<=0?'#81c784':solde<50000?'#ffb74d':'#ef9a9a';
+    const stLabel = r.statut==='solde'?'✅ Soldé':r.statut==='solde_bourse'?'🎓 Bourse':r.statut==='abandon'?'⛔ Abandon':r.statut==='a_relancer'?'⚠️ À régulariser':'🔄 En cours';
+    return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:16px;font-weight:700;color:var(--w)">📅 ${escH(r.annee||'—')}</div>
+        <span style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.08);color:${stColor}">${stLabel}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="text-align:center;background:rgba(255,255,255,.05);border-radius:10px;padding:10px">
+          <div style="font-size:11px;color:var(--w3);margin-bottom:4px">Montant net</div>
+          <div style="font-size:14px;font-weight:800;color:var(--w)">${fmt(nette)}<span style="font-size:10px;color:var(--w3)"> F</span></div>
+        </div>
+        <div style="text-align:center;background:rgba(255,255,255,.05);border-radius:10px;padding:10px">
+          <div style="font-size:11px;color:var(--w3);margin-bottom:4px">Versé</div>
+          <div style="font-size:14px;font-weight:800;color:#81c784">${fmt(verse)}<span style="font-size:10px;color:var(--w3)"> F</span></div>
+        </div>
+        <div style="text-align:center;background:rgba(255,255,255,.05);border-radius:10px;padding:10px">
+          <div style="font-size:11px;color:var(--w3);margin-bottom:4px">Solde</div>
+          <div style="font-size:14px;font-weight:800;color:${stColor}">${fmt(Math.max(0,solde))}<span style="font-size:10px;color:var(--w3)"> F</span></div>
+        </div>
+      </div>
+      <div style="height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${pct>=100?'#81c784':pct>=50?'#ffb74d':'#ef9a9a'};border-radius:4px;transition:width .6s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--w3);margin-top:6px;text-align:right">${pct}% réglé</div>
+    </div>`;
+  }).join('');
+}
 async function loadDocs(){ setTitle('Documents'); showPage('page-docs'); if(typeof loadAdminLibrary==='function') await loadAdminLibrary(); else { const {data:docs}=await getDBv30().from('cours_documents').select('*').eq('publie',true).order('created_at',{ascending:false}); document.getElementById('page-docs').innerHTML=docs?.length?`<div class="sec-head anim"><div class="sec-title">Documents</div></div><div class="g3 anim d1">${docs.map(d=>`<div class="scard"><div class="scard-ico">📄</div><div class="scard-lbl">${escH(d.type||'Document')}</div><div style="font-size:14px;font-weight:600;color:var(--w);margin:6px 0">${escH(d.titre)}</div><a href="${escH(d.url||'#')}" target="_blank" class="btn btn-ghost" style="margin-top:10px">⬇ Télécharger</a></div>`).join('')}</div>`:'<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucun document disponible pour le moment.</div></div>'; } }
 
 // ── DÉMARRAGE ─────────────────────────────────────────────────
