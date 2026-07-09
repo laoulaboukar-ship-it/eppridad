@@ -65,11 +65,6 @@ function setTitle(t,s){ document.getElementById('tb-title').textContent=t; if(s)
 function fmt(n){ return (n||0).toLocaleString('fr-FR'); }
 function fmtD(d){ return d?new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'—'; }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/`/g,'&#96;').replace(/\$/g,'&#36;'); }
-function genererMotDePasseAleatoire(){
-  const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#';
-  let pwd=''; for(let i=0;i<9;i++) pwd+=chars[Math.floor(Math.random()*chars.length)];
-  return pwd;
-}
 // safeStr — échappe une chaîne pour insertion sûre dans un attribut onclick='...'
 // Utilisée par espace-etudiant.js (legacy) — neutralise apostrophes, guillemets, retours ligne
 function safeStr(s){
@@ -404,16 +399,6 @@ async function loadEtudDashboard(){
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || 'Erreur de chargement.');
-    // Stocker dans _sessionData pour que Notes et Scolarite y accèdent
-    window._sessionData = {
-      notes:      data.notes     || [],
-      scolarite:  data.scolarite || [],
-      paiements:  data.paiements || [],
-      absences:   data.absences  || [],
-      documents:  data.documents || [],
-      actualites: data.actualites|| [],
-      etudiant:   data.etudiant  || null,
-    };
     if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
     window._adminData.notes=data.notes||[];
     window._adminData.absences=data.absences||[];
@@ -1117,136 +1102,15 @@ async function loadAdmComptes(){
     </div>`;
   try{
     const db2=getDBv30();
-    // Charger id en plus pour que la fiche notes fonctionne (etudiant_id)
-    const etudRes = await db2.from('etudiants').select('id,matricule,nom,prenom,filiere,niveau,classe,actif').limit(500);
+    // SDK v2 : requêtes séquentielles
+    const etudRes = await db2.from('etudiants').select('matricule,nom,prenom,filiere,niveau,classe,actif').limit(500);
     const cptData = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
-    // Charger aussi scolarite pour affichage correct dans la fiche
-    const scolariteRes = await db2.from('scolarite').select('matricule,annee,montant,verse,remise,nette,solde,statut').eq('annee','2025/2026');
     if(!window._adminData) window._adminData={comptes:[],etudiants:[],notes:[],inscriptions:[],commandes:[]};
     window._adminData.etudiants=etudRes.data||[];
     window._adminData.comptes=cptData||[];
-    window._adminData.scolarite=scolariteRes.data||[];
     if(typeof loadAdminStudents==='function') await loadAdminStudents();
   }catch(e){ console.error('[V31] loadAdmComptes:',e); document.getElementById('studentsTableBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--rd)">Erreur. <button onclick="loadAdmComptes()" style="color:var(--or);background:none;border:none;cursor:pointer;font-weight:700">Réessayer</button></td></tr>'; }
 }
-
-// ── SURCHARGE loadStudentDashboard ───────────────────────────
-// Neutralise la version legacy de espace-etudiant.js qui cherche
-// des éléments HTML (#dashboardError) qui n'existent plus
-async function loadStudentDashboard(matricule){
-  // Déléguer à notre loadEtudDashboard qui gère correctement
-  if(typeof loadEtudDashboard === 'function') await loadEtudDashboard();
-}
-
-
-// Remplace la version de espace-etudiant.js pour lire la scolarite
-// depuis la table scolarite (correcte) et non depuis paiements (vide)
-async function impersonateStudent(matricule){
-  const data=window._adminData||{};
-  const e=(data.etudiants||[]).find(x=>x.matricule===matricule);
-  const acc=(data.comptes||[]).find(x=>x.matricule===matricule);
-
-  let modal=document.getElementById('studentProfileModal');
-  if(!modal){
-    modal=document.createElement('div');
-    modal.id='studentProfileModal';
-    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px';
-    modal.onclick=function(ev){if(ev.target===modal)modal.remove();};
-    document.body.appendChild(modal);
-  }
-
-  // Afficher le squelette pendant le chargement
-  modal.innerHTML=`<div style="background:var(--v1);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:40px;max-width:520px;width:100%;text-align:center;color:var(--w3)">⏳ Chargement…</div>`;
-
-  // Charger notes ET scolarite en parallèle
-  let notes=[], scolariteRow=null;
-  try{
-    const db2=getDBv30();
-    const [notesRes, scolariteRes] = await Promise.all([
-      e?.id ? db2.from('notes').select('matiere,note,coefficient,semestre,annee_scolaire').eq('etudiant_id',e.id).eq('annee_scolaire','2025/2026') : Promise.resolve({data:[]}),
-      db2.from('scolarite').select('montant,verse,remise,nette,solde,statut').eq('matricule',matricule).eq('annee','2025/2026').single(),
-    ]);
-    notes = notesRes.data||[];
-    scolariteRow = scolariteRes.data||null;
-  }catch(_){}
-
-  // Calculs
-  const s1 = notes.find(n=>n.semestre==='S1')?.note;
-  const s2 = notes.find(n=>n.semestre==='S2')?.note;
-  const ann = notes.find(n=>n.semestre==='Annuel')?.note;
-  const moyAff = ann ?? ((s1!=null&&s2!=null) ? ((parseFloat(s1)+parseFloat(s2))/2) : null);
-
-  const montantNet = scolariteRow?.nette ?? (parseInt(e?.scolarite_brute||240000)-parseInt(e?.subvention||0));
-  const verse      = scolariteRow?.verse ?? 0;
-  const solde      = scolariteRow?.solde ?? (montantNet - verse);
-  const stScol     = scolariteRow?.statut ?? '—';
-
-  const expiry    = acc?.expiry_date ? new Date(acc.expiry_date).toLocaleDateString('fr-FR') : 'Illimité';
-  const derAcces  = acc?.dernier_acces ? new Date(acc.dernier_acces).toLocaleDateString('fr-FR') : 'Jamais';
-  const stCompte  = acc?.statut ?? 'none';
-  const stColor   = stCompte==='actif'?'#4caf50':stCompte==='pending'?'#ff9800':'var(--w3)';
-  const stLabel   = stCompte==='actif'?'✅ Actif':stCompte==='pending'?'⏳ En attente':'— Aucun';
-
-  const matJS = (matricule||'').replace(/'/g,"\'");
-  const nomJS = (e?(e.nom+' '+e.prenom):'').replace(/'/g,"\'");
-
-  modal.innerHTML=`
-  <div style="background:var(--v1);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:28px 32px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.6)">
-    <button onclick="document.getElementById('studentProfileModal').remove()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.08);border:none;color:var(--w2);font-size:18px;width:32px;height:32px;border-radius:8px;cursor:pointer">✕</button>
-
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
-      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--v3),var(--v4));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--or);flex-shrink:0">${(e?.nom?.[0]||'?').toUpperCase()}</div>
-      <div>
-        <div style="font-family:var(--font-disp);font-size:20px;font-weight:700;color:var(--w)">${escH(e?e.nom+' '+e.prenom:matricule)}</div>
-        <div style="font-size:12px;color:var(--or);font-weight:700;letter-spacing:.5px">${escH(matricule)}</div>
-        <div style="font-size:12px;color:var(--w3);margin-top:2px">${escH(e?.filiere||'—')} · ${escH(e?.niveau||'—')} · Classe ${escH(e?.classe||'—')}</div>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
-      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px">
-        <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Compte</div>
-        <div style="font-size:13px;font-weight:700;color:${stColor}">${stLabel}</div>
-        <div style="font-size:11px;color:var(--w3);margin-top:4px">Expiry : ${expiry}</div>
-        <div style="font-size:11px;color:var(--w3)">Dernier accès : ${derAcces}</div>
-      </div>
-      <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px">
-        <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Moyenne 2025/2026</div>
-        <div style="font-size:22px;font-weight:800;color:${moyAff!=null?(moyAff>=10?'#4caf50':'var(--rd)'):'var(--w3)'}">
-          ${moyAff!=null ? parseFloat(moyAff).toFixed(2)+'/20' : '—'}
-        </div>
-        <div style="font-size:11px;color:var(--w3);margin-top:4px">
-          ${s1!=null?'S1: '+parseFloat(s1).toFixed(2):''}${s1!=null&&s2!=null?' · ':''}${s2!=null?'S2: '+parseFloat(s2).toFixed(2):''}
-        </div>
-      </div>
-    </div>
-
-    <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:14px;margin-bottom:18px">
-      <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Scolarité 2025/2026</div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:12px;color:var(--w3)">Montant net</span>
-        <span style="font-size:12px;font-weight:700;color:var(--w)">${fmt(montantNet)} FCFA</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:12px;color:var(--w3)">Versé</span>
-        <span style="font-size:12px;font-weight:700;color:#4caf50">${fmt(verse)} FCFA</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)">
-        <span style="font-size:12px;font-weight:700;color:var(--w)">Solde restant</span>
-        <span style="font-size:14px;font-weight:800;color:${solde<=0?'#4caf50':'var(--rd)'}">${fmt(Math.max(0,solde))} FCFA</span>
-      </div>
-      ${stScol!=='—'?`<div style="margin-top:8px;font-size:11px;color:var(--w3)">Statut : <span style="color:var(--or);font-weight:700">${escH(stScol)}</span></div>`:''}
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button onclick="openIdentifiantsModal('${matJS}','${nomJS}','','')" style="background:rgba(33,150,243,.15);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔑 Identifiants</button>
-      <button onclick="openValidateModal('${matJS}')" style="background:rgba(255,255,255,.08);color:var(--w);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✏️ Modifier</button>
-      <button onclick="suspendAccount('${matJS}')" style="background:rgba(229,57,53,.12);color:#ef9a9a;border:1px solid rgba(229,57,53,.25);border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⏸ Suspendre</button>
-      <button onclick="document.getElementById('studentProfileModal').remove()" style="background:rgba(255,255,255,.05);color:var(--w3);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✕ Fermer</button>
-    </div>
-  </div>`;
-}
-
 async function loadAdmFormations(){
   setTitle('Formations en ligne','Administration'); showPage('page-adm-formations');
   const el = document.getElementById('page-adm-formations');
@@ -1687,219 +1551,9 @@ async function buildAdmFormations(){
 }
 
 // ── PAGES ÉTUDIANTS ───────────────────────────────────────────
-async function loadNotes(){
-  setTitle('Mes notes');
-  showPage('page-notes');
-  const el = document.getElementById('page-notes');
-  if(!el) return;
-  if(!window._sessionData?.notes) await loadEtudDashboard();
-  const notes = window._sessionData?.notes || [];
-
-  if(!notes.length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">Aucune note disponible pour le moment.</div></div>';
-    return;
-  }
-
-  // Grouper par année scolaire
-  const parAnnee = {};
-  notes.forEach(n=>{
-    const a = n.annee_scolaire||'—';
-    if(!parAnnee[a]) parAnnee[a]=[];
-    parAnnee[a].push(n);
-  });
-
-  el.innerHTML = Object.keys(parAnnee).sort((a,b)=>b.localeCompare(a)).map(annee=>{
-    const lignes = parAnnee[annee];
-
-    // Séparer moyennes et notes détaillées
-    const moyAnn = lignes.find(n=>n.type_eval==='moyenne_annuelle'||n.semestre==='Annuel');
-    const moyS1  = lignes.find(n=>n.semestre==='S1'&&(n.type_eval==='moyenne'||n.matiere==='Moyenne S1'));
-    const moyS2  = lignes.find(n=>n.semestre==='S2'&&(n.type_eval==='moyenne'||n.matiere==='Moyenne S2'));
-    // Notes détaillées = tout sauf les moyennes générales
-    const details = lignes.filter(n=>
-      n.matiere!=='Moyenne S1' && n.matiere!=='Moyenne S2' &&
-      n.matiere!=='Moyenne annuelle' && n.type_eval!=='moyenne_annuelle' &&
-      n.type_eval!=='moyenne'
-    );
-
-    const moy   = parseFloat(moyAnn?.note||0);
-    const couleur= moy>=14?'#ffd700':moy>=12?'#81c784':moy>=10?'#ffb74d':'#ef9a9a';
-    const mention= moy>=16?'Très Bien':moy>=14?'Bien':moy>=12?'Assez Bien':moy>=10?'Passable':'Ajourné';
-
-    return `<div style="margin-bottom:28px">
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--w);margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        📅 Année ${escH(annee)}
-        ${moyAnn?`<span style="font-size:13px;font-weight:700;padding:3px 12px;border-radius:20px;background:rgba(255,255,255,.08);color:${couleur}">${parseFloat(moyAnn.note).toFixed(2)}/20 — ${mention}</span>`:''}
-      </div>
-
-      ${(moyS1||moyS2)?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        ${moyS1?`<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:14px;text-align:center">
-          <div style="font-size:11px;color:var(--w3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Semestre 1</div>
-          <div style="font-size:24px;font-weight:800;color:${parseFloat(moyS1.note)>=10?'#81c784':'#ef9a9a'}">${parseFloat(moyS1.note).toFixed(2)}<span style="font-size:13px;color:var(--w3)">/20</span></div>
-        </div>`:''}
-        ${moyS2?`<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:14px;text-align:center">
-          <div style="font-size:11px;color:var(--w3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Semestre 2</div>
-          <div style="font-size:24px;font-weight:800;color:${parseFloat(moyS2.note)>=10?'#81c784':'#ef9a9a'}">${parseFloat(moyS2.note).toFixed(2)}<span style="font-size:13px;color:var(--w3)">/20</span></div>
-        </div>`:''}
-      </div>`:''}
-
-      ${details.length?`
-      <div style="font-size:11px;color:var(--w3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;font-weight:700">Notes par matière</div>
-      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden">
-        <table style="width:100%;border-collapse:collapse;font-size:13px">
-          <thead><tr style="background:rgba(255,255,255,.06)">
-            <th style="padding:9px 14px;text-align:left;color:var(--or);font-size:11px;letter-spacing:.5px;font-weight:700">Matière</th>
-            <th style="padding:9px 14px;text-align:center;color:var(--or);font-size:11px;letter-spacing:.5px;font-weight:700">Sem.</th>
-            <th style="padding:9px 14px;text-align:right;color:var(--or);font-size:11px;letter-spacing:.5px;font-weight:700">Note /20</th>
-          </tr></thead>
-          <tbody>${details.sort((a,b)=>(a.semestre||'').localeCompare(b.semestre||'')||(a.matiere||'').localeCompare(b.matiere||'')).map((n,i)=>{
-            const note=parseFloat(n.note);
-            const c=note>=14?'#ffd700':note>=12?'#81c784':note>=10?'#ffb74d':'#ef9a9a';
-            return `<tr style="border-top:1px solid rgba(255,255,255,.05);background:${i%2?'rgba(255,255,255,.02)':''}">
-              <td style="padding:9px 14px;color:var(--w)">${escH(n.matiere)}</td>
-              <td style="padding:9px 14px;text-align:center;color:var(--w3);font-size:12px">${escH(n.semestre||'—')}</td>
-              <td style="padding:9px 14px;text-align:right;font-weight:800;color:${c}">${note.toFixed(2)}</td>
-            </tr>`;
-          }).join('')}</tbody>
-        </table>
-      </div>`:''}
-    </div>`;
-  }).join('');
-}
-
-  // Grouper par année scolaire
-  const parAnnee = {};
-  notes.forEach(n=>{
-    const a = n.annee_scolaire||'—';
-    if(!parAnnee[a]) parAnnee[a]=[];
-    parAnnee[a].push(n);
-  });
-
-  if(!Object.keys(parAnnee).length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">Aucune note disponible pour le moment.</div></div>';
-    return;
-  }
-
-
-async function loadScolarite(){
-  setTitle('Scolarité');
-  showPage('page-scolarite');
-  const el = document.getElementById('page-scolarite');
-  if(!el) return;
-  if(!window._sessionData?.scolarite) await loadEtudDashboard();
-  const rows     = window._sessionData?.scolarite  || [];
-  const paiements= window._sessionData?.paiements  || [];
-
-  if(!rows.length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">Informations de scolarité disponibles prochainement.</div></div>';
-    return;
-  }
-
-  el.innerHTML = `<div style="margin-bottom:20px">
-    <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--w);margin-bottom:4px">💳 Ma scolarité</div>
-    <div style="font-size:13px;color:var(--w3)">Situation financière et historique des versements</div>
-  </div>` + rows.map(r=>{
-    const nette  = parseFloat(r.nette||0);
-    const verse  = parseFloat(r.verse||0);
-    const solde  = parseFloat(r.solde||0);
-    const pct    = nette>0 ? Math.min(100,Math.round(verse/nette*100)) : 100;
-    const stColor= solde<=0?'#81c784':solde<50000?'#ffb74d':'#ef9a9a';
-    const stLabel= {
-      'solde':'✅ Soldé','solde_bourse':'🎓 Bourse complète',
-      'abandon':'⛔ Abandon','a_relancer':'⚠️ À régulariser',
-      'en_cours':'🔄 En cours'
-    }[r.statut]||'🔄 En cours';
-
-    // Paiements de cette année
-    const pAnnee = paiements.filter(p=>p.annee_scolaire===r.annee)
-      .sort((a,b)=>new Date(a.periode)-new Date(b.periode));
-
-    return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;margin-bottom:16px">
-
-      <!-- En-tête année -->
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px">
-        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--w)">📅 ${escH(r.annee||'—')}</div>
-        <span style="font-size:12px;font-weight:700;padding:4px 14px;border-radius:20px;background:rgba(255,255,255,.08);color:${stColor}">${stLabel}</span>
-      </div>
-
-      <!-- KPIs -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-        <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Montant net</div>
-          <div style="font-size:15px;font-weight:800;color:var(--w)">${fmt(nette)}<span style="font-size:10px;color:var(--w3)"> F</span></div>
-        </div>
-        <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total versé</div>
-          <div style="font-size:15px;font-weight:800;color:#81c784">${fmt(verse)}<span style="font-size:10px;color:var(--w3)"> F</span></div>
-        </div>
-        <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:10px;color:var(--w3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Solde restant</div>
-          <div style="font-size:15px;font-weight:800;color:${stColor}">${fmt(Math.max(0,solde))}<span style="font-size:10px;color:var(--w3)"> F</span></div>
-        </div>
-      </div>
-
-      <!-- Barre de progression -->
-      <div style="height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-bottom:4px">
-        <div style="height:100%;width:${pct}%;background:${pct>=100?'#81c784':pct>=50?'#ffb74d':'#ef9a9a'};border-radius:4px;transition:width .6s"></div>
-      </div>
-      <div style="font-size:11px;color:var(--w3);text-align:right;margin-bottom:${pAnnee.length?'16px':'0'}">${pct}% réglé</div>
-
-      <!-- Historique des versements -->
-      ${pAnnee.length ? `
-      <div style="font-size:11px;color:var(--w3);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:8px">📋 Historique des versements</div>
-      <div style="background:rgba(0,0,0,.2);border-radius:10px;overflow:hidden">
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:rgba(255,255,255,.06)">
-            <th style="padding:8px 12px;text-align:left;color:var(--or);font-weight:700;font-size:10px;letter-spacing:.5px">Date</th>
-            <th style="padding:8px 12px;text-align:left;color:var(--or);font-weight:700;font-size:10px;letter-spacing:.5px">N° Reçu</th>
-            <th style="padding:8px 12px;text-align:left;color:var(--or);font-weight:700;font-size:10px;letter-spacing:.5px">Mode</th>
-            <th style="padding:8px 12px;text-align:right;color:var(--or);font-weight:700;font-size:10px;letter-spacing:.5px">Montant</th>
-          </tr></thead>
-          <tbody>
-          ${pAnnee.map((p,i)=>{
-            const d = p.periode ? new Date(p.periode).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '—';
-            return `<tr style="border-top:1px solid rgba(255,255,255,.05);background:${i%2?'rgba(255,255,255,.02)':''}">
-              <td style="padding:8px 12px;color:var(--w2)">${d}</td>
-              <td style="padding:8px 12px;font-family:monospace;color:var(--or);font-size:11px">#${escH(p.reference||'—')}</td>
-              <td style="padding:8px 12px;color:var(--w3)">${escH(p.mode_paiement||'Espèces')}</td>
-              <td style="padding:8px 12px;text-align:right;font-weight:800;color:#81c784">${fmt(p.montant)} F</td>
-            </tr>`;
-          }).join('')}
-          <tr style="border-top:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)">
-            <td colspan="3" style="padding:8px 12px;font-weight:700;color:var(--w)">Total</td>
-            <td style="padding:8px 12px;text-align:right;font-weight:800;color:#81c784;font-size:14px">${fmt(pAnnee.reduce((s,p)=>s+parseFloat(p.montant||0),0))} F</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-async function loadDocs(){
-  setTitle('Documents');
-  showPage('page-docs');
-  const el = document.getElementById('page-docs');
-  if(!el) return;
-  if(!window._sessionData?.documents) await loadEtudDashboard();
-  const docs = window._sessionData?.documents || [];
-  if(!docs.length){
-    el.innerHTML='<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucun document disponible pour le moment.</div></div>';
-    return;
-  }
-  el.innerHTML='<div style="margin-bottom:20px"><div style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:700;color:var(--w)">📚 Documents</div><div style="font-size:13px;color:var(--w3);margin-top:4px">Documents mis à disposition par l\'administration</div></div>'
-    + docs.map(d=>{
-      const ico={'emploi_temps':'📅','bulletin':'📊','annonce':'📢','cours':'📖','autre':'📄'}[d.type]||'📄';
-      return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px">'
-        +'<div style="font-size:28px;flex-shrink:0">'+ico+'</div>'
-        +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:14px;font-weight:700;color:var(--w);margin-bottom:2px">'+escH(d.titre)+'</div>'
-        +'<div style="font-size:11px;color:var(--w3)">'+escH(d.type||'Document')+(d.filiere?' · '+escH(d.filiere):'')+'</div>'
-        +'</div>'
-        +(d.url?'<a href="'+escH(d.url)+'" target="_blank" style="background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0">⬇ Ouvrir</a>':'')
-        +'</div>';
-    }).join('');
-}
+async function loadNotes(){ setTitle('Mes notes'); showPage('page-notes'); if(typeof chargerNotes==='function') await chargerNotes(); else document.getElementById('page-notes').innerHTML='<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">Notes disponibles prochainement.</div></div>'; }
+async function loadScolarite(){ setTitle('Scolarité'); showPage('page-scolarite'); if(typeof chargerScolarite==='function') await chargerScolarite(); else document.getElementById('page-scolarite').innerHTML='<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">Informations de scolarité disponibles prochainement.</div></div>'; }
+async function loadDocs(){ setTitle('Documents'); showPage('page-docs'); if(typeof loadAdminLibrary==='function') await loadAdminLibrary(); else { const {data:docs}=await getDBv30().from('cours_documents').select('*').eq('publie',true).order('created_at',{ascending:false}); document.getElementById('page-docs').innerHTML=docs?.length?`<div class="sec-head anim"><div class="sec-title">Documents</div></div><div class="g3 anim d1">${docs.map(d=>`<div class="scard"><div class="scard-ico">📄</div><div class="scard-lbl">${escH(d.type||'Document')}</div><div style="font-size:14px;font-weight:600;color:var(--w);margin:6px 0">${escH(d.titre)}</div><a href="${escH(d.url||'#')}" target="_blank" class="btn btn-ghost" style="margin-top:10px">⬇ Télécharger</a></div>`).join('')}</div>`:'<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucun document disponible pour le moment.</div></div>'; } }
 
 // ── DÉMARRAGE ─────────────────────────────────────────────────
 
