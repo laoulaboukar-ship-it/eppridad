@@ -54,12 +54,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--off);color:var(
 .v-result{max-width:700px;margin:40px auto;padding:0 20px}
 
 /* Carte VALIDE */
-.v-card-valid{background:#fff;border-radius:20px;border:2px solid #4caf50;box-shadow:0 8px 40px rgba(46,125,82,.15);overflow:hidden}
-.v-card-header-valid{background:linear-gradient(135deg,#1b5e20,#2e7d32);padding:24px 28px;display:flex;align-items:center;gap:16px}
-.v-card-header-valid .ico{font-size:36px}
-.v-card-header-valid h2{font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin-bottom:4px}
-.v-card-header-valid p{font-size:13px;color:rgba(255,255,255,.7)}
-.v-badge-valid{background:#4caf50;color:#fff;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:800;letter-spacing:.5px;margin-left:auto;flex-shrink:0}
+.v-card-valid{background:#fff;border-radius:24px;border:none;box-shadow:0 20px 80px rgba(13,59,26,.18),0 2px 8px rgba(13,59,26,.08);overflow:hidden;position:relative}
+.v-card-valid::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#0D3B1A,#1a5d2e,#C9A84C,#1a5d2e,#0D3B1A)}
+.v-card-header-valid{background:linear-gradient(150deg,#0a2810 0%,#0D3B1A 50%,#1a5d2e 100%);padding:36px 36px 28px;position:relative;overflow:hidden}
+.v-card-header-valid::after{content:'CERTIFIÉ';position:absolute;right:-20px;top:50%;transform:translateY(-50%) rotate(90deg);font-size:80px;font-weight:900;color:rgba(201,168,76,.06);letter-spacing:8px;white-space:nowrap;pointer-events:none}
+.v-card-header-valid .ico{font-size:44px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+.v-card-header-valid h2{font-family:'Playfair Display',serif;font-size:26px;color:#fff;margin-bottom:6px;letter-spacing:.3px}
+.v-card-header-valid p{font-size:13px;color:rgba(255,255,255,.65);line-height:1.6}
+.v-badge-valid{background:linear-gradient(135deg,#C9A84C,#e8c96a);color:#0a2810;border-radius:20px;padding:6px 18px;font-size:11px;font-weight:900;letter-spacing:1.5px;margin-left:auto;flex-shrink:0;box-shadow:0 4px 14px rgba(201,168,76,.35)}
 
 /* Carte INVALIDE */
 .v-card-invalid{background:#fff;border-radius:20px;border:2px solid #e53935;box-shadow:0 8px 40px rgba(229,57,53,.1);overflow:hidden}
@@ -69,16 +71,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--off);color:var(
 .v-card-header-invalid p{font-size:13px;color:rgba(255,255,255,.7)}
 
 /* Corps certificat */
-.v-cert-body{padding:28px}
+.v-cert-body{padding:36px}
 .v-cert-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.v-cert-field{background:var(--off);border-radius:10px;padding:14px 16px;border:1px solid rgba(22,80,63,.1)}
-.v-cert-field-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--tl);margin-bottom:5px;font-weight:700}
-.v-cert-field-value{font-size:15px;font-weight:700;color:var(--txt)}
-.v-cert-field-value.gold{color:var(--or2);font-family:'Playfair Display',serif;font-size:17px}
-.v-cert-field-value.green{color:#2e7d32}
+.v-cert-field{background:linear-gradient(135deg,#f8fdf9,#f0faf2);border-radius:12px;padding:16px 18px;border:1px solid rgba(22,80,63,.12);transition:.2s}
+.v-cert-field:hover{border-color:rgba(22,80,63,.25);box-shadow:0 4px 12px rgba(13,59,26,.08)}
+.v-cert-field-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#5a7a6a;margin-bottom:6px;font-weight:800}
+.v-cert-field-value{font-size:15px;font-weight:700;color:#1a2a1a}
+.v-cert-field-value.gold{color:#8B6914;font-family:'Playfair Display',serif;font-size:18px;letter-spacing:.3px}
+.v-cert-field-value.green{color:#1b5e20;font-weight:800}
 
 /* Barre de mention */
-.v-mention-bar{background:linear-gradient(135deg,var(--dk2),var(--g));border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.v-mention-bar{background:linear-gradient(135deg,#0a2810,#1a5d2e);border-radius:16px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px;box-shadow:0 8px 24px rgba(13,59,26,.2);position:relative;overflow:hidden}.v-mention-bar::after{content:"★";position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:60px;color:rgba(201,168,76,.08);pointer-events:none}
 .v-mention-ico{font-size:28px}
 .v-mention-txt{flex:1}
 .v-mention-txt strong{color:var(--or);font-size:17px;display:block}
@@ -336,7 +339,7 @@ function afficherValide(cert, formationData){
           <div>
             <div style="font-weight:800;color:var(--txt);font-size:15px">EPPRIDAD</div>
             <div style="font-size:12px;color:var(--tl)">École Polytechnique Privée d'Agriculture, Développement Rural,<br>Irrigation, Développement Agropastoral et Diversification</div>
-            <div style="font-size:11px;color:var(--tl);margin-top:3px">📍 Niamey, République du Niger · Est. 2024 · www.eppridad.com</div>
+            <div style="font-size:11px;color:var(--tl);margin-top:3px">📍 Niamey, République du Niger · Ouverte 2026 · www.eppridad.com</div>
           </div>
         </div>
       </div>
