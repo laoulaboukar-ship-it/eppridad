@@ -253,6 +253,7 @@ var NAV_ADM = [
   {id:'page-adm-inscriptions',  ico:'📥', label:'Demandes & Inscriptions', badge:'inscBadge'},
   {id:'page-adm-enligne',       ico:'🌐', label:'Apprenants en ligne',      badge:'enligneBadge'},
   {id:'page-adm-comptes',       ico:'🎓', label:'Étudiants diplômants'},
+  {id:'page-adm-rapport',       ico:'📋', label:'Rapport hebdomadaire'},
   {id:'page-adm-certificats',   ico:'🏅', label:'Certificats'},
   {id:'page-adm-exercices',     ico:'📝', label:'Exercices soumis',         badge:'exercBadge'},
   {id:'page-adm-finances',      ico:'💰', label:'Finances'},
@@ -309,6 +310,7 @@ function goto(id){
     'page-adm-finances'      : () => loadAdmFinances(),
     'page-adm-docs'          : () => loadAdmDocs(),
     'page-adm-galerie'       : () => loadAdmGalerie(),
+    'page-adm-rapport'       : () => loadAdmRapport(),
     'page-adm-certificats'   : () => loadAdmCertificats(),
   };
   // Afficher la bonne page
@@ -1904,7 +1906,225 @@ function envoyerWAAlternatif(){
 
 
 
-// ── SECTION CERTIFICATS (vue admin centralisée) ──────────────
+// ── RAPPORT HEBDOMADAIRE ──────────────────────────────────────
+async function loadAdmRapport(){
+  setTitle('Rapport hebdomadaire','Centre de contrôle');
+  let el=document.getElementById('page-adm-rapport');
+  if(!el){
+    el=document.createElement('div'); el.className='content-area'; el.id='page-adm-rapport';
+    document.getElementById('main-content').appendChild(el);
+  }
+  showPage('page-adm-rapport');
+
+  // Calculer la semaine en cours
+  const now = new Date();
+  const debutSemaine = new Date(now);
+  debutSemaine.setDate(now.getDate() - now.getDay() + 1); // Lundi
+  debutSemaine.setHours(0,0,0,0);
+  const finSemaine = new Date(debutSemaine);
+  finSemaine.setDate(debutSemaine.getDate() + 6);
+  finSemaine.setHours(23,59,59,999);
+
+  const fmtDate = d => new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const semLabel = `Semaine du ${fmtDate(debutSemaine)} au ${fmtDate(finSemaine)}`;
+
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--w)">📋 Rapport hebdomadaire</div>
+        <div style="font-size:13px;color:var(--w3);margin-top:3px">${semLabel}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="imprimerRapport()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--w2);cursor:pointer;font-family:inherit">🖨️ Imprimer</button>
+        <button onclick="partagerRapportWhatsApp()" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.25);border-radius:9px;padding:9px 16px;font-size:13px;font-weight:700;color:#25D366;cursor:pointer;font-family:inherit">💬 WhatsApp</button>
+        <button onclick="loadAdmRapport()" style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);border-radius:9px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--or);cursor:pointer;font-family:inherit">🔄 Actualiser</button>
+      </div>
+    </div>
+    <div id="rapport-body"><div style="text-align:center;padding:40px;color:var(--w3)">⏳ Chargement du rapport…</div></div>`;
+
+  try{
+    const db2=getDBv30();
+    const debut = debutSemaine.toISOString();
+    const fin   = finSemaine.toISOString();
+
+    // Charger inscriptions, paiements et formations via clé publique (tables non sensibles)
+    const [{data:inscriptions},{data:paiements},{data:formations}] = await Promise.all([
+      db2.from('inscriptions').select('*').gte('created_at',debut).lte('created_at',fin).order('created_at',{ascending:false}),
+      db2.from('paiements').select('*,etudiants(nom,prenom,matricule)').gte('created_at',debut).lte('created_at',fin),
+      db2.from('formations_enligne').select('id,titre,emoji'),
+    ]);
+
+    // portail_comptes est fermé par RLS → passer par adminApi (passerelle sécurisée)
+    let comptesNouveaux = [];
+    try{
+      const r = await adminApi('lister_comptes',{});
+      if(r && r.data){
+        comptesNouveaux = r.data.filter(c=>{
+          const d = new Date(c.date_creation||0);
+          return d >= debutSemaine && d <= finSemaine;
+        });
+      }
+    }catch(_){}
+
+    const formMap={}; (formations||[]).forEach(f=>{formMap[f.id]=f;});
+    const insc = inscriptions||[];
+    const cptes = comptesNouveaux||[];
+    const paies = paiements||[];
+
+    // Segmenter inscriptions
+    const inscEnLigne = insc.filter(i=>i.type_formation==='enligne'||i.formation_id||i.reference?.startsWith('ENL'));
+    const inscDiplom  = insc.filter(i=>!inscEnLigne.includes(i));
+
+    // KPIs
+    const totalPaie = paies.reduce((s,p)=>s+parseFloat(p.montant||0),0);
+
+    const kpis = [
+      {ico:'📥',lbl:'Inscriptions totales',val:insc.length,color:'#64b5f6'},
+      {ico:'🌐',lbl:'En ligne',val:inscEnLigne.length,color:'#81c784'},
+      {ico:'🎓',lbl:'Diplômantes',val:inscDiplom.length,color:'#ffb74d'},
+      {ico:'🔑',lbl:'Accès créés',val:cptes.length,color:'#ce93d8'},
+      {ico:'💰',lbl:'Paiements reçus',val:fmt(totalPaie)+' F',color:'#ffd54f'},
+    ];
+
+    // Texte pour WhatsApp/partage
+    const buildTexteRapport = () => {
+      let t = `📋 RAPPORT EPPRIDAD — ${semLabel}\n`;
+      t += `${'─'.repeat(35)}\n\n`;
+      t += `📊 RÉSUMÉ\n`;
+      t += `• Inscriptions : ${insc.length} (${inscEnLigne.length} en ligne · ${inscDiplom.length} diplômantes)\n`;
+      t += `• Accès créés : ${cptes.length}\n`;
+      t += `• Paiements : ${fmt(totalPaie)} FCFA\n\n`;
+
+      if(inscEnLigne.length){
+        t += `🌐 INSCRIPTIONS EN LIGNE\n`;
+        inscEnLigne.forEach(i=>{
+          t += `• ${i.prenom||''} ${i.nom||''} — ${i.formation_titre||'—'} — ${i.statut||'—'}\n`;
+          t += `  📞 ${i.telephone||'—'} · ${new Date(i.created_at).toLocaleDateString('fr-FR')}\n`;
+        });
+        t += '\n';
+      }
+      if(inscDiplom.length){
+        t += `🎓 DEMANDES DIPLÔMANTES\n`;
+        inscDiplom.forEach(i=>{
+          t += `• ${i.prenom||''} ${i.nom||''} — ${i.filiere||'—'}\n`;
+          t += `  📞 ${i.telephone||'—'} · ${new Date(i.created_at).toLocaleDateString('fr-FR')}\n`;
+        });
+        t += '\n';
+      }
+      t += `🏫 EPPRIDAD — +227 99 85 15 32`;
+      return t;
+    };
+    window._rapportTexte = buildTexteRapport;
+
+    const body = document.getElementById('rapport-body');
+
+    body.innerHTML = `
+      <!-- KPIs -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:24px">
+        ${kpis.map(k=>`
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;text-align:center">
+            <div style="font-size:24px;margin-bottom:6px">${k.ico}</div>
+            <div style="font-size:20px;font-weight:800;color:${k.color};font-family:'Playfair Display',serif">${k.val}</div>
+            <div style="font-size:10px;color:var(--w3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">${k.lbl}</div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Inscriptions en ligne -->
+      <div style="margin-bottom:24px">
+        <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--or);margin-bottom:12px">🌐 Inscriptions en ligne (${inscEnLigne.length})</div>
+        ${!inscEnLigne.length
+          ? '<div style="color:var(--w3);font-style:italic;font-size:13px;padding:16px;background:rgba(255,255,255,.03);border-radius:10px">Aucune inscription en ligne cette semaine.</div>'
+          : `<div style="background:rgba(255,255,255,.03);border-radius:12px;overflow:hidden">
+              <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <thead><tr style="background:rgba(255,255,255,.06)">
+                  ${['Nom','Formation','Téléphone','Statut','Date','Action'].map(h=>`<th style="padding:9px 12px;text-align:left;color:var(--or);font-size:10px;font-weight:700;white-space:nowrap">${h}</th>`).join('')}
+                </tr></thead>
+                <tbody>${inscEnLigne.map((i,idx)=>{
+                  const d=new Date(i.created_at).toLocaleDateString('fr-FR');
+                  const stColor=i.statut==='traite'?'#81c784':i.statut==='annule'?'#ef9a9a':'#ffb74d';
+                  const telClean=(i.telephone||'').replace(/\D/g,'').replace(/^0/,'227');
+                  return `<tr style="border-top:1px solid rgba(255,255,255,.05);background:${idx%2?'rgba(255,255,255,.02)':''}">
+                    <td style="padding:9px 12px;color:var(--w);font-weight:700">${escH(i.prenom||'')} ${escH(i.nom||'')}</td>
+                    <td style="padding:9px 12px;color:var(--w2)">${escH(i.formation_titre||i.reference||'—')}</td>
+                    <td style="padding:9px 12px;color:var(--w3);font-family:monospace">${escH(i.telephone||'—')}</td>
+                    <td style="padding:9px 12px"><span style="font-size:10px;font-weight:700;color:${stColor}">${escH(i.statut||'en_attente')}</span></td>
+                    <td style="padding:9px 12px;color:var(--w3);white-space:nowrap">${d}</td>
+                    <td style="padding:9px 12px">
+                      ${telClean?`<a href="https://wa.me/${telClean}" target="_blank" style="background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap">💬 WA</a>`:'—'}
+                    </td>
+                  </tr>`;
+                }).join('')}</tbody>
+              </table>
+            </div>`}
+      </div>
+
+      <!-- Inscriptions diplômantes -->
+      <div style="margin-bottom:24px">
+        <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--or);margin-bottom:12px">🎓 Demandes formation diplômante (${inscDiplom.length})</div>
+        ${!inscDiplom.length
+          ? '<div style="color:var(--w3);font-style:italic;font-size:13px;padding:16px;background:rgba(255,255,255,.03);border-radius:10px">Aucune demande diplômante cette semaine.</div>'
+          : `<div style="background:rgba(255,255,255,.03);border-radius:12px;overflow:hidden">
+              <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <thead><tr style="background:rgba(255,255,255,.06)">
+                  ${['Nom','Filière','Téléphone','Email','Date','Appel'].map(h=>`<th style="padding:9px 12px;text-align:left;color:var(--or);font-size:10px;font-weight:700">${h}</th>`).join('')}
+                </tr></thead>
+                <tbody>${inscDiplom.map((i,idx)=>{
+                  const d=new Date(i.created_at).toLocaleDateString('fr-FR');
+                  const telClean=(i.telephone||'').replace(/\D/g,'').replace(/^0/,'227');
+                  return `<tr style="border-top:1px solid rgba(255,255,255,.05);background:${idx%2?'rgba(255,255,255,.02)':''}">
+                    <td style="padding:9px 12px;color:var(--w);font-weight:700">${escH(i.prenom||'')} ${escH(i.nom||'')}</td>
+                    <td style="padding:9px 12px;color:var(--w2)">${escH(i.filiere||'—')}</td>
+                    <td style="padding:9px 12px;color:var(--w3);font-family:monospace">${escH(i.telephone||'—')}</td>
+                    <td style="padding:9px 12px;color:var(--w3)">${escH(i.email||'—')}</td>
+                    <td style="padding:9px 12px;color:var(--w3);white-space:nowrap">${d}</td>
+                    <td style="padding:9px 12px">
+                      ${telClean?`<a href="tel:+${telClean}" style="background:rgba(33,150,243,.15);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap">📞 Appeler</a>`:'—'}
+                    </td>
+                  </tr>`;
+                }).join('')}</tbody>
+              </table>
+            </div>`}
+      </div>
+
+      <!-- Paiements semaine -->
+      ${paies.length?`
+      <div>
+        <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--or);margin-bottom:12px">💰 Paiements reçus (${paies.length} · Total : ${fmt(totalPaie)} FCFA)</div>
+        <div style="background:rgba(255,255,255,.03);border-radius:12px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="background:rgba(255,255,255,.06)">
+              ${['Apprenant','Montant','Mode','N° Reçu','Date'].map(h=>`<th style="padding:9px 12px;text-align:left;color:var(--or);font-size:10px;font-weight:700">${h}</th>`).join('')}
+            </tr></thead>
+            <tbody>${paies.map((p,idx)=>{
+              const nom=p.etudiants?(p.etudiants.nom+' '+p.etudiants.prenom):p.matricule||'—';
+              const d=p.periode?new Date(p.periode).toLocaleDateString('fr-FR'):new Date(p.created_at).toLocaleDateString('fr-FR');
+              return `<tr style="border-top:1px solid rgba(255,255,255,.05);background:${idx%2?'rgba(255,255,255,.02)':''}">
+                <td style="padding:9px 12px;color:var(--w);font-weight:700">${escH(nom)}</td>
+                <td style="padding:9px 12px;color:#81c784;font-weight:800">${fmt(p.montant)} F</td>
+                <td style="padding:9px 12px;color:var(--w3)">${escH(p.mode_paiement||'—')}</td>
+                <td style="padding:9px 12px;color:var(--or);font-family:monospace">#${escH(p.reference||'—')}</td>
+                <td style="padding:9px 12px;color:var(--w3)">${d}</td>
+              </tr>`;
+            }).join('')}</tbody>
+          </table>
+        </div>
+      </div>`:''}`;
+
+  }catch(e){
+    document.getElementById('rapport-body').innerHTML=`<div style="color:#ef9a9a;padding:20px">Erreur : ${escH(e.message)}</div>`;
+  }
+}
+
+function imprimerRapport(){
+  window.print();
+}
+
+function partagerRapportWhatsApp(){
+  const txt = window._rapportTexte ? window._rapportTexte() : 'Rapport EPPRIDAD';
+  window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
+}
+
+
 async function loadAdmCertificats(){
   setTitle('Certificats','Tous les certificats émis');
   let el=document.getElementById('page-adm-certificats');
