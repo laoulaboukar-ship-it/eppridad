@@ -443,7 +443,7 @@ function imprimerRapport(){
       <div>
         <div class="rpt-brand-name">EPPRIDAD</div>
         <div class="rpt-brand-sub">École Polytechnique Privée d'Agriculture</div>
-        <div class="rpt-brand-loc">Niamey · République du Niger · Est. 2024</div>
+        <div class="rpt-brand-loc">Niamey · République du Niger · Niamey 2026</div>
       </div>
     </div>
     <div class="rpt-doc-type">
@@ -500,7 +500,7 @@ function imprimerRapport(){
     </div>
   </div>
 
-  <script>
+  <scr\'+'ipt>
   var certData = ${JSON.stringify(cert)};
   var formData = ${JSON.stringify(formationData||{})};
   var verifyUrl = ${JSON.stringify(verifyUrl)};
@@ -564,7 +564,10 @@ function imprimerRapport(){
           <span>Score final</span>
         </div>
       </div>
-
+`;
+  zone.scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('verifyBtn').disabled=false;
+}
 
 function afficherInvalide(num){
   const zone = document.getElementById('result-zone');
