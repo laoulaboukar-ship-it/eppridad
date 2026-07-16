@@ -3022,7 +3022,7 @@ function afficherTableauEnLigne(comptes, accesMap, certMap, formMap){
         </td>
         <td style="padding:10px 12px;white-space:nowrap"><span style="font-size:11px;font-weight:700;color:${statutColor}">${statutLabel}</span></td>
         <td style="padding:10px 12px">
-          <button onclick="ouvrirFicheApprenant('${matJS}','${nomJS}')" style="background:rgba(201,168,76,.18);color:var(--or);border:1px solid rgba(201,168,76,.35);border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">👁️ Voir détail</button>
+          <button onclick="ouvrirFicheApprenantParMatricule('${matJS}','${nomJS}')" style="background:rgba(201,168,76,.18);color:var(--or);border:1px solid rgba(201,168,76,.35);border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">👁️ Voir détail</button>
         </td>
       </tr>`;
     }).join('')}
@@ -3031,7 +3031,7 @@ function afficherTableauEnLigne(comptes, accesMap, certMap, formMap){
 }
 
 // ── FICHE DÉTAILLÉE D'UN APPRENANT (remplace les 4 boutons étalés) ──
-async function ouvrirFicheApprenant(matricule, nomComplet){
+async function ouvrirFicheApprenantParMatricule(matricule, nomComplet){
   let modal = document.getElementById('ficheApprenantModal');
   if(!modal){
     modal=document.createElement('div');
@@ -3775,17 +3775,26 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
   try{
     const db2 = getDBv30();
 
-    // 1. Trouver TOUS les comptes liés à cet apprenant — par email OU par nom complet
-    // (gère le cas où plusieurs inscriptions ont créé plusieurs matricules pour la même personne)
-    const nomComplet = (prenom+' '+nom).trim().toLowerCase();
+    // Recherche directe dans portail_comptes via SDK Supabase
+    // Priorité 1 : par email | Priorité 2 : par nom+prénom
     let comptes = [];
     if(email){
-      const r1 = await adminApi('rechercher', { email });
-      comptes = r1.data || [];
+      const { data: parEmail } = await db2.from('portail_comptes')
+        .select('matricule,nom_complet,email,statut,role,date_creation,expiry_date,dernier_acces')
+        .eq('email', email.trim().toLowerCase())
+        .neq('role','admin');
+      if(parEmail && parEmail.length) comptes = parEmail;
     }
     if(!comptes.length){
-      const r2 = await adminApi('rechercher', { nom });
-      comptes = (r2.data||[]).filter(c => (c.nom_complet||'').toLowerCase().includes(nomComplet.split(' ')[0]) || (c.nom_complet||'').toLowerCase()===nomComplet);
+      const prenomTrim = (prenom||'').trim();
+      const nomTrim = (nom||'').trim();
+      const { data: parNom } = await db2.from('portail_comptes')
+        .select('matricule,nom_complet,email,statut,role,date_creation,expiry_date,dernier_acces')
+        .ilike('nom_complet', `%${prenomTrim}%`)
+        .neq('role','admin');
+      if(parNom && parNom.length){
+        comptes = parNom.filter(c => (c.nom_complet||'').toLowerCase().includes(nomTrim.toLowerCase()));
+      }
     }
 
     // 2. Inscriptions liées (par email ou référence)
@@ -3807,7 +3816,13 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
       return;
     }
 
-    // Charger accès + progression + exercices pour CHAQUE compte trouvé
+    // Si un seul compte trouvé → ouvrir la belle fiche détaillée par matricule
+    if(comptes.length === 1){
+      modal.style.display='none';
+      return ouvrirFicheApprenantParMatricule(comptes[0].matricule, comptes[0].nom_complet);
+    }
+
+    // Plusieurs comptes → afficher liste avec actions
     let html = '';
     if(comptes.length > 1){
       html += `<div style="background:rgba(255,152,0,.1);border:1px solid rgba(255,152,0,.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#ffb74d">
