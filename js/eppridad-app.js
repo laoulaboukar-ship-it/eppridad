@@ -331,7 +331,7 @@ function closeSB(){ document.getElementById('sidebar').classList.remove('open');
 async function loadDashboard(){
   setTitle('Tableau de bord');
   if(_s.role==='admin') return loadAdmDashboard();
-  if(_s.role==='enligne') return loadEnligneDashboard();
+  if(_s.role==='enligne'){ showPage('page-dashboard'); return loadEnligneDashboard(); }
   loadEtudDashboard();
 }
 
@@ -516,7 +516,7 @@ async function loadFormationsEnLigne(){
   setTitle('Formations en ligne');
   showPage('page-formations');
   const el = document.getElementById('page-formations');
-  if(_s.role==='enligne'){ await loadEnligneDashboard(); showPage('page-dashboard'); return; }
+  if(_s.role==='enligne'){ showPage('page-dashboard'); await loadEnligneDashboard(); return; }
   el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div></div>';
   const { data:formations } = await getDBv30().from('formations_enligne').select('*').eq('publie',true).order('ordre');
   el.innerHTML = `
