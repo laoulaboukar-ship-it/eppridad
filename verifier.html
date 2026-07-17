@@ -540,34 +540,7 @@ function imprimerRapport(){
   w.document.close();
 }
 
-  zone.innerHTML = `
-  <div class="v-card-valid">
-    <div class="v-card-header-valid">
-      <div class="ico">✅</div>
-      <div>
-        <h2>Certificat authentique</h2>
-        <p>Ce certificat a été émis par EPPRIDAD et est enregistré dans notre base de données.</p>
-      </div>
-      <div class="v-badge-valid">VALIDE</div>
-    </div>
-    <div class="v-cert-body">
 
-      <!-- Mention et score -->
-      <div class="v-mention-bar">
-        <div class="v-mention-ico">${mentionEmoji}</div>
-        <div class="v-mention-txt">
-          <strong style="color:${mentionColor}">${cert.mention || 'Bien'}</strong>
-          <span>Mention obtenue à l'issue des 5 modules</span>
-        </div>
-        <div class="v-score-badge">
-          <strong>${cert.score_final || '—'}%</strong>
-          <span>Score final</span>
-        </div>
-      </div>
-`;
-  zone.scrollIntoView({behavior:'smooth',block:'start'});
-  document.getElementById('verifyBtn').disabled=false;
-}
 
 function afficherInvalide(num){
   const zone = document.getElementById('result-zone');
