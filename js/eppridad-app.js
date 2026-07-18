@@ -1779,6 +1779,87 @@ async function loadDocs(){
   showPage('page-docs');
   const el = document.getElementById('page-docs');
   if(!el) return;
+
+  // Apprenant en ligne : afficher les PDFs de ses formations actives
+  if(_s && _s.role === 'enligne'){
+    el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div>';
+    try{
+      const db = getDBv30();
+      // 1. Récupérer les formations actives de l'apprenant
+      const { data:accesRows } = await db.from('acces_formations')
+        .select('formation_id').eq('matricule', _s.matricule).eq('actif', true);
+      const ids = (accesRows||[]).map(a => a.formation_id);
+      if(!ids.length){
+        el.innerHTML='<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucune formation active.<br>Contactez EPPRIDAD pour vous inscrire.</div></div>';
+        return;
+      }
+      // 2. Récupérer les modules de ces formations
+      const { data:modules } = await db.from('modules_cours')
+        .select('id,titre,formation_id,ordre').in('formation_id', ids).order('ordre');
+      const moduleIds = (modules||[]).map(m => m.id);
+      if(!moduleIds.length){
+        el.innerHTML='<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucun document disponible pour le moment.</div></div>';
+        return;
+      }
+      // 3. Récupérer les ressources PDF de ces modules
+      const { data:ressources } = await db.from('ressources_module')
+        .select('module_id,titre,contenu_url,url,type').in('module_id', moduleIds).eq('type','pdf');
+      // 4. Récupérer les titres des formations pour l'affichage
+      const { data:formations } = await db.from('formations_enligne')
+        .select('id,titre,emoji').in('id', ids);
+      const formMap = new Map((formations||[]).map(f=>[f.id, f]));
+      const modMap  = new Map((modules||[]).map(m=>[m.id, m]));
+
+      const pdfs = (ressources||[]);
+
+      if(!pdfs.length){
+        el.innerHTML='<div class="empty"><div class="empty-ico">📚</div><div class="empty-txt">Aucun document PDF disponible pour le moment.<br><span style="font-size:12px;color:var(--w3)">Les documents seront ajoutés par l\'équipe pédagogique EPPRIDAD.</span></div></div>';
+        return;
+      }
+
+      // 5. Grouper par formation
+      const parFormation = {};
+      pdfs.forEach(r => {
+        const mod = modMap.get(r.module_id);
+        if(!mod) return;
+        const fid = mod.formation_id;
+        if(!parFormation[fid]) parFormation[fid] = [];
+        parFormation[fid].push({ ...r, moduleTitre: mod.titre });
+      });
+
+      let html = '<div style="margin-bottom:20px">'
+        + '<div style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:700;color:var(--w)">📚 Documents de cours</div>'
+        + '<div style="font-size:13px;color:var(--w3);margin-top:4px">Guides PDF de vos formations EPPRIDAD</div>'
+        + '</div>';
+
+      Object.entries(parFormation).forEach(([fid, docs]) => {
+        const form = formMap.get(fid);
+        html += '<div style="margin-bottom:24px">'
+          + '<div style="font-size:13px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">'
+          + escH((form?.emoji||'📚')+' '+(form?.titre||'Formation'))+'</div>';
+        docs.forEach(d => {
+          const pdfUrl = d.contenu_url || d.url || '#';
+          html += '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:8px;display:flex;align-items:center;gap:14px">'
+            + '<div style="font-size:28px;flex-shrink:0">📄</div>'
+            + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:14px;font-weight:700;color:var(--w);margin-bottom:2px">'+escH(d.titre||'Document')+'</div>'
+            + '<div style="font-size:11px;color:var(--w3)">'+escH(d.moduleTitre||'')+'</div>'
+            + '</div>'
+            + (pdfUrl!=='#'?'<a href="'+escH(pdfUrl)+'" target="_blank" style="background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0">⬇ Ouvrir</a>':'')
+            + '</div>';
+        });
+        html += '</div>';
+      });
+
+      el.innerHTML = html;
+    }catch(e){
+      console.error('[loadDocs enligne]', e);
+      el.innerHTML='<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-txt">Erreur de chargement. <a onclick="loadDocs()" style="color:var(--or);cursor:pointer;font-weight:700">Réessayer</a></div></div>';
+    }
+    return;
+  }
+
+  // Étudiant diplômant : afficher les documents mis à disposition par l'admin
   if(!window._sessionData?.documents) await loadEtudDashboard();
   const docs = window._sessionData?.documents || [];
   if(!docs.length){
@@ -2680,7 +2761,6 @@ async function reinitialiserMotDePasse(matricule){
 // - Finances : récapitulatif paiements
 // ══════════════════════════════════════════════════════════════
 
-// ── SURCHARGE loadAdmFinances — module financier réel ──────
 
 // Modal saisie paiement
 function ouvrirPaiementModal(accesId, matricule, nomComplet, titreFormation){
@@ -3775,26 +3855,21 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
   try{
     const db2 = getDBv30();
 
-    // Recherche directe dans portail_comptes via SDK Supabase
-    // Priorité 1 : par email | Priorité 2 : par nom+prénom
+    // Recherche via adminApi('lister_comptes') — jamais d'accès direct à portail_comptes
     let comptes = [];
+    const tousComptes = await adminApi('lister_comptes', {}).then(r=>r.data||[]).catch(()=>[]);
     if(email){
-      const { data: parEmail } = await db2.from('portail_comptes')
-        .select('matricule,nom_complet,email,statut,role,date_creation,expiry_date,dernier_acces')
-        .eq('email', email.trim().toLowerCase())
-        .neq('role','admin');
-      if(parEmail && parEmail.length) comptes = parEmail;
+      const emailNorm = email.trim().toLowerCase();
+      comptes = tousComptes.filter(c => c.role !== 'admin' && (c.email||'').toLowerCase() === emailNorm);
     }
     if(!comptes.length){
-      const prenomTrim = (prenom||'').trim();
-      const nomTrim = (nom||'').trim();
-      const { data: parNom } = await db2.from('portail_comptes')
-        .select('matricule,nom_complet,email,statut,role,date_creation,expiry_date,dernier_acces')
-        .ilike('nom_complet', `%${prenomTrim}%`)
-        .neq('role','admin');
-      if(parNom && parNom.length){
-        comptes = parNom.filter(c => (c.nom_complet||'').toLowerCase().includes(nomTrim.toLowerCase()));
-      }
+      const prenomTrim = (prenom||'').trim().toLowerCase();
+      const nomTrim    = (nom||'').trim().toLowerCase();
+      comptes = tousComptes.filter(c =>
+        c.role !== 'admin' &&
+        (c.nom_complet||'').toLowerCase().includes(prenomTrim) &&
+        (c.nom_complet||'').toLowerCase().includes(nomTrim)
+      );
     }
 
     // 2. Inscriptions liées (par email ou référence)
