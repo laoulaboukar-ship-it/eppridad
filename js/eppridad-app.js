@@ -115,7 +115,27 @@ async function doLogin(){
       body: JSON.stringify({ matricule: mat, password: mdp })
     });
     const data = await res.json();
-    if(!res.ok){ err.textContent = data.error || 'Erreur de connexion.'; btn.disabled=false; btn.innerHTML='🔐 Se connecter'; return; }
+    if(!res.ok){
+      err.textContent = data.error || 'Erreur de connexion.';
+      btn.disabled=false; btn.innerHTML='🔐 Se connecter';
+      // Afficher bouton mot de passe oublié après échec
+      const idVal = document.getElementById('loginId')?.value?.trim()?.toUpperCase()||'';
+      const waMsg = idVal
+        ? `Bonjour EPPRIDAD, j'ai oublié mon mot de passe.%0AMon matricule : ${idVal}%0AMerci de m'aider à le réinitialiser.`
+        : `Bonjour EPPRIDAD, j'ai oublié mon mot de passe. Merci de m'aider à le réinitialiser.`;
+      let wpBtn = document.getElementById('wp-forgot-btn');
+      if(!wpBtn){
+        wpBtn = document.createElement('a');
+        wpBtn.id = 'wp-forgot-btn';
+        wpBtn.target = '_blank';
+        wpBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;background:rgba(37,211,102,.12);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:12px;padding:11px 16px;font-size:13px;font-weight:700;text-decoration:none;font-family:inherit;transition:opacity .2s';
+        wpBtn.innerHTML = '💬 Mot de passe oublié ? Contacter EPPRIDAD';
+        err.parentNode.insertBefore(wpBtn, err.nextSibling);
+      }
+      wpBtn.href = `https://wa.me/${WA_NUM_V30}?text=${waMsg}`;
+      wpBtn.style.display = 'flex';
+      return;
+    }
     if(data.session_token) localStorage.setItem('eppr_session_token_v30', data.session_token);
     _s = { matricule:data.matricule, nom:data.nom_complet||data.matricule, role:data.role||'etudiant', email:data.email||null };
     // Garde le mot de passe admin en mémoire (jamais stocké) pour la passerelle admin
@@ -355,11 +375,35 @@ async function loadEnligneDashboard(){
     const sal = h<12?'Bonjour':h<18?'Bon après-midi':'Bonsoir';
     const totalDone = (prog||[]).filter(p=>p.complete).length;
 
+    // Charger les notifications non lues
+    const { data:notifs } = await db.from('notifications_etudiant')
+      .select('id,title,body,type,lu,created_at')
+      .eq('matricule', _s.matricule)
+      .eq('lu', false)
+      .order('created_at', {ascending:false})
+      .limit(5);
+    const notifsBadge = (notifs||[]).length;
+    const notifsHTML = notifsBadge ? `
+    <div id="notifs-bandeau" style="background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:14px;padding:14px 18px;margin-bottom:18px">
+      <div style="font-size:13px;font-weight:800;color:var(--or);margin-bottom:8px">🔔 ${notifsBadge} message${notifsBadge>1?'s':''} de l'équipe EPPRIDAD</div>
+      ${(notifs||[]).map(n=>`
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px;margin-bottom:6px;display:flex;gap:10px;align-items:flex-start">
+          <div style="font-size:18px;flex-shrink:0">${n.type==='exercice'?'✏️':n.type==='message'?'💬':n.type==='alerte'?'⚠️':'📢'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:var(--w);margin-bottom:2px">${escH(n.title||'Message EPPRIDAD')}</div>
+            <div style="font-size:12px;color:var(--w3);line-height:1.5">${escH(n.body||'')}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">${new Date(n.created_at).toLocaleDateString('fr-FR')}</div>
+          </div>
+          <button onclick="marquerNotifLue(${n.id})" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:18px;cursor:pointer;flex-shrink:0;padding:0;line-height:1" title="Marquer comme lu">×</button>
+        </div>`).join('')}
+    </div>` : '';
+
     el.innerHTML = `
     <div class="sec-head anim">
       <div class="sec-title">${sal}, ${escH(prenom)} 👋</div>
       <div class="sec-sub">Vos formations en ligne EPPRIDAD</div>
     </div>
+    ${notifsHTML}
     <div class="g4 anim d1" style="margin-bottom:24px">
       <div class="scard" style="--grad:linear-gradient(135deg,var(--v2),var(--v3))"><div class="scard-ico">🎓</div><div class="scard-lbl">Formations actives</div><div class="scard-val">${formations.length}</div></div>
       <div class="scard" style="--grad:linear-gradient(135deg,#1a3a5c,#1e5276)"><div class="scard-ico">✅</div><div class="scard-lbl">Modules complétés</div><div class="scard-val">${totalDone}</div></div>
@@ -689,6 +733,17 @@ async function afficherContenu(module, onglet){
     trackLecture(module.id);
   }
 
+  // Badge notification si exercice corrigé et non vu
+  if(soum && ['corrige','valide','a_corriger','refuse'].includes(soum.statut) && !soum.notif_vue){
+    const tabExo = document.querySelector('[onclick*="exercice"]');
+    if(tabExo && !tabExo.querySelector('.exo-badge')){
+      const badge = document.createElement('span');
+      badge.className = 'exo-badge';
+      badge.style.cssText = 'background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-left:5px;vertical-align:middle';
+      badge.textContent = '!';
+      tabExo.appendChild(badge);
+    }
+  }
   if(onglet==='exercice'){
     const {data:exoMods}=await db.from('exercices_modules').select('*').eq('module_id',module.id).order('ordre');
     const {data:resExo}=(exoMods&&exoMods.length)?{data:[]}:await db.from('ressources_module').select('*').eq('module_id',module.id).eq('type','exercice').limit(1);
@@ -1627,7 +1682,27 @@ async function sauvegarderCorrectionExo(soumId, matricule, formationTitre, modul
       note: note ? parseFloat(note) : null,
       date_correction: new Date().toISOString()
     }).eq('id',soumId);
-    toast('✅ Correction sauvegardée');
+
+    // Créer une notification pour l'apprenant
+    const msgStatut = {
+      valide     : '✅ Votre exercice a été validé',
+      corrige    : '📝 Votre exercice a été corrigé',
+      a_corriger : '🔄 Votre exercice nécessite des corrections',
+      refuse     : '❌ Votre exercice a été refusé',
+    }[statut] || '📝 Votre exercice a été corrigé';
+    const bodyNotif = commentaire
+      ? `${moduleTitre} — ${formationTitre}\n💬 ${commentaire}${note?` (Note : ${note}/20)`:''}`
+      : `${moduleTitre} — ${formationTitre}${note?` (Note : ${note}/20)`:''}`;
+    await getDBv30().from('notifications_etudiant').insert({
+      matricule,
+      title: msgStatut,
+      body: bodyNotif,
+      type: 'exercice',
+      lu: false,
+      date: new Date().toLocaleDateString('fr-FR'),
+    }).catch(e => console.warn('[notif exercice]', e));
+
+    toast('✅ Correction sauvegardée — apprenant notifié');
     fermerModalExo();
     loadAdmExercices();
   }catch(e){ toast('❌ Erreur: '+e.message); }
@@ -1652,6 +1727,77 @@ async function sauvegarderEtEnvoyerEmail(soumId, matricule, formationTitre, modu
   }
 }
 
+
+
+async function marquerNotifLue(notifId){
+  await getDBv30().from('notifications_etudiant').update({lu:true}).eq('id',notifId).catch(()=>{});
+  const bloc = document.querySelector(`[onclick="marquerNotifLue(${notifId})"]`)?.closest('div[style]');
+  if(bloc) bloc.style.opacity='0.4';
+  // Si toutes lues → masquer le bandeau
+  const restants = document.querySelectorAll('#notifs-bandeau button[onclick^="marquerNotifLue"]');
+  const encoreVisibles = Array.from(restants).filter(b=>b.closest('div[style]')?.style.opacity!=='0.4');
+  if(!encoreVisibles.length){
+    const bandeau = document.getElementById('notifs-bandeau');
+    if(bandeau) bandeau.style.display='none';
+  }
+}
+
+
+async function envoyerMessageApprenant(matricule, nomComplet){
+  const modal = document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML=`
+    <div style="background:var(--v1,#0f2818);border:1px solid rgba(201,168,76,.25);border-radius:16px;max-width:480px;width:100%;padding:24px">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">💬 Message à ${escH(nomComplet)}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:18px">${escH(matricule)}</div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px">Titre du message</label>
+        <input id="msg-titre" type="text" placeholder="Ex: Résultat de votre exercice" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 14px;font-size:14px;color:#fff;font-family:inherit;outline:none;box-sizing:border-box">
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px">Message</label>
+        <textarea id="msg-body" rows="4" placeholder="Votre message pour l'apprenant…" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 14px;font-size:14px;color:#fff;font-family:inherit;outline:none;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:11px;font-size:13px;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer;font-family:inherit">Annuler</button>
+        <button onclick="confirmerMessageApprenant('${safeStr(matricule)}','${safeStr(nomComplet)}')" style="flex:2;background:linear-gradient(135deg,var(--v3),var(--v4));border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit">📨 Envoyer dans l'espace</button>
+        <button onclick="envoyerViaWhatsApp('${safeStr(matricule)}','${safeStr(nomComplet)}')" style="flex:2;background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:11px;font-size:13px;font-weight:700;color:#25D366;cursor:pointer;font-family:inherit">💬 WhatsApp</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+  document.getElementById('msg-titre')?.focus();
+}
+
+async function confirmerMessageApprenant(matricule, nomComplet){
+  const titre = document.getElementById('msg-titre')?.value?.trim();
+  const body  = document.getElementById('msg-body')?.value?.trim();
+  if(!titre || !body){ toast('⚠️ Titre et message requis'); return; }
+  try{
+    await getDBv30().from('notifications_etudiant').insert({
+      matricule,
+      title: titre,
+      body,
+      type: 'message',
+      lu: false,
+      date: new Date().toLocaleDateString('fr-FR'),
+    });
+    document.querySelector('div[style*="position:fixed"][style*="9999"]')?.remove();
+    toast('✅ Message envoyé dans l\'espace de '+nomComplet);
+  }catch(e){ toast('❌ Erreur: '+e.message); }
+}
+
+async function envoyerViaWhatsApp(matricule, nomComplet){
+  const titre = document.getElementById('msg-titre')?.value?.trim()||'';
+  const body  = document.getElementById('msg-body')?.value?.trim()||'';
+  const tousComptes = await adminApi('lister_comptes',{}).then(r=>r.data||[]).catch(()=>[]);
+  const compte = tousComptes.find(c=>c.matricule===matricule);
+  const msg = `Bonjour ${nomComplet} 👋%0A%0A${titre ? titre+'%0A%0A':''}${body}%0A%0A📚 Votre espace EPPRIDAD :%0Ahttps://www.eppridad.com/espace-etudiant.html%0A📞 +227 99 85 15 32`;
+  window.open(`https://wa.me/${WA_NUM_V30}?text=${msg}`, '_blank');
+}
 
 async function loadAdmFinances(){
   setTitle('Finances','Administration'); showPage('page-adm-finances');
@@ -3103,6 +3249,7 @@ function afficherTableauEnLigne(comptes, accesMap, certMap, formMap){
         <td style="padding:10px 12px;white-space:nowrap"><span style="font-size:11px;font-weight:700;color:${statutColor}">${statutLabel}</span></td>
         <td style="padding:10px 12px">
           <button onclick="ouvrirFicheApprenantParMatricule('${matJS}','${nomJS}')" style="background:rgba(201,168,76,.18);color:var(--or);border:1px solid rgba(201,168,76,.35);border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">👁️ Voir détail</button>
+      <button onclick="envoyerMessageApprenant('${matJS}','${nomJS}')" style="background:rgba(37,211,102,.1);color:#25D366;border:1px solid rgba(37,211,102,.25);border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">💬 Message</button>
         </td>
       </tr>`;
     }).join('')}
