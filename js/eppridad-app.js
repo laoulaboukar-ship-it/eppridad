@@ -437,6 +437,8 @@ async function loadEnligneDashboard(){
       </div>
     </div>`}`;
   }catch(e){ document.getElementById('page-dashboard').innerHTML=`<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-txt">Erreur de chargement. <a onclick="loadDashboard()" style="color:var(--or);cursor:pointer;font-weight:700">Réessayer</a></div></div>`; console.error('[V30] loadEnligneDashboard:',e); }
+  // Recommandations personnalisées
+  setTimeout(()=>afficherRecommandations(), 400);
 }
 
 async function loadEtudDashboard(){
@@ -968,9 +970,153 @@ async function marquerTermine(moduleId){
   await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:true,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id'});
   toast('✅ Module complété !');
   await buildSidebarModules();
+  verifierEtAttribuerBadge(_cours.formationId); // badges de progression
   const ni = _cours.moduleIdx+1;
   if(ni<_cours.modules.length) setTimeout(()=>chargerModule(ni), 800);
   else setTimeout(()=>afficherCertificat(), 800);
+}
+
+
+// ── BADGES DE PROGRESSION ────────────────────────────────────
+// Déclenché après chaque module validé
+// Badges : 1er module ✦ / 50% formation 🌟 / formation terminée 🏆
+async function verifierEtAttribuerBadge(formationId){
+  try{
+    const db = getDBv30();
+    const { data:mods } = await db.from('modules_cours').select('id').eq('formation_id', formationId);
+    const total = (mods||[]).length;
+    if(!total) return;
+
+    const { data:prog } = await db.from('progression_apprenant')
+      .select('module_id,complete').eq('matricule', _s.matricule).eq('formation_id', formationId).eq('complete', true);
+    const nDone = (prog||[]).length;
+    const pct = Math.round(nDone / total * 100);
+
+    let badge = null;
+    if(nDone === 1 && pct < 50)         badge = { type:'premier_module', ico:'✦', label:'Premier module complété !', couleur:'#C9A84C' };
+    else if(pct >= 50 && pct < 100)     badge = { type:'mi_parcours',    ico:'🌟', label:'Mi-parcours atteint — continuez !', couleur:'#4CAF9A' };
+    else if(pct === 100)                 badge = { type:'formation_terminee', ico:'🏆', label:'Formation complétée — félicitations !', couleur:'#FFD700' };
+
+    if(!badge) return;
+
+    afficherBadgeNotification(badge);
+
+    const { data:formation } = await db.from('formations_enligne').select('titre').eq('id', formationId).single();
+    await db.from('notifications_etudiant').insert({
+      matricule: _s.matricule,
+      title: badge.ico + ' ' + badge.label,
+      body: formation?.titre || 'Formation EPPRIDAD',
+      type: 'badge',
+      lu: false,
+      date: new Date().toLocaleDateString('fr-FR'),
+    }).catch(()=>{});
+  }catch(e){ console.warn('[badge]', e); } // jamais bloquant
+}
+
+function afficherBadgeNotification(badge){
+  // Supprimer badge précédent si présent
+  document.getElementById('badge-popup')?.remove();
+
+  const pop = document.createElement('div');
+  pop.id = 'badge-popup';
+  pop.style.cssText = `
+    position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(100px);
+    z-index:9998;background:linear-gradient(135deg,#0F2818,#1B4D2E);
+    border:2px solid ${badge.couleur};border-radius:20px;padding:20px 28px;
+    display:flex;align-items:center;gap:16px;
+    box-shadow:0 8px 32px rgba(0,0,0,.5);
+    transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;opacity:0;
+    max-width:90vw;
+  `;
+  pop.innerHTML = `
+    <div style="font-size:42px;flex-shrink:0">${badge.ico}</div>
+    <div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:${badge.couleur};margin-bottom:4px">Badge débloqué</div>
+      <div style="font-size:15px;font-weight:700;color:#fff">${badge.label}</div>
+    </div>
+  `;
+  document.body.appendChild(pop);
+  // Animation entrée
+  requestAnimationFrame(()=>{
+    pop.style.transform = 'translateX(-50%) translateY(0)';
+    pop.style.opacity = '1';
+  });
+  // Disparition après 4 secondes
+  setTimeout(()=>{
+    pop.style.transform = 'translateX(-50%) translateY(100px)';
+    pop.style.opacity = '0';
+    setTimeout(()=>pop.remove(), 400);
+  }, 4000);
+}
+
+// ── RECOMMANDATIONS ──────────────────────────────────────────
+// Affiché en bas du dashboard après les formations actives
+// Basé sur : même filière + niveau suivant
+async function afficherRecommandations(){
+  try{
+  const db = getDBv30();
+
+  // 1. Formations déjà accessibles
+  const { data:accesRows } = await db.from('acces_formations')
+    .select('formation_id').eq('matricule', _s.matricule);
+  const idsAcces = new Set((accesRows||[]).map(a => a.formation_id));
+  if(!idsAcces.size) return; // pas de formation active → pas de recommandation
+
+  // 2. Récupérer les formations actives avec filière et niveau
+  const { data:formationsActives } = await db.from('formations_enligne')
+    .select('id,titre,filiere,niveau').in('id', [...idsAcces]);
+
+  // 3. Extraire filières et niveaux de l'apprenant
+  const filieres = [...new Set((formationsActives||[]).map(f => f.filiere).filter(Boolean))];
+  const niveauxMap = { 'Débutant':'Intermédiaire', 'Intermédiaire':'Avancé', 'Avancé':'Avancé' };
+  const niveauxSuivants = [...new Set((formationsActives||[]).map(f => niveauxMap[f.niveau]||'Intermédiaire'))];
+
+  // 4. Chercher des formations recommandées (même filière OU niveau suivant, pas déjà accessibles)
+  const { data:toutes } = await db.from('formations_enligne')
+    .select('id,titre,emoji,filiere,niveau,duree_heures,prix_fcfa,slug').eq('publie', true);
+
+  const recommandees = (toutes||[]).filter(f =>
+    !idsAcces.has(f.id) &&
+    (filieres.includes(f.filiere) || niveauxSuivants.includes(f.niveau))
+  ).slice(0, 3); // max 3 recommandations
+
+  if(!recommandees.length) return;
+
+  // 5. Afficher dans le dashboard
+  const zone = document.getElementById('page-dashboard');
+  if(!zone) return;
+
+  const div = document.createElement('div');
+  div.id = 'reco-section';
+  div.style.cssText = 'margin-top:28px';
+  div.innerHTML = `
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:14px">
+      🎯 Formations recommandées pour vous
+    </div>
+    ${recommandees.map(f => {
+      const niveauColor = {'Débutant':'#81C784','Intermédiaire':'#FFB74D','Avancé':'#EF9A9A'}[f.niveau]||'#aaa';
+      return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:32px;flex-shrink:0">${f.emoji||'📚'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">${escH(f.titre)}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${f.filiere?`<span style="font-size:10px;background:rgba(201,168,76,.15);color:var(--or);padding:2px 8px;border-radius:20px">${escH(f.filiere)}</span>`:''}
+            <span style="font-size:10px;background:rgba(255,255,255,.08);color:${niveauColor};padding:2px 8px;border-radius:20px">${escH(f.niveau||'')}</span>
+            ${f.duree_heures?`<span style="font-size:10px;color:rgba(255,255,255,.4)">⏱ ${f.duree_heures}h</span>`:''}
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:13px;font-weight:800;color:var(--or);margin-bottom:6px">${f.prix_fcfa?fmt(f.prix_fcfa)+' F':'Gratuit'}</div>
+          <a href="https://wa.me/${WA_NUM_V30}?text=Bonjour EPPRIDAD, je souhaite m%27inscrire à la formation : ${encodeURIComponent(f.titre)}" target="_blank"
+            style="font-size:11px;font-weight:700;background:rgba(37,211,102,.12);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:8px;padding:5px 10px;text-decoration:none;white-space:nowrap">
+            💬 S'inscrire
+          </a>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+  zone.appendChild(div);
+  }catch(e){ console.warn('[recommandations]', e); } // jamais bloquant
 }
 
 async function trackLecture(moduleId){
@@ -1784,7 +1930,7 @@ async function confirmerMessageApprenant(matricule, nomComplet){
       type: 'message',
       lu: false,
       date: new Date().toLocaleDateString('fr-FR'),
-    });
+    }).catch(e => console.warn('[notif]', e));
     document.querySelector('div[style*="position:fixed"][style*="9999"]')?.remove();
     toast('✅ Message envoyé dans l\'espace de '+nomComplet);
   }catch(e){ toast('❌ Erreur: '+e.message); }
