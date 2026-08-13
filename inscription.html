@@ -202,6 +202,8 @@
 .fg-dark input::placeholder, .fg-dark textarea::placeholder { color: rgba(255,255,255,.3); }
 .fg-dark select option { background: #0a1f0a; color: #fff; }
 .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fg-tel-row { display: grid; grid-template-columns: 108px 1fr; gap: 8px; }
+.fg-tel-row select { padding-left: 8px; padding-right: 4px; }
 .btn-submit-insc {
   width: 100%; background: linear-gradient(135deg, var(--gold), var(--gold-light));
   color: var(--dark); border: none; border-radius: 10px; padding: 15px;
@@ -450,7 +452,20 @@
               <div class="fg-dark"><label>Prénom *</label><input name="prenom" placeholder="Votre prénom" required></div>
               <div class="fg-dark"><label>Nom *</label><input name="nom" placeholder="Votre nom" required></div>
             </div>
-            <div class="fg-dark"><label>Téléphone *</label><input name="telephone" type="tel" placeholder="+227 XX XX XX XX" required></div>
+            <div class="fg-dark">
+              <label>Téléphone *</label>
+              <div class="fg-tel-row">
+                <select name="indicatif">
+                  <option value="+227" selected>🇳🇪 +227</option>
+                  <option value="+226">🇧🇫 +226</option>
+                  <option value="+223">🇲🇱 +223</option>
+                  <option value="+234">🇳🇬 +234</option>
+                  <option value="+225">🇨🇮 +225</option>
+                  <option value="+33">🇫🇷 +33</option>
+                </select>
+                <input name="telephone" type="tel" placeholder="XX XX XX XX" required>
+              </div>
+            </div>
             <div class="fg-dark"><label>Email (optionnel)</label><input name="email" type="email" placeholder="votre@email.com"></div>
             <div class="fg-dark"><label>Date de naissance</label><input name="dob" type="date"></div>
             <div class="fg-dark"><label>Ville de résidence</label><input name="ville" placeholder="Ex: Niamey, Agadez, Dosso..."></div>
@@ -572,7 +587,20 @@
               <div class="fg-dark"><label>Prénom *</label><input name="prenom" placeholder="Votre prénom" required></div>
               <div class="fg-dark"><label>Nom *</label><input name="nom" placeholder="Votre nom" required></div>
             </div>
-            <div class="fg-dark"><label>Téléphone *</label><input name="telephone" type="tel" placeholder="+227 XX XX XX XX" required></div>
+            <div class="fg-dark">
+              <label>Téléphone *</label>
+              <div class="fg-tel-row">
+                <select name="indicatif">
+                  <option value="+227" selected>🇳🇪 +227</option>
+                  <option value="+226">🇧🇫 +226</option>
+                  <option value="+223">🇲🇱 +223</option>
+                  <option value="+234">🇳🇬 +234</option>
+                  <option value="+225">🇨🇮 +225</option>
+                  <option value="+33">🇫🇷 +33</option>
+                </select>
+                <input name="telephone" type="tel" placeholder="XX XX XX XX" required>
+              </div>
+            </div>
             <div class="fg-dark"><label>Email (optionnel)</label><input name="email" type="email" placeholder="votre@email.com"></div>
             <div class="fg-dark"><label>Ville de résidence</label><input name="ville" placeholder="Ex: Niamey, Agadez..."></div>
             <div class="fg-dark"><label>Disponibilité week-end</label>
@@ -692,7 +720,20 @@
               <div class="fg-dark"><label>Prénom *</label><input name="prenom" placeholder="Votre prénom" required></div>
               <div class="fg-dark"><label>Nom *</label><input name="nom" placeholder="Votre nom" required></div>
             </div>
-            <div class="fg-dark"><label>Téléphone *</label><input name="telephone" type="tel" placeholder="+227 XX XX XX XX" required></div>
+            <div class="fg-dark">
+              <label>Téléphone *</label>
+              <div class="fg-tel-row">
+                <select name="indicatif">
+                  <option value="+227" selected>🇳🇪 +227</option>
+                  <option value="+226">🇧🇫 +226</option>
+                  <option value="+223">🇲🇱 +223</option>
+                  <option value="+234">🇳🇬 +234</option>
+                  <option value="+225">🇨🇮 +225</option>
+                  <option value="+33">🇫🇷 +33</option>
+                </select>
+                <input name="telephone" type="tel" placeholder="XX XX XX XX" required>
+              </div>
+            </div>
             <div class="fg-dark"><label>Email (pour recevoir vos accès)</label><input name="email" type="email" placeholder="votre@email.com"></div>
             <div class="fg-dark">
               <label>Mode de paiement prévu</label>
@@ -882,7 +923,10 @@ async function submitInscription(e, type) {
 
   const ref = 'INSC-' + type.toUpperCase().slice(0,3) + '-' + Date.now().toString().slice(-6);
   const fullName = (data.prenom || '') + ' ' + (data.nom || '');
-  const tel = data.telephone || '';
+  // BUG FIX (août 2026) : concaténation indicatif pays + numéro local
+  const indicatifSel = (data.indicatif || '+227').replace(/[^0-9+]/g, '');
+  const telLocal = (data.telephone || '').replace(/[^0-9]/g, '');
+  const tel = indicatifSel + telLocal;
 
   // Supabase
   try {
