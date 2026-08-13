@@ -65,6 +65,18 @@ function setTitle(t,s){ document.getElementById('tb-title').textContent=t; if(s)
 function fmt(n){ return (n||0).toLocaleString('fr-FR'); }
 function fmtD(d){ return d?new Date(d).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'—'; }
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/`/g,'&#96;').replace(/\$/g,'&#36;'); }
+// normaliserTel — BUG FIX (août 2026) : normalise un numéro de téléphone pour wa.me/
+// Retire espaces/tirets/parenthèses, gère +227 / 00227 / 227 déjà présents,
+// et préfixe 227 (Niger) pour un numéro local à 8 chiffres. Fallback sur WA_NUM_V30 si vide.
+function normaliserTel(tel){
+  if(!tel) return WA_NUM_V30; // fallback sur numéro admin
+  let t = String(tel).replace(/[\s\-\.\(\)]/g, '');
+  if(t.startsWith('+')) return t.replace('+','');
+  if(t.startsWith('00')) return t.slice(2);
+  if(t.startsWith('227')) return t;
+  if(t.length <= 8) return '227' + t; // numéro local nigérien
+  return t;
+}
 function genererMotDePasseAleatoire(){
   const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#';
   let pwd=''; for(let i=0;i<9;i++) pwd+=chars[Math.floor(Math.random()*chars.length)];
@@ -2216,6 +2228,7 @@ async function ouvrirEnvoiWhatsApp(matricule, nomComplet, telephoneOriginal, ema
   const nomS = escH(nomComplet||matricule);
   const matS = escH(matricule);
   const telS = telephoneOriginal||'';
+  const telNorm = telephoneOriginal ? normaliserTel(telephoneOriginal) : '';
 
   modal.innerHTML = `
     <div style="background:#0f2818;border:1px solid rgba(37,211,102,.3);border-radius:18px;max-width:440px;width:100%;padding:0;overflow:hidden">
@@ -2232,7 +2245,7 @@ async function ouvrirEnvoiWhatsApp(matricule, nomComplet, telephoneOriginal, ema
 
         <div style="margin-bottom:14px">
           <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Numéro WhatsApp à utiliser</label>
-          <input id="wa-tel-input" type="tel" value="${escH(telS)}" placeholder="Ex: 22799851532" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px 14px;font-size:14px;color:#fff;font-family:monospace;outline:none;box-sizing:border-box">
+          <input id="wa-tel-input" type="tel" value="${escH(telNorm)}" placeholder="Ex: 22799851532" style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px 14px;font-size:14px;color:#fff;font-family:monospace;outline:none;box-sizing:border-box">
           <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:5px">Incluez l'indicatif pays (227 pour Niger, 33 pour France…)</div>
         </div>
 
@@ -2415,7 +2428,7 @@ async function loadAdmRapport(){
                 <tbody>${inscEnLigne.map((i,idx)=>{
                   const d=new Date(i.created_at).toLocaleDateString('fr-FR');
                   const stColor=i.statut==='traite'?'#81c784':i.statut==='annule'?'#ef9a9a':'#ffb74d';
-                  const telClean=(i.telephone||'').replace(/\D/g,'').replace(/^0/,'227');
+                  const telClean=normaliserTel(i.telephone);
                   return `<tr style="border-top:1px solid rgba(255,255,255,.05);background:${idx%2?'rgba(255,255,255,.02)':''}">
                     <td style="padding:9px 12px;color:var(--w);font-weight:700">${escH(i.prenom||'')} ${escH(i.nom||'')}</td>
                     <td style="padding:9px 12px;color:var(--w2)">${escH(i.formation_titre||i.reference||'—')}</td>
@@ -2443,7 +2456,7 @@ async function loadAdmRapport(){
                 </tr></thead>
                 <tbody>${inscDiplom.map((i,idx)=>{
                   const d=new Date(i.created_at).toLocaleDateString('fr-FR');
-                  const telClean=(i.telephone||'').replace(/\D/g,'').replace(/^0/,'227');
+                  const telClean=normaliserTel(i.telephone);
                   return `<tr style="border-top:1px solid rgba(255,255,255,.05);background:${idx%2?'rgba(255,255,255,.02)':''}">
                     <td style="padding:9px 12px;color:var(--w);font-weight:700">${escH(i.prenom||'')} ${escH(i.nom||'')}</td>
                     <td style="padding:9px 12px;color:var(--w2)">${escH(i.filiere||'—')}</td>
@@ -4040,7 +4053,7 @@ function renderInscriptionCard(i){
       const statBg     = { nouveau:'#c62828', en_cours:'#e65100', traite:'#2e7d32', annule:'#757575' };
       const statLbl    = { nouveau:'Nouveau', en_cours:'En cours', traite:'Traité', annule:'Annulé' };
 
-      const tel = (i.telephone||'').replace(/[^0-9]/g,'').replace(/^0/,'227');
+      const tel = normaliserTel(i.telephone);
       const whatsappMsg = i.type_inscription==='enligne'
         ? `Bonjour ${safeHtml(i.prenom)||''}, votre demande d'accès EPPRIDAD a bien été reçue.\n\nNous allons activer votre espace d'apprentissage dans les 24h.\n\nEn attendant, n'hésitez pas à nous contacter : +227 99 85 15 32 🎓`
         : `Bonjour ${safeHtml(i.prenom)||''}, nous avons bien reçu votre dossier d'inscription EPPRIDAD (Réf: ${safeHtml(i.reference)||'—'}).\n\nNotre équipe vous contactera dans les 48h pour la suite de votre admission.\n📞 +227 99 85 15 32`;
@@ -4321,7 +4334,7 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
 
     showLoadingOverlayV27(false);
 
-    const telClean = (tel||'').replace(/[^0-9]/g,'').replace(/^0/,'227');
+    const telClean = normaliserTel(tel);
     const waMsg = encodeURIComponent(
       'Bonjour '+prenom+' 👋\n\nVotre accès à la plateforme de formation en ligne EPPRIDAD est maintenant activé !\n\n'+
       '🔑 *Identifiant* : '+matricule+'\n🔐 *Mot de passe* : '+pwd+
