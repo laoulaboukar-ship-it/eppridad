@@ -747,21 +747,21 @@ async function afficherContenu(module, onglet){
     trackLecture(module.id);
   }
 
-  // Badge notification si exercice corrigé et non vu
-  if(soum && ['corrige','valide','a_corriger','refuse'].includes(soum.statut) && !soum.notif_vue){
-    const tabExo = document.querySelector('[onclick*="exercice"]');
-    if(tabExo && !tabExo.querySelector('.exo-badge')){
-      const badge = document.createElement('span');
-      badge.className = 'exo-badge';
-      badge.style.cssText = 'background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-left:5px;vertical-align:middle';
-      badge.textContent = '!';
-      tabExo.appendChild(badge);
-    }
-  }
   if(onglet==='exercice'){
     const {data:exoMods}=await db.from('exercices_modules').select('*').eq('module_id',module.id).order('ordre');
     const {data:resExo}=(exoMods&&exoMods.length)?{data:[]}:await db.from('ressources_module').select('*').eq('module_id',module.id).eq('type','exercice').limit(1);
     const {data:soum}=await db.from('soumissions_exercices').select('statut,note_admin').eq('matricule',_s.matricule).eq('module_id',module.id).single();
+    // Badge notification si exercice corrigé
+    if(soum && ['corrige','valide','a_corriger','refuse'].includes(soum.statut)){
+      const tabExo = document.querySelector('[onclick*="exercice"]');
+      if(tabExo && !tabExo.querySelector('.exo-badge')){
+        const badge = document.createElement('span');
+        badge.className = 'exo-badge';
+        badge.style.cssText = 'background:#E24B4A;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-left:5px;vertical-align:middle';
+        badge.textContent = '!';
+        tabExo.appendChild(badge);
+      }
+    }
     let contenu="<p>Exercice en cours de préparation par l'équipe pédagogique.</p>";
     if(exoMods&&exoMods.length){
       contenu=exoMods.map(ex=>{
