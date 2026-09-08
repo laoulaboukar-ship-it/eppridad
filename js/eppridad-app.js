@@ -1177,7 +1177,6 @@ async function afficherCertificat(){
   const verifyUrl = `https://www.eppridad.com/verifier.html?cert=${encodeURIComponent(cert.numero||'')}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(verifyUrl)}`;
   const cornerSvgBody = `<rect x="0" y="0" width="44" height="44" fill="#0F2818" opacity="0.06"/><line x1="4" y1="4" x2="38" y2="38" stroke="#C9A84C" stroke-width="1" opacity="0.35"/><line x1="16" y1="4" x2="38" y2="26" stroke="#C9A84C" stroke-width="1" opacity="0.3"/><line x1="4" y1="16" x2="26" y2="38" stroke="#C9A84C" stroke-width="1" opacity="0.3"/><rect x="6" y="6" width="9" height="9" fill="#C9A84C" opacity="0.18"/><rect x="18" y="6" width="9" height="9" fill="#0F2818" opacity="0.13"/><rect x="6" y="18" width="9" height="9" fill="#0F2818" opacity="0.13"/><rect x="18" y="18" width="9" height="9" fill="#C9A84C" opacity="0.18"/>`;
-  const stampSvg = `<svg class="ecx-stamp" viewBox="0 0 100 100"><g transform="rotate(-8 50 50)"><circle cx="50" cy="50" r="46" fill="none" stroke="#0F2818" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="50" cy="50" r="38" fill="none" stroke="#0F2818" stroke-width="1"/><text x="50" y="38" text-anchor="middle" font-family="Georgia,serif" font-size="10" font-weight="700" fill="#0F2818">EPPRIDAD</text><text x="50" y="52" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#0F2818">★ OFFICIEL ★</text><text x="50" y="64" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="700" fill="#0F2818" letter-spacing="1">NIGER</text></g></svg>`;
 
   container.innerHTML = `
   <div style="padding:24px 0">
@@ -1209,11 +1208,8 @@ async function afficherCertificat(){
       .ecx-divider{height:1px;background:rgba(15,40,24,.15);margin:0 0 16px}
       .ecx-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
       .ecx-sign{text-align:center;min-width:130px}
-      .ecx-sign-script{font-family:'Dancing Script','Brush Script MT',cursive;font-size:24px;color:#0F2818;line-height:1;margin-bottom:2px}
-      .ecx-sign-line{width:110px;height:1px;background:#0F2818;opacity:.4;margin:2px auto 6px}
-      .ecx-sign-name{font-size:10.5px;font-weight:700;color:#333}
+      .ecx-stampsig{width:110px;height:auto;display:block;margin:0 auto 2px}
       .ecx-sign-title{font-size:8.5px;color:#777;margin-top:1px}
-      .ecx-stamp{width:72px;height:72px;flex-shrink:0;opacity:.65}
       .ecx-qr{text-align:center;min-width:88px}
       .ecx-qr img{width:60px;height:60px;border-radius:6px;background:#fff;padding:3px;border:1px solid rgba(15,40,24,.15)}
       .ecx-qr-txt{font-size:7.5px;color:#777;margin-top:4px;max-width:100px}
@@ -1245,12 +1241,9 @@ async function afficherCertificat(){
           <div class="ecx-divider"></div>
           <div class="ecx-bottom">
             <div class="ecx-sign">
-              <div class="ecx-sign-script">Boukar Laoula</div>
-              <div class="ecx-sign-line"></div>
-              <div class="ecx-sign-name">Boukar Laoula</div>
-              <div class="ecx-sign-title">Directeur Général &amp; Fondateur</div>
+              <img class="ecx-stampsig" src="https://www.eppridad.com/images/cachet-signature-boukar-laoula.png" alt="Cachet et signature du Directeur Général" onerror="this.style.display='none'">
+              <div class="ecx-sign-title">Boukar Laoula — Directeur Général &amp; Fondateur</div>
             </div>
-            ${stampSvg}
             <div class="ecx-qr">
               <img src="${qrUrl}" alt="QR vérification" onerror="this.style.display='none'">
               <div class="ecx-qr-txt">Scanner pour vérifier l'authenticité</div>
@@ -1275,14 +1268,16 @@ function imprimerCertificat(num,nom,form,mention,score,date){
   const cornerSvgBody = `<rect x="0" y="0" width="44" height="44" fill="#0F2818" opacity="0.06"/><line x1="4" y1="4" x2="38" y2="38" stroke="#C9A84C" stroke-width="1" opacity="0.35"/><line x1="16" y1="4" x2="38" y2="26" stroke="#C9A84C" stroke-width="1" opacity="0.3"/><line x1="4" y1="16" x2="26" y2="38" stroke="#C9A84C" stroke-width="1" opacity="0.3"/><rect x="6" y="6" width="9" height="9" fill="#C9A84C" opacity="0.18"/><rect x="18" y="6" width="9" height="9" fill="#0F2818" opacity="0.13"/><rect x="6" y="18" width="9" height="9" fill="#0F2818" opacity="0.13"/><rect x="18" y="18" width="9" height="9" fill="#C9A84C" opacity="0.18"/>`;
   const w = window.open('','_blank','width=1100,height=800');
   w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Certificat EPPRIDAD — ${nom}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#e9e4d8;font-family:Arial,sans-serif;padding:26px;display:flex;justify-content:center}
     @media print{@page{size:A4 landscape;margin:6mm}body{background:#fff;padding:0}.no-print{display:none}.pcx-outer{box-shadow:none !important;page-break-inside:avoid}}
     .pcx-wrap{max-width:1000px;width:100%}
-    .print-btn{display:flex;justify-content:center;gap:12px;margin-bottom:18px}
+    .print-btn{display:flex;justify-content:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
     .print-btn button{background:#0F2818;color:#C9A84C;border:none;border-radius:10px;padding:11px 26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+    .print-btn button:disabled{opacity:.6;cursor:wait}
     .pcx-outer{background:#0F2818;border-radius:16px;padding:8px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
     .pcx-inner{background:linear-gradient(160deg,#faf6ec,#f2ebd7);border:3px solid #C9A84C;border-radius:10px;padding:30px 50px 22px;position:relative;overflow:hidden;min-height:460px}
     .pcx-corner{position:absolute;width:60px;height:60px;pointer-events:none}
@@ -1308,12 +1303,9 @@ function imprimerCertificat(num,nom,form,mention,score,date){
     .pcx-meta2{text-align:center;font-size:10px;color:#888;margin-bottom:14px}
     .pcx-divider{height:1px;background:rgba(15,40,24,.15);margin:0 0 12px}
     .pcx-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
-    .pcx-sign{text-align:center;min-width:180px}
-    .pcx-sign-script{font-family:'Dancing Script','Brush Script MT',cursive;font-size:26px;color:#0F2818;line-height:1;margin-bottom:2px}
-    .pcx-sign-line{width:150px;height:1px;background:#0F2818;opacity:.4;margin:2px auto 6px}
-    .pcx-sign-name{font-size:12px;font-weight:700;color:#333}
+    .pcx-sign{text-align:center;min-width:190px}
+    .pcx-stampsig{width:170px;height:auto;display:block;margin:0 auto 3px}
     .pcx-sign-title{font-size:10px;color:#777;margin-top:2px}
-    .pcx-stamp{width:78px;height:78px;flex-shrink:0;opacity:.68}
     .pcx-qr{text-align:center;min-width:110px}
     .pcx-qr img{width:78px;height:78px;border-radius:8px;background:#fff;padding:3px;border:1px solid rgba(15,40,24,.15)}
     .pcx-qr-txt{font-size:9px;color:#777;margin-top:4px;max-width:130px;margin-left:auto;margin-right:auto}
@@ -1321,7 +1313,8 @@ function imprimerCertificat(num,nom,form,mention,score,date){
   </style></head><body>
   <div class="pcx-wrap">
     <div class="print-btn no-print">
-      <button onclick="window.print()">🖨️ Imprimer / Télécharger PDF</button>
+      <button onclick="window.print()">🖨️ Imprimer</button>
+      <button id="dlImgBtn" onclick="telechargerCertificatImage()">📥 Télécharger (image)</button>
       <button onclick="navigator.clipboard.writeText('${verifyUrl}').then(()=>alert('Lien copié !'))">🔗 Copier le lien de vérification</button>
     </div>
     <div class="pcx-outer">
@@ -1349,22 +1342,11 @@ function imprimerCertificat(num,nom,form,mention,score,date){
         <div class="pcx-divider"></div>
         <div class="pcx-bottom">
           <div class="pcx-sign">
-            <div class="pcx-sign-script">Boukar Laoula</div>
-            <div class="pcx-sign-line"></div>
-            <div class="pcx-sign-name">Boukar Laoula</div>
-            <div class="pcx-sign-title">Directeur Général &amp; Fondateur</div>
+            <img class="pcx-stampsig" src="https://www.eppridad.com/images/cachet-signature-boukar-laoula.png" alt="Cachet et signature du Directeur Général" crossorigin="anonymous" onerror="this.style.display='none'">
+            <div class="pcx-sign-title">Boukar Laoula — Directeur Général &amp; Fondateur</div>
           </div>
-          <svg class="pcx-stamp" viewBox="0 0 100 100">
-            <g transform="rotate(-8 50 50)">
-              <circle cx="50" cy="50" r="46" fill="none" stroke="#0F2818" stroke-width="1.5" stroke-dasharray="3 2"/>
-              <circle cx="50" cy="50" r="38" fill="none" stroke="#0F2818" stroke-width="1"/>
-              <text x="50" y="38" text-anchor="middle" font-family="Georgia,serif" font-size="10" font-weight="700" fill="#0F2818">EPPRIDAD</text>
-              <text x="50" y="52" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#0F2818">★ OFFICIEL ★</text>
-              <text x="50" y="64" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" font-weight="700" fill="#0F2818" letter-spacing="1">NIGER</text>
-            </g>
-          </svg>
           <div class="pcx-qr">
-            <img src="${qrUrl}" alt="QR vérification">
+            <img src="${qrUrl}" alt="QR vérification" crossorigin="anonymous">
             <div class="pcx-qr-txt">Scanner pour vérifier l'authenticité</div>
           </div>
         </div>
@@ -1372,7 +1354,33 @@ function imprimerCertificat(num,nom,form,mention,score,date){
       </div>
     </div>
   </div>
-  <script>window.onload=()=>{ const img=document.querySelector('.pcx-qr img'); if(img) img.onerror=()=>img.style.display='none'; }<\/script>
+  <script>
+  window.onload=()=>{ const img=document.querySelector('.pcx-qr img'); if(img) img.onerror=()=>img.style.display='none'; };
+  function telechargerCertificatImage(){
+    const btn = document.getElementById('dlImgBtn');
+    const original = btn.textContent;
+    if(typeof html2canvas === 'undefined'){
+      alert("Le téléchargement direct n'a pas pu se charger (connexion internet requise). Utilisez plutôt le bouton Imprimer, puis choisissez \\"Enregistrer en PDF\\" comme imprimante.");
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = '⏳ Génération…';
+    html2canvas(document.querySelector('.pcx-outer'), {backgroundColor:null, scale:2, useCORS:true}).then(function(canvas){
+      const link = document.createElement('a');
+      link.download = 'Certificat-EPPRIDAD-${num}.png';
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      btn.disabled = false;
+      btn.textContent = original;
+    }).catch(function(err){
+      alert("Le téléchargement direct a échoué. Utilisez plutôt le bouton Imprimer, puis choisissez \\"Enregistrer en PDF\\" comme imprimante.");
+      btn.disabled = false;
+      btn.textContent = original;
+    });
+  }
+  <\/script>
   </body></html>`);
   w.document.close();
 }
