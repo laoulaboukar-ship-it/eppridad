@@ -1279,45 +1279,45 @@ function imprimerCertificat(num,nom,form,mention,score,date){
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#e9e4d8;font-family:Arial,sans-serif;padding:26px;display:flex;justify-content:center}
-    @media print{@page{size:A4 landscape;margin:6mm}body{background:#fff;padding:0}.no-print{display:none}.pcx-outer{box-shadow:none !important}}
+    @media print{@page{size:A4 landscape;margin:6mm}body{background:#fff;padding:0}.no-print{display:none}.pcx-outer{box-shadow:none !important;page-break-inside:avoid}}
     .pcx-wrap{max-width:1000px;width:100%}
     .print-btn{display:flex;justify-content:center;gap:12px;margin-bottom:18px}
     .print-btn button{background:#0F2818;color:#C9A84C;border:none;border-radius:10px;padding:11px 26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
     .pcx-outer{background:#0F2818;border-radius:16px;padding:8px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
-    .pcx-inner{background:linear-gradient(160deg,#faf6ec,#f2ebd7);border:3px solid #C9A84C;border-radius:10px;padding:46px 56px 38px;position:relative;overflow:hidden;min-height:600px}
-    .pcx-corner{position:absolute;width:70px;height:70px;pointer-events:none}
-    .pcx-corner.tl{top:12px;left:12px}
-    .pcx-corner.tr{top:12px;right:12px;transform:scaleX(-1)}
-    .pcx-corner.bl{bottom:12px;left:12px;transform:scaleY(-1)}
-    .pcx-corner.br{bottom:12px;right:12px;transform:scale(-1,-1)}
-    .pcx-emblem{width:78px;height:78px;border-radius:50%;background:#0F2818;border:3px solid #C9A84C;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .pcx-inner{background:linear-gradient(160deg,#faf6ec,#f2ebd7);border:3px solid #C9A84C;border-radius:10px;padding:30px 50px 22px;position:relative;overflow:hidden;min-height:460px}
+    .pcx-corner{position:absolute;width:60px;height:60px;pointer-events:none}
+    .pcx-corner.tl{top:10px;left:10px}
+    .pcx-corner.tr{top:10px;right:10px;transform:scaleX(-1)}
+    .pcx-corner.bl{bottom:10px;left:10px;transform:scaleY(-1)}
+    .pcx-corner.br{bottom:10px;right:10px;transform:scale(-1,-1)}
+    .pcx-emblem{width:62px;height:62px;border-radius:50%;background:#0F2818;border:3px solid #C9A84C;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
     .pcx-emblem img{width:100%;height:100%;object-fit:cover}
-    .pcx-emblem span{display:none;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#C9A84C;text-align:center;line-height:1.2}
-    .pcx-subtitle{text-align:center;font-size:12px;letter-spacing:3px;color:#0F2818;font-weight:700;margin-bottom:14px}
-    .pcx-dotline{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px}
+    .pcx-emblem span{display:none;font-family:'Playfair Display',serif;font-size:11px;font-weight:700;color:#C9A84C;text-align:center;line-height:1.2}
+    .pcx-subtitle{text-align:center;font-size:11px;letter-spacing:2.5px;color:#0F2818;font-weight:700;margin-bottom:8px}
+    .pcx-dotline{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px}
     .pcx-dotline .l{height:1px;background:#C9A84C;flex:1;max-width:220px}
     .pcx-dotline .d{width:6px;height:6px;border-radius:50%;background:#C9A84C;flex-shrink:0}
-    .pcx-title{text-align:center;font-family:'Playfair Display',serif;font-size:38px;font-weight:900;color:#0F2818;letter-spacing:2px;margin-bottom:6px}
-    .pcx-subtitre2{text-align:center;font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:#C9A84C;margin-bottom:22px}
-    .pcx-lbl{text-align:center;font-size:14px;color:#555;margin-bottom:10px}
-    .pcx-name{text-align:center;font-family:'Playfair Display',serif;font-size:40px;font-weight:800;color:#0F2818;margin-bottom:10px;word-break:break-word}
-    .pcx-nameline{width:60%;max-width:440px;height:2px;background:#C9A84C;margin:0 auto 18px}
-    .pcx-form{text-align:center;font-family:'Playfair Display',serif;font-style:italic;font-size:21px;color:#1B4D2E;margin-bottom:20px;padding:0 20px}
-    .pcx-pill{display:block;width:fit-content;margin:0 auto 18px;background:#0F2818;color:#C9A84C;border-radius:24px;padding:9px 28px;font-size:14px;font-weight:700;letter-spacing:.5px}
-    .pcx-meta{text-align:center;font-size:13px;color:#666;margin-bottom:3px}
-    .pcx-meta2{text-align:center;font-size:11px;color:#888;margin-bottom:24px}
-    .pcx-divider{height:1px;background:rgba(15,40,24,.15);margin:0 0 22px}
+    .pcx-title{text-align:center;font-family:'Playfair Display',serif;font-size:30px;font-weight:900;color:#0F2818;letter-spacing:2px;margin-bottom:4px}
+    .pcx-subtitre2{text-align:center;font-family:'Playfair Display',serif;font-size:14px;font-style:italic;color:#C9A84C;margin-bottom:14px}
+    .pcx-lbl{text-align:center;font-size:13px;color:#555;margin-bottom:6px}
+    .pcx-name{text-align:center;font-family:'Playfair Display',serif;font-size:32px;font-weight:800;color:#0F2818;margin-bottom:6px;word-break:break-word}
+    .pcx-nameline{width:60%;max-width:440px;height:2px;background:#C9A84C;margin:0 auto 12px}
+    .pcx-form{text-align:center;font-family:'Playfair Display',serif;font-style:italic;font-size:17px;color:#1B4D2E;margin-bottom:12px;padding:0 20px}
+    .pcx-pill{display:block;width:fit-content;margin:0 auto 12px;background:#0F2818;color:#C9A84C;border-radius:24px;padding:6px 24px;font-size:13px;font-weight:700;letter-spacing:.5px}
+    .pcx-meta{text-align:center;font-size:12px;color:#666;margin-bottom:2px}
+    .pcx-meta2{text-align:center;font-size:10px;color:#888;margin-bottom:14px}
+    .pcx-divider{height:1px;background:rgba(15,40,24,.15);margin:0 0 12px}
     .pcx-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
     .pcx-sign{text-align:center;min-width:180px}
-    .pcx-sign-script{font-family:'Dancing Script','Brush Script MT',cursive;font-size:34px;color:#0F2818;line-height:1;margin-bottom:4px}
-    .pcx-sign-line{width:160px;height:1px;background:#0F2818;opacity:.4;margin:3px auto 8px}
-    .pcx-sign-name{font-size:13px;font-weight:700;color:#333}
-    .pcx-sign-title{font-size:10.5px;color:#777;margin-top:2px}
-    .pcx-stamp{width:110px;height:110px;flex-shrink:0;opacity:.68}
-    .pcx-qr{text-align:center;min-width:130px}
-    .pcx-qr img{width:92px;height:92px;border-radius:8px;background:#fff;padding:4px;border:1px solid rgba(15,40,24,.15)}
-    .pcx-qr-txt{font-size:10px;color:#777;margin-top:6px;max-width:140px;margin-left:auto;margin-right:auto}
-    .pcx-footer{text-align:center;font-size:10.5px;color:#999;margin-top:22px}
+    .pcx-sign-script{font-family:'Dancing Script','Brush Script MT',cursive;font-size:26px;color:#0F2818;line-height:1;margin-bottom:2px}
+    .pcx-sign-line{width:150px;height:1px;background:#0F2818;opacity:.4;margin:2px auto 6px}
+    .pcx-sign-name{font-size:12px;font-weight:700;color:#333}
+    .pcx-sign-title{font-size:10px;color:#777;margin-top:2px}
+    .pcx-stamp{width:78px;height:78px;flex-shrink:0;opacity:.68}
+    .pcx-qr{text-align:center;min-width:110px}
+    .pcx-qr img{width:78px;height:78px;border-radius:8px;background:#fff;padding:3px;border:1px solid rgba(15,40,24,.15)}
+    .pcx-qr-txt{font-size:9px;color:#777;margin-top:4px;max-width:130px;margin-left:auto;margin-right:auto}
+    .pcx-footer{text-align:center;font-size:9.5px;color:#999;margin-top:14px}
   </style></head><body>
   <div class="pcx-wrap">
     <div class="print-btn no-print">
