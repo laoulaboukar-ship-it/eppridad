@@ -1256,7 +1256,8 @@ function buildCertificatMarkup(cw, num, nom, form, mention, score, date, verifyU
       .cert-page-${uid} .qr-zone img{width:calc(var(--cw)*0.062);height:calc(var(--cw)*0.062);border:1px solid rgba(15,40,24,.15);border-radius:3px;background:#fff;padding:2px}
       .cert-page-${uid} .qr-txt{font-size:calc(var(--cw)*0.0088);color:#333;line-height:1.5}
       .cert-page-${uid} .qr-txt b{display:block;color:#0F4D38;font-size:calc(var(--cw)*0.0092)}
-      .cert-page-${uid} .signature-zone{position:absolute;top:76%;left:50%;transform:translateX(-50%);text-align:center;width:26%}
+      .cert-page-${uid} .signature-zone{position:absolute;top:71.5%;left:50%;transform:translateX(-50%);text-align:center;width:30%}
+      .cert-page-${uid} .sig-img{width:34%;height:auto;display:block;margin:0 auto calc(var(--cw)*0.002)}
       .cert-page-${uid} .sig-line{width:70%;margin:0 auto calc(var(--cw)*0.006);height:1px;background:#0F4D38;opacity:.5}
       .cert-page-${uid} .sig-name{font-weight:700;font-size:calc(var(--cw)*0.0125);color:#172019}
       .cert-page-${uid} .sig-title{font-size:calc(var(--cw)*0.0095);color:#555;margin-top:2px;line-height:1.4}
@@ -1280,7 +1281,7 @@ function buildCertificatMarkup(cw, num, nom, form, mention, score, date, verifyU
     <div class="corner br"><div class="corner-dot"></div></div>
     <div class="pagne-corner"><svg viewBox="0 0 32 4" preserveAspectRatio="none"><rect width="32" height="4" fill="url(#fab${uid})"/></svg></div>
 
-    <img class="logo-img" src="https://www.eppridad.com/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'">
+    <img class="logo-img" src="https://www.eppridad.com/images/logo-transparent.png" alt="EPPRIDAD" onerror="this.style.display='none'">
     <div class="brand-name">EPPRIDAD</div>
     <div class="brand-sub">ÉCOLE POLYTECHNIQUE PRIVÉE POUR<br>LE DÉVELOPPEMENT AGRICOLE DURABLE</div>
     <div class="sub-header">FORMATION EN LIGNE &nbsp;•&nbsp; CERTIFICAT PROFESSIONNEL</div>
@@ -1306,6 +1307,7 @@ function buildCertificatMarkup(cw, num, nom, form, mention, score, date, verifyU
     </div>
 
     <div class="signature-zone">
+      <img class="sig-img" src="https://www.eppridad.com/images/cachet-signature-boukar-laoula.png" alt="Cachet et signature du Directeur Général" crossorigin="anonymous" onerror="this.style.display='none'">
       <div class="sig-line"></div>
       <div class="sig-name">Boukar Laoula</div>
       <div class="sig-title">Directeur Général &amp; Fondateur<br>EPPRIDAD</div>
@@ -1330,7 +1332,7 @@ function buildCertificatMarkup(cw, num, nom, form, mention, score, date, verifyU
         <text x="176" y="104" font-size="10" fill="#C89B3C" text-anchor="middle">★</text>
         <circle cx="100" cy="100" r="58" fill="#fff" stroke="#0F4D38" stroke-width="1.5"/>
       </svg>
-      <img src="https://www.eppridad.com/images/cachet-signature-boukar-laoula.png" alt="Cachet et signature du Directeur Général" crossorigin="anonymous" onerror="this.style.display='none'">
+      <img src="https://www.eppridad.com/images/logo-transparent.png" alt="EPPRIDAD" crossorigin="anonymous" onerror="this.style.display='none'">
     </div>
 
     <div class="cert-num">N° de certificat : <b>${num}</b></div>
