@@ -1175,122 +1175,12 @@ async function afficherCertificat(){
   const dateStr = cert.date_emission ? new Date(cert.date_emission).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
   const formTitre = document.getElementById('cs-formation-titre').textContent;
   const verifyUrl = `https://www.eppridad.com/verifier.html?cert=${encodeURIComponent(cert.numero||'')}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(verifyUrl)}`;
-  const fabricPattern = `<defs><pattern id="ecxFab" width="8" height="4" patternUnits="userSpaceOnUse"><rect width="8" height="4" fill="#0F2818"/><polygon points="4,0 8,2 4,4 0,2" fill="#C9A84C"/><polygon points="4,1 6,2 4,3 2,2" fill="#8c1c1c"/></pattern></defs><rect width="100" height="4" fill="url(#ecxFab)"/>`;
-  const wreathSvg = `<svg class="ecx-wreath" viewBox="0 0 170 104"><g fill="none" stroke="#C9A84C" stroke-width="2.2"><path d="M78 98 C 45 96, 20 78, 16 50 C 15 38, 17 28, 22 20" stroke-linecap="round"/><path d="M92 98 C 125 96, 150 78, 154 50 C 155 38, 153 28, 148 20" stroke-linecap="round"/></g><g fill="#C9A84C"><path d="M22 20 q 9 -2 10 6 q -9 3 -10 -6 Z" transform="rotate(10 22 20)"/><path d="M17 30 q 9 -3 11 5 q -9 4 -11 -5 Z" transform="rotate(2 17 30)"/><path d="M15 41 q 9.5 -1.5 10.5 6.5 q -9.5 3 -10.5 -6.5 Z" transform="rotate(-6 15 41)"/><path d="M17 52 q 9.5 -0.5 9.5 7.5 q -9.5 2 -9.5 -7.5 Z" transform="rotate(-16 17 52)"/><path d="M22 63 q 10 0 8.5 8 q -9.8 1.5 -8.5 -8 Z" transform="rotate(-28 22 63)"/><path d="M30 74 q 10 1.5 7 9 q -9.5 0 -7 -9 Z" transform="rotate(-40 30 74)"/><path d="M42 84 q 10 3 5.5 9.5 q -9 -1.5 -5.5 -9.5 Z" transform="rotate(-55 42 84)"/><path d="M58 92 q 9.5 4.5 3.5 10 q -8.5 -3 -3.5 -10 Z" transform="rotate(-68 58 92)"/><path d="M148 20 q -9 -2 -10 6 q 9 3 10 -6 Z" transform="rotate(-10 148 20)"/><path d="M153 30 q -9 -3 -11 5 q 9 4 11 -5 Z" transform="rotate(-2 153 30)"/><path d="M155 41 q -9.5 -1.5 -10.5 6.5 q 9.5 3 10.5 -6.5 Z" transform="rotate(6 155 41)"/><path d="M153 52 q -9.5 -0.5 -9.5 7.5 q 9.5 2 9.5 -7.5 Z" transform="rotate(16 153 52)"/><path d="M148 63 q -10 0 -8.5 8 q 9.8 1.5 8.5 -8 Z" transform="rotate(28 148 63)"/><path d="M140 74 q -10 1.5 -7 9 q 9.5 0 7 -9 Z" transform="rotate(40 140 74)"/><path d="M128 84 q -10 3 -5.5 9.5 q 9 -1.5 5.5 -9.5 Z" transform="rotate(55 128 84)"/><path d="M112 92 q -9.5 4.5 -3.5 10 q 8.5 -3 3.5 -10 Z" transform="rotate(68 112 92)"/></g><path d="M85 8 L 88 16 L 82 16 Z" fill="#0F2818"/></svg>`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(verifyUrl)}`;
+  const certMarkup = buildCertificatMarkup(760, escH(cert.numero||'\u2014'), escH(nomAffiche), escH(formTitre), escH(cert.mention||'Bien'), cert.score_final||0, dateStr, verifyUrl, qrUrl);
 
   container.innerHTML = `
-  <div style="padding:24px 0">
-    <style>
-      .ecx-wrap{max-width:760px;margin:0 auto;font-family:Georgia,'Times New Roman',serif}
-      .ecx-outer{background:#0F2818;border-radius:6px;box-shadow:0 24px 64px rgba(0,0,0,.45);overflow:hidden}
-      .ecx-fabric{height:12px;width:100%;display:block}
-      .ecx-frame{background:linear-gradient(160deg,#faf6ec,#f3ecd9);padding:14px}
-      .ecx-border1{border:1.5px solid #0F2818;border-radius:2px;padding:5px}
-      .ecx-border2{border:1px solid #C9A84C;border-radius:2px;padding:24px 30px 20px;position:relative;overflow:hidden}
-      .ecx-corner{position:absolute;width:26px;height:26px;pointer-events:none}
-      .ecx-corner.tl{top:6px;left:6px;border-top:2px solid #0F2818;border-left:2px solid #0F2818}
-      .ecx-corner.tr{top:6px;right:6px;border-top:2px solid #0F2818;border-right:2px solid #0F2818}
-      .ecx-corner.bl{bottom:6px;left:6px;border-bottom:2px solid #0F2818;border-left:2px solid #0F2818}
-      .ecx-corner.br{bottom:6px;right:6px;border-bottom:2px solid #0F2818;border-right:2px solid #0F2818}
-      .ecx-emblem-wrap{display:flex;justify-content:center;margin-bottom:2px;position:relative;z-index:1;height:74px}
-      .ecx-wreath{position:absolute;top:0;left:50%;transform:translateX(-50%);width:124px;height:74px}
-      .ecx-badge{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:#fff;border:2px solid #0F2818;overflow:hidden;display:flex;align-items:center;justify-content:center}
-      .ecx-badge img{width:100%;height:100%;object-fit:cover}
-      .ecx-badge span{display:none;font-family:'Playfair Display',serif;font-size:8px;font-weight:700;color:#0F2818;text-align:center}
-      .ecx-brand{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:24px;font-weight:900;color:#0F2818;letter-spacing:1px;margin-bottom:2px;position:relative;z-index:1}
-      .ecx-brand-sub{text-align:center;font-size:9.5px;font-weight:700;color:#0F2818;letter-spacing:1.3px;line-height:1.5;margin-bottom:10px;position:relative;z-index:1}
-      .ecx-divider{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:9px;position:relative;z-index:1}
-      .ecx-divider .l{height:1px;background:#C9A84C;width:80px}
-      .ecx-divider .leaf{font-size:11px}
-      .ecx-tag{text-align:center;font-family:Arial,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1.6px;color:#0F2818;margin-bottom:7px;position:relative;z-index:1}
-      .ecx-title{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:42px;font-weight:900;color:#0F2818;letter-spacing:2px;line-height:1;margin-bottom:2px;position:relative;z-index:1}
-      .ecx-title2{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:16px;font-weight:700;color:#0F2818;letter-spacing:4px;margin-bottom:9px;position:relative;z-index:1}
-      .ecx-lbl{text-align:center;font-family:Georgia,serif;font-size:11.5px;color:#555;margin-bottom:5px;position:relative;z-index:1}
-      .ecx-name{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:25px;font-weight:800;color:#0F2818;letter-spacing:.5px;margin-bottom:7px;text-transform:uppercase;word-break:break-word;position:relative;z-index:1}
-      .ecx-form{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:16.5px;font-weight:800;color:#0F2818;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase;position:relative;z-index:1}
-      .ecx-mention{text-align:center;font-family:Arial,sans-serif;font-size:10.5px;color:#9a7b1f;font-weight:700;letter-spacing:.5px;margin-bottom:16px;position:relative;z-index:1}
-      .ecx-footer-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:10px;position:relative;z-index:1}
-      .ecx-loc{font-family:Georgia,serif;font-size:11.5px;color:#1a1a1a}
-      .ecx-loc b{display:block;font-size:11.5px}
-      .ecx-loc .date{font-size:10.5px;color:#333;margin-top:1px}
-      .ecx-sign{text-align:center}
-      .ecx-stampsig{width:100px;height:auto;display:block;margin:0 auto 1px}
-      .ecx-sign-title{font-size:9px;color:#555;font-family:Arial,sans-serif}
-      .ecx-sign-title b{color:#222}
-      .ecx-bline{height:1px;background:rgba(15,40,24,.15);margin-bottom:9px}
-      .ecx-verify-row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:9px;position:relative;z-index:1}
-      .ecx-qr-zone{display:flex;align-items:center;gap:10px}
-      .ecx-qr-zone img{width:46px;height:46px;border:1px solid rgba(15,40,24,.15);border-radius:4px;background:#fff;padding:2px}
-      .ecx-qr-txt{font-family:Arial,sans-serif;font-size:9px;color:#555}
-      .ecx-qr-txt b{color:#0F2818;display:block;font-size:9.5px}
-      .ecx-certnum{font-family:Arial,sans-serif;font-size:9.5px;color:#555}
-      .ecx-mline{height:1px;background:#C9A84C;width:200px;margin:0 auto 6px}
-      .ecx-motto{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:12px;font-weight:700;color:#0F2818;letter-spacing:1px;margin-bottom:5px;position:relative;z-index:1}
-      .ecx-tagline{text-align:center;font-family:Arial,sans-serif;font-size:9px;font-weight:700;color:#C9A84C;letter-spacing:1.5px;position:relative;z-index:1}
-    </style>
-    <div class="ecx-wrap">
-      <div class="ecx-outer">
-        <svg class="ecx-fabric" viewBox="0 0 100 4" preserveAspectRatio="none">${fabricPattern}</svg>
-        <div class="ecx-frame">
-          <div class="ecx-border1">
-            <div class="ecx-border2">
-              <div class="ecx-corner tl"></div>
-              <div class="ecx-corner tr"></div>
-              <div class="ecx-corner bl"></div>
-              <div class="ecx-corner br"></div>
-
-              <div class="ecx-emblem-wrap">
-                ${wreathSvg}
-                <div class="ecx-badge">
-                  <img src="https://www.eppridad.com/logo.png" alt="EPPRIDAD" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                  <span>EPPRIDAD</span>
-                </div>
-              </div>
-              <div class="ecx-brand">EPPRIDAD</div>
-              <div class="ecx-brand-sub">ÉCOLE POLYTECHNIQUE PRIVÉE POUR LE<br>DÉVELOPPEMENT AGRICOLE DURABLE</div>
-
-              <div class="ecx-divider"><div class="l"></div><div class="leaf">🌿</div><div class="l"></div></div>
-              <div class="ecx-tag">FORMATION EN LIGNE · CERTIFICAT PROFESSIONNEL</div>
-              <div class="ecx-title">CERTIFICAT</div>
-              <div class="ecx-title2">DE FORMATION</div>
-              <div class="ecx-divider"><div class="l"></div><div class="leaf">🌿</div><div class="l"></div></div>
-
-              <div class="ecx-lbl">Ce certificat est décerné à</div>
-              <div class="ecx-name">${escH(nomAffiche)}</div>
-              <div class="ecx-lbl">pour avoir suivi et achevé avec succès la formation</div>
-              <div class="ecx-form">${escH(formTitre)}</div>
-              <div class="ecx-mention">🏆 Mention ${escH(cert.mention||'Bien')} · Score ${cert.score_final||0}%</div>
-
-              <div class="ecx-footer-row">
-                <div class="ecx-loc">
-                  <b>📍 Fait à Niamey, Niger</b>
-                  <div class="date">Le ${dateStr}</div>
-                </div>
-                <div class="ecx-sign">
-                  <img class="ecx-stampsig" src="https://www.eppridad.com/images/cachet-signature-boukar-laoula.png" alt="Cachet et signature du Directeur Général" onerror="this.style.display='none'">
-                  <div class="ecx-sign-title"><b>Boukar Laoula</b><br>Directeur Général &amp; Fondateur</div>
-                </div>
-              </div>
-
-              <div class="ecx-bline"></div>
-              <div class="ecx-verify-row">
-                <div class="ecx-qr-zone">
-                  <img src="${qrUrl}" alt="QR vérification" onerror="this.style.display='none'">
-                  <div class="ecx-qr-txt"><b>Vérifiez l'authenticité sur</b>www.eppridad.com/verifier.html</div>
-                </div>
-                <div class="ecx-certnum">N° de certificat : <b>${escH(cert.numero||'—')}</b></div>
-              </div>
-
-              <div class="ecx-mline"></div>
-              <div class="ecx-motto">FORMER LES BÂTISSEURS DU MONDE RURAL</div>
-              <div class="ecx-tagline">EXCELLENCE · DISCIPLINE · INNOVATION · ENGAGEMENT</div>
-            </div>
-          </div>
-        </div>
-        <svg class="ecx-fabric" viewBox="0 0 100 4" preserveAspectRatio="none">${fabricPattern}</svg>
-      </div>
-    </div>
+  <div style="padding:24px 0;display:flex;flex-direction:column;align-items:center">
+    ${certMarkup}
     <div class="cert-actions" style="margin-top:20px">
       <button class="btn-cert btn-cert-dl" onclick="imprimerCertificat('${escH(cert.numero)}','${escH(nomAffiche)}','${escH(formTitre)}','${escH(cert.mention||'Bien')}','${cert.score_final||0}','${dateStr}')">📄 Télécharger le certificat</button>
       <a href="${waLink(`Bonjour ! J'ai obtenu mon certificat EPPRIDAD N° ${cert.numero} pour la formation "${formTitre}". Mention : ${cert.mention}. Score : ${cert.score_final}%.`)}" target="_blank" class="btn-cert btn-cert-wa">💬 Partager</a>
@@ -1299,136 +1189,178 @@ async function afficherCertificat(){
   spawnConfettis();
   container.scrollIntoView({behavior:'smooth'});
 }
+
+// ── GÉNÉRATEUR PARTAGÉ DU CERTIFICAT (utilisé par l'aperçu écran ET l'impression) ──
+// cw = largeur du certificat en pixels (le ratio A4 paysage 297/210 est fixe)
+// Toutes les chaînes (num,nom,form,mention,date) doivent déjà être échappées HTML par l'appelant.
+function buildCertificatMarkup(cw, num, nom, form, mention, score, date, verifyUrl, qrUrl){
+  const uid = 'c' + Math.random().toString(36).slice(2,8);
+
+  // Réduction automatique de la taille du texte pour le nom et la formation
+  // (le cahier des charges impose de NE JAMAIS casser la mise en page : on rétrécit plutôt que de déplacer les éléments)
+  function fitPct(text, basePct, boxPctOfCw, avgCharEm, safetyRatio){
+    const plain = String(text||'').replace(/&[a-z]+;/gi,'X'); // approx. les entités HTML comptent pour 1 caractère
+    const n = Math.max(plain.length, 1);
+    const boxPx = boxPctOfCw * cw;
+    const basePx = basePct * cw;
+    const estWidth = n * basePx * avgCharEm;
+    if(estWidth <= boxPx * safetyRatio) return basePct;
+    return Math.max(basePct * (boxPx*safetyRatio) / estWidth, basePct*0.38);
+  }
+  const namePct = fitPct(nom, 0.033, 0.80, 0.74, 0.84);
+  const formPct = fitPct(form, 0.0195, 0.75, 0.70, 0.84);
+
+  const fabricPattern = `<defs><pattern id="fab${uid}" width="8" height="4" patternUnits="userSpaceOnUse"><rect width="8" height="4" fill="#0F2818"/><polygon points="4,0 8,2 4,4 0,2" fill="#C89B3C"/><polygon points="4,1 6,2 4,3 2,2" fill="#8c1c1c"/></pattern></defs><rect width="100" height="4" fill="url(#fab${uid})"/>`;
+
+  return `
+  <div class="cert-page-${uid}" style="--cw:${cw}px">
+    <style>
+      .cert-page-${uid}{position:relative;width:var(--cw);height:calc(var(--cw) * 210 / 297);background:#F7F5EC;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#172019;box-shadow:0 20px 60px rgba(0,0,0,.35);margin:0 auto;border-radius:2px}
+      .cert-page-${uid} .frame1{position:absolute;inset:1.7%;border:1.2px solid #0F4D38;pointer-events:none}
+      .cert-page-${uid} .frame2{position:absolute;inset:2.25%;border:0.7px solid #C89B3C;pointer-events:none}
+      .cert-page-${uid} .corner{position:absolute;width:calc(var(--cw)*0.032);height:calc(var(--cw)*0.032);pointer-events:none}
+      .cert-page-${uid} .corner.tl{top:2.7%;left:2.7%;border-top:1.4px solid #0F4D38;border-left:1.4px solid #0F4D38}
+      .cert-page-${uid} .corner.tr{top:2.7%;right:2.7%;border-top:1.4px solid #0F4D38;border-right:1.4px solid #0F4D38}
+      .cert-page-${uid} .corner.bl{bottom:2.7%;left:2.7%;border-bottom:1.4px solid #0F4D38;border-left:1.4px solid #0F4D38}
+      .cert-page-${uid} .corner.br{bottom:2.7%;right:2.7%;border-bottom:1.4px solid #0F4D38;border-right:1.4px solid #0F4D38}
+      .cert-page-${uid} .corner-dot{position:absolute;width:calc(var(--cw)*0.008);height:calc(var(--cw)*0.008);background:#C89B3C;transform:rotate(45deg)}
+      .cert-page-${uid} .corner.tl .corner-dot{top:-2px;left:-2px}
+      .cert-page-${uid} .corner.tr .corner-dot{top:-2px;right:-2px}
+      .cert-page-${uid} .corner.bl .corner-dot{bottom:-2px;left:-2px}
+      .cert-page-${uid} .corner.br .corner-dot{bottom:-2px;right:-2px}
+      .cert-page-${uid} .pagne{position:absolute;left:0;width:100%;height:2.3%;overflow:hidden}
+      .cert-page-${uid} .pagne.top{top:0}
+      .cert-page-${uid} .pagne.bottom{bottom:0}
+      .cert-page-${uid} .pagne svg{display:block;width:100%;height:100%}
+      .cert-page-${uid} .pagne-corner{position:absolute;bottom:-3%;right:-3%;width:13%;height:18.4%;transform:rotate(-45deg);overflow:hidden}
+      .cert-page-${uid} .pagne-corner svg{width:100%;height:100%;display:block}
+      .cert-page-${uid} .logo-img{position:absolute;top:5.3%;left:50%;transform:translateX(-50%);width:12.5%;height:auto}
+      .cert-page-${uid} .brand-name{position:absolute;top:20.3%;left:0;width:100%;text-align:center;font-weight:800;font-size:calc(var(--cw)*0.026);letter-spacing:calc(var(--cw)*0.0012);color:#0F4D38}
+      .cert-page-${uid} .brand-sub{position:absolute;top:24.3%;left:15%;width:70%;text-align:center;font-weight:700;font-size:calc(var(--cw)*0.0098);letter-spacing:calc(var(--cw)*0.0005);line-height:1.5;color:#0F4D38}
+      .cert-page-${uid} .sub-header{position:absolute;top:28.7%;left:0;width:100%;text-align:center;font-weight:700;font-size:calc(var(--cw)*0.009);letter-spacing:calc(var(--cw)*0.002);color:#0F4D38}
+      .cert-page-${uid} .cert-title{position:absolute;top:31%;left:0;width:100%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:900;font-size:calc(var(--cw)*0.068);letter-spacing:calc(var(--cw)*0.003);color:#0D4935;line-height:1}
+      .cert-page-${uid} .cert-title2{position:absolute;top:39.3%;left:0;width:100%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:calc(var(--cw)*0.0165);letter-spacing:calc(var(--cw)*0.0035);color:#0D4935}
+      .cert-page-${uid} .ornament{position:absolute;top:43.3%;left:30%;width:40%;display:flex;align-items:center;justify-content:center;gap:calc(var(--cw)*0.01)}
+      .cert-page-${uid} .ornament .l{height:1px;background:#C89B3C;flex:1}
+      .cert-page-${uid} .ornament .leaf{font-size:calc(var(--cw)*0.014);flex-shrink:0;color:#C89B3C}
+      .cert-page-${uid} .decerne-a{position:absolute;top:46.3%;left:0;width:100%;text-align:center;font-size:calc(var(--cw)*0.0125);color:#3a3a3a}
+      .cert-page-${uid} .student-name{position:absolute;top:49.3%;left:10%;width:80%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:600;color:#0D4935;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:calc(var(--cw)*${namePct.toFixed(5)})}
+      .cert-page-${uid} .name-line{position:absolute;top:56.3%;left:37.5%;width:25%;height:1px;background:#C89B3C}
+      .cert-page-${uid} .course-intro{position:absolute;top:57.6%;left:0;width:100%;text-align:center;font-size:calc(var(--cw)*0.0118);color:#3a3a3a}
+      .cert-page-${uid} .course-name{position:absolute;top:61%;left:12.5%;width:75%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:600;letter-spacing:calc(var(--cw)*0.0008);color:#0D4935;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:calc(var(--cw)*${formPct.toFixed(5)})}
+      .cert-page-${uid} .mention{position:absolute;top:67%;left:0;width:100%;text-align:center;font-weight:700;font-size:calc(var(--cw)*0.0105);color:#9a7b1f}
+      .cert-page-${uid} .date-zone{position:absolute;top:76.5%;left:11%;font-size:calc(var(--cw)*0.0118);color:#172019;text-align:left}
+      .cert-page-${uid} .date-zone b{display:block;font-size:calc(var(--cw)*0.0125)}
+      .cert-page-${uid} .date-zone .sub{margin-top:3px;color:#333}
+      .cert-page-${uid} .qr-zone{position:absolute;top:83%;left:11%;display:flex;align-items:center;gap:calc(var(--cw)*0.01)}
+      .cert-page-${uid} .qr-zone img{width:calc(var(--cw)*0.062);height:calc(var(--cw)*0.062);border:1px solid rgba(15,40,24,.15);border-radius:3px;background:#fff;padding:2px}
+      .cert-page-${uid} .qr-txt{font-size:calc(var(--cw)*0.0088);color:#333;line-height:1.5}
+      .cert-page-${uid} .qr-txt b{display:block;color:#0F4D38;font-size:calc(var(--cw)*0.0092)}
+      .cert-page-${uid} .signature-zone{position:absolute;top:76%;left:50%;transform:translateX(-50%);text-align:center;width:26%}
+      .cert-page-${uid} .sig-line{width:70%;margin:0 auto calc(var(--cw)*0.006);height:1px;background:#0F4D38;opacity:.5}
+      .cert-page-${uid} .sig-name{font-weight:700;font-size:calc(var(--cw)*0.0125);color:#172019}
+      .cert-page-${uid} .sig-title{font-size:calc(var(--cw)*0.0095);color:#555;margin-top:2px;line-height:1.4}
+      .cert-page-${uid} .seal-zone{position:absolute;top:69%;left:84%;width:14%;height:19.8%}
+      .cert-page-${uid} .seal-zone svg{position:absolute;top:0;left:0;width:100%;height:100%}
+      .cert-page-${uid} .seal-zone img{position:absolute;top:20%;left:20%;width:60%;height:60%;object-fit:contain}
+      .cert-page-${uid} .cert-num{position:absolute;top:92%;left:0;width:100%;text-align:center;font-size:calc(var(--cw)*0.0105);color:#333}
+      .cert-page-${uid} .cert-num b{color:#0F4D38}
+      .cert-page-${uid} .slogan{position:absolute;top:93.2%;left:0;width:100%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:calc(var(--cw)*0.0128);letter-spacing:calc(var(--cw)*0.0012);color:#0F4D38}
+      .cert-page-${uid} .tagline{position:absolute;top:95.9%;left:0;width:100%;text-align:center;font-weight:700;font-size:calc(var(--cw)*0.0082);letter-spacing:calc(var(--cw)*0.0015);color:#C89B3C}
+    </style>
+
+    <div class="pagne top"><svg viewBox="0 0 100 4" preserveAspectRatio="none">${fabricPattern}</svg></div>
+    <div class="pagne bottom"><svg viewBox="0 0 100 4" preserveAspectRatio="none"><rect width="100" height="4" fill="url(#fab${uid})"/></svg></div>
+
+    <div class="frame1"></div>
+    <div class="frame2"></div>
+    <div class="corner tl"><div class="corner-dot"></div></div>
+    <div class="corner tr"><div class="corner-dot"></div></div>
+    <div class="corner bl"><div class="corner-dot"></div></div>
+    <div class="corner br"><div class="corner-dot"></div></div>
+    <div class="pagne-corner"><svg viewBox="0 0 32 4" preserveAspectRatio="none"><rect width="32" height="4" fill="url(#fab${uid})"/></svg></div>
+
+    <img class="logo-img" src="https://www.eppridad.com/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'">
+    <div class="brand-name">EPPRIDAD</div>
+    <div class="brand-sub">ÉCOLE POLYTECHNIQUE PRIVÉE POUR<br>LE DÉVELOPPEMENT AGRICOLE DURABLE</div>
+    <div class="sub-header">FORMATION EN LIGNE &nbsp;•&nbsp; CERTIFICAT PROFESSIONNEL</div>
+
+    <div class="cert-title">CERTIFICAT</div>
+    <div class="cert-title2">DE FORMATION</div>
+    <div class="ornament"><div class="l"></div><div class="leaf">❖</div><div class="l"></div></div>
+
+    <div class="decerne-a">Ce certificat est décerné à</div>
+    <div class="student-name">${nom}</div>
+    <div class="name-line"></div>
+    <div class="course-intro">pour avoir suivi et achevé avec succès la formation</div>
+    <div class="course-name">${form}</div>
+    <div class="mention">🏆 Mention ${mention} · Score ${score}%</div>
+
+    <div class="date-zone">
+      <b>📍 Fait à Niamey, Niger</b>
+      <div class="sub">Le ${date}</div>
+    </div>
+    <div class="qr-zone">
+      <img src="${qrUrl}" alt="QR vérification" crossorigin="anonymous" onerror="this.style.display='none'">
+      <div class="qr-txt"><b>Vérifiez l'authenticité</b>www.eppridad.com</div>
+    </div>
+
+    <div class="signature-zone">
+      <div class="sig-line"></div>
+      <div class="sig-name">Boukar Laoula</div>
+      <div class="sig-title">Directeur Général &amp; Fondateur<br>EPPRIDAD</div>
+    </div>
+
+    <div class="seal-zone">
+      <svg viewBox="0 0 200 200" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs>
+          <path id="arcTop${uid}" d="M 30,100 A 70,70 0 0 1 170,100" fill="none"/>
+          <path id="arcBot${uid}" d="M 18.2,105 A 82,82 0 0 0 181.8,105" fill="none"/>
+        </defs>
+        <circle cx="100" cy="100" r="96" fill="#fff" stroke="#C89B3C" stroke-width="2"/>
+        <circle cx="100" cy="100" r="88" fill="none" stroke="#0F4D38" stroke-width="1"/>
+        <circle cx="100" cy="100" r="62" fill="none" stroke="#C89B3C" stroke-width="1.2"/>
+        <text font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#0F4D38" letter-spacing="2">
+          <textPath href="#arcTop${uid}" xlink:href="#arcTop${uid}" startOffset="50%" text-anchor="middle">EPPRIDAD</textPath>
+        </text>
+        <text font-family="Arial,sans-serif" font-size="4.6" font-weight="700" fill="#0F4D38" letter-spacing="0.2">
+          <textPath href="#arcBot${uid}" xlink:href="#arcBot${uid}" startOffset="50%" text-anchor="middle">ÉCOLE POLYTECHNIQUE PRIVÉE POUR LE DÉVELOPPEMENT AGRICOLE DURABLE</textPath>
+        </text>
+        <text x="24" y="104" font-size="10" fill="#C89B3C" text-anchor="middle">★</text>
+        <text x="176" y="104" font-size="10" fill="#C89B3C" text-anchor="middle">★</text>
+        <circle cx="100" cy="100" r="58" fill="#fff" stroke="#0F4D38" stroke-width="1.5"/>
+      </svg>
+      <img src="https://www.eppridad.com/images/cachet-signature-boukar-laoula.png" alt="Cachet et signature du Directeur Général" crossorigin="anonymous" onerror="this.style.display='none'">
+    </div>
+
+    <div class="cert-num">N° de certificat : <b>${num}</b></div>
+    <div class="slogan">FORMER LES BÂTISSEURS DU MONDE RURAL</div>
+    <div class="tagline">EXCELLENCE &nbsp;•&nbsp; DISCIPLINE &nbsp;•&nbsp; INNOVATION &nbsp;•&nbsp; ENGAGEMENT</div>
+  </div>`;
+}
+
 function imprimerCertificat(num,nom,form,mention,score,date){
   const verifyUrl = `https://www.eppridad.com/verifier.html?cert=${encodeURIComponent(num)}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(verifyUrl)}`;
-  const fabricPattern = `<defs><pattern id="pcxFab" width="8" height="4" patternUnits="userSpaceOnUse"><rect width="8" height="4" fill="#0F2818"/><polygon points="4,0 8,2 4,4 0,2" fill="#C9A84C"/><polygon points="4,1 6,2 4,3 2,2" fill="#8c1c1c"/></pattern></defs><rect width="100" height="4" fill="url(#pcxFab)"/>`;
-  const wreathSvg = `<svg class="pcx-wreath" viewBox="0 0 170 104"><g fill="none" stroke="#C9A84C" stroke-width="2.2"><path d="M78 98 C 45 96, 20 78, 16 50 C 15 38, 17 28, 22 20" stroke-linecap="round"/><path d="M92 98 C 125 96, 150 78, 154 50 C 155 38, 153 28, 148 20" stroke-linecap="round"/></g><g fill="#C9A84C"><path d="M22 20 q 9 -2 10 6 q -9 3 -10 -6 Z" transform="rotate(10 22 20)"/><path d="M17 30 q 9 -3 11 5 q -9 4 -11 -5 Z" transform="rotate(2 17 30)"/><path d="M15 41 q 9.5 -1.5 10.5 6.5 q -9.5 3 -10.5 -6.5 Z" transform="rotate(-6 15 41)"/><path d="M17 52 q 9.5 -0.5 9.5 7.5 q -9.5 2 -9.5 -7.5 Z" transform="rotate(-16 17 52)"/><path d="M22 63 q 10 0 8.5 8 q -9.8 1.5 -8.5 -8 Z" transform="rotate(-28 22 63)"/><path d="M30 74 q 10 1.5 7 9 q -9.5 0 -7 -9 Z" transform="rotate(-40 30 74)"/><path d="M42 84 q 10 3 5.5 9.5 q -9 -1.5 -5.5 -9.5 Z" transform="rotate(-55 42 84)"/><path d="M58 92 q 9.5 4.5 3.5 10 q -8.5 -3 -3.5 -10 Z" transform="rotate(-68 58 92)"/><path d="M148 20 q -9 -2 -10 6 q 9 3 10 -6 Z" transform="rotate(-10 148 20)"/><path d="M153 30 q -9 -3 -11 5 q 9 4 11 -5 Z" transform="rotate(-2 153 30)"/><path d="M155 41 q -9.5 -1.5 -10.5 6.5 q 9.5 3 10.5 -6.5 Z" transform="rotate(6 155 41)"/><path d="M153 52 q -9.5 -0.5 -9.5 7.5 q 9.5 2 9.5 -7.5 Z" transform="rotate(16 153 52)"/><path d="M148 63 q -10 0 -8.5 8 q 9.8 1.5 8.5 -8 Z" transform="rotate(28 148 63)"/><path d="M140 74 q -10 1.5 -7 9 q 9.5 0 7 -9 Z" transform="rotate(40 140 74)"/><path d="M128 84 q -10 3 -5.5 9.5 q 9 -1.5 5.5 -9.5 Z" transform="rotate(55 128 84)"/><path d="M112 92 q -9.5 4.5 -3.5 10 q 8.5 -3 3.5 -10 Z" transform="rotate(68 112 92)"/></g><path d="M85 8 L 88 16 L 82 16 Z" fill="#0F2818"/></svg>`;
-  const w = window.open('','_blank','width=1100,height=800');
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(verifyUrl)}`;
+  const certMarkup = buildCertificatMarkup(1200, num, nom, form, mention, score, date, verifyUrl, qrUrl);
+  const w = window.open('','_blank','width=1260,height=920');
   w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Certificat EPPRIDAD — ${nom}</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#e9e4d8;font-family:Georgia,'Times New Roman',serif;padding:26px;display:flex;justify-content:center}
-    @media print{@page{size:A4 landscape;margin:6mm}body{background:#fff;padding:0}.no-print{display:none}.pcx-outer{box-shadow:none !important;page-break-inside:avoid}}
+    body{background:#e9e4d8;font-family:Arial,sans-serif;padding:26px;display:flex;flex-direction:column;align-items:center}
+    @media print{@page{size:A4 landscape;margin:0}body{background:#fff;padding:0}.no-print{display:none}[class^="cert-page-"]{box-shadow:none !important}}
     .print-btn{display:flex;justify-content:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-    .print-btn button{background:#0F2818;color:#C9A84C;border:none;border-radius:10px;padding:11px 26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+    .print-btn button{background:#0F4D38;color:#C89B3C;border:none;border-radius:10px;padding:11px 26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
     .print-btn button:disabled{opacity:.6;cursor:wait}
-    .pcx-wrap{max-width:1000px;width:100%}
-    .pcx-outer{background:#0F2818;border-radius:6px;box-shadow:0 30px 80px rgba(0,0,0,.35);overflow:hidden}
-    .pcx-fabric{height:12px;width:100%;display:block}
-    .pcx-frame{background:linear-gradient(160deg,#faf6ec,#f3ecd9);padding:14px}
-    .pcx-border1{border:1.5px solid #0F2818;border-radius:2px;padding:5px}
-    .pcx-border2{border:1px solid #C9A84C;border-radius:2px;padding:20px 46px 16px;position:relative;overflow:hidden;min-height:400px}
-    .pcx-corner{position:absolute;width:28px;height:28px;pointer-events:none}
-    .pcx-corner.tl{top:5px;left:5px;border-top:2px solid #0F2818;border-left:2px solid #0F2818}
-    .pcx-corner.tr{top:5px;right:5px;border-top:2px solid #0F2818;border-right:2px solid #0F2818}
-    .pcx-corner.bl{bottom:5px;left:5px;border-bottom:2px solid #0F2818;border-left:2px solid #0F2818}
-    .pcx-corner.br{bottom:5px;right:5px;border-bottom:2px solid #0F2818;border-right:2px solid #0F2818}
-    .pcx-emblem-wrap{display:flex;justify-content:center;margin-bottom:2px;position:relative;z-index:1;height:66px}
-    .pcx-wreath{position:absolute;top:0;left:50%;transform:translateX(-50%);width:110px;height:66px}
-    .pcx-badge{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid #0F2818;overflow:hidden;display:flex;align-items:center;justify-content:center}
-    .pcx-badge img{width:100%;height:100%;object-fit:cover}
-    .pcx-badge span{display:none;font-family:'Playfair Display',serif;font-size:7px;font-weight:700;color:#0F2818;text-align:center}
-    .pcx-brand{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:900;color:#0F2818;letter-spacing:1px;margin-bottom:2px;position:relative;z-index:1}
-    .pcx-brand-sub{text-align:center;font-size:9px;font-weight:700;color:#0F2818;letter-spacing:1.2px;line-height:1.4;margin-bottom:8px;position:relative;z-index:1}
-    .pcx-divider{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;position:relative;z-index:1}
-    .pcx-divider .l{height:1px;background:#C9A84C;width:90px}
-    .pcx-divider .leaf{font-size:10px}
-    .pcx-tag{text-align:center;font-family:Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#0F2818;margin-bottom:6px;position:relative;z-index:1}
-    .pcx-title{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:38px;font-weight:900;color:#0F2818;letter-spacing:2px;line-height:1;margin-bottom:1px;position:relative;z-index:1}
-    .pcx-title2{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:700;color:#0F2818;letter-spacing:4px;margin-bottom:8px;position:relative;z-index:1}
-    .pcx-lbl{text-align:center;font-family:Georgia,serif;font-size:11px;color:#555;margin-bottom:4px;position:relative;z-index:1}
-    .pcx-name{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:24px;font-weight:800;color:#0F2818;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase;word-break:break-word;position:relative;z-index:1}
-    .pcx-form{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:16px;font-weight:800;color:#0F2818;letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase;position:relative;z-index:1}
-    .pcx-mention{text-align:center;font-family:Arial,sans-serif;font-size:10px;color:#9a7b1f;font-weight:700;letter-spacing:.5px;margin-bottom:12px;position:relative;z-index:1}
-    .pcx-footer-row{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:8px;position:relative;z-index:1}
-    .pcx-loc{font-family:Georgia,serif;font-size:11px;color:#1a1a1a}
-    .pcx-loc b{display:block;font-size:11px}
-    .pcx-loc .date{font-size:10.5px;color:#333;margin-top:1px}
-    .pcx-sign{text-align:center}
-    .pcx-stampsig{width:98px;height:auto;display:block;margin:0 auto 1px}
-    .pcx-sign-title{font-size:9px;color:#555;font-family:Arial,sans-serif}
-    .pcx-sign-title b{color:#222}
-    .pcx-bline{height:1px;background:rgba(15,40,24,.15);margin-bottom:8px}
-    .pcx-verify-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px;position:relative;z-index:1}
-    .pcx-qr-zone{display:flex;align-items:center;gap:10px}
-    .pcx-qr-zone img{width:42px;height:42px;border:1px solid rgba(15,40,24,.15);border-radius:4px;background:#fff;padding:2px}
-    .pcx-qr-txt{font-family:Arial,sans-serif;font-size:9px;color:#555}
-    .pcx-qr-txt b{color:#0F2818;display:block;font-size:9.5px}
-    .pcx-certnum{font-family:Arial,sans-serif;font-size:9.5px;color:#555}
-    .pcx-mline{height:1px;background:#C9A84C;width:220px;margin:0 auto 5px}
-    .pcx-motto{text-align:center;font-family:'Playfair Display',Georgia,serif;font-size:11px;font-weight:700;color:#0F2818;letter-spacing:1px;margin-bottom:4px;position:relative;z-index:1}
-    .pcx-tagline{text-align:center;font-family:Arial,sans-serif;font-size:8.5px;font-weight:700;color:#C9A84C;letter-spacing:1.5px;position:relative;z-index:1}
   </style></head><body>
-  <div class="pcx-wrap">
-    <div class="print-btn no-print">
-      <button onclick="window.print()">🖨️ Imprimer</button>
-      <button id="dlImgBtn" onclick="telechargerCertificatImage()">📥 Télécharger (image)</button>
-      <button onclick="navigator.clipboard.writeText('${verifyUrl}').then(()=>alert('Lien copié !'))">🔗 Copier le lien de vérification</button>
-    </div>
-    <div class="pcx-outer">
-      <svg class="pcx-fabric" viewBox="0 0 100 4" preserveAspectRatio="none">${fabricPattern}</svg>
-      <div class="pcx-frame">
-        <div class="pcx-border1">
-          <div class="pcx-border2">
-            <div class="pcx-corner tl"></div>
-            <div class="pcx-corner tr"></div>
-            <div class="pcx-corner bl"></div>
-            <div class="pcx-corner br"></div>
-
-            <div class="pcx-emblem-wrap">
-              ${wreathSvg}
-              <div class="pcx-badge">
-                <img src="https://www.eppridad.com/logo.png" alt="EPPRIDAD" crossorigin="anonymous" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <span>EPPRIDAD</span>
-              </div>
-            </div>
-            <div class="pcx-brand">EPPRIDAD</div>
-            <div class="pcx-brand-sub">ÉCOLE POLYTECHNIQUE PRIVÉE POUR LE DÉVELOPPEMENT AGRICOLE DURABLE</div>
-
-            <div class="pcx-divider"><div class="l"></div><div class="leaf">🌿</div><div class="l"></div></div>
-            <div class="pcx-tag">FORMATION EN LIGNE · CERTIFICAT PROFESSIONNEL</div>
-            <div class="pcx-title">CERTIFICAT</div>
-            <div class="pcx-title2">DE FORMATION</div>
-            <div class="pcx-divider"><div class="l"></div><div class="leaf">🌿</div><div class="l"></div></div>
-
-            <div class="pcx-lbl">Ce certificat est décerné à</div>
-            <div class="pcx-name">${nom}</div>
-            <div class="pcx-lbl">pour avoir suivi et achevé avec succès la formation</div>
-            <div class="pcx-form">${form}</div>
-            <div class="pcx-mention">🏆 Mention ${mention} · Score ${score}%</div>
-
-            <div class="pcx-footer-row">
-              <div class="pcx-loc">
-                <b>📍 Fait à Niamey, Niger</b>
-                <div class="date">Le ${date}</div>
-              </div>
-              <div class="pcx-sign">
-                <img class="pcx-stampsig" src="https://www.eppridad.com/images/cachet-signature-boukar-laoula.png" alt="Cachet et signature du Directeur Général" crossorigin="anonymous" onerror="this.style.display='none'">
-                <div class="pcx-sign-title"><b>Boukar Laoula</b><br>Directeur Général &amp; Fondateur</div>
-              </div>
-            </div>
-
-            <div class="pcx-bline"></div>
-            <div class="pcx-verify-row">
-              <div class="pcx-qr-zone">
-                <img src="${qrUrl}" alt="QR vérification" crossorigin="anonymous">
-                <div class="pcx-qr-txt"><b>Vérifiez l'authenticité sur</b>www.eppridad.com/verifier.html</div>
-              </div>
-              <div class="pcx-certnum">N° de certificat : <b>${num}</b></div>
-            </div>
-
-            <div class="pcx-mline"></div>
-            <div class="pcx-motto">FORMER LES BÂTISSEURS DU MONDE RURAL</div>
-            <div class="pcx-tagline">EXCELLENCE · DISCIPLINE · INNOVATION · ENGAGEMENT</div>
-          </div>
-        </div>
-      </div>
-      <svg class="pcx-fabric" viewBox="0 0 100 4" preserveAspectRatio="none">${fabricPattern}</svg>
-    </div>
+  <div class="print-btn no-print">
+    <button onclick="window.print()">🖨️ Imprimer</button>
+    <button id="dlImgBtn" onclick="telechargerCertificatImage()">📥 Télécharger (image)</button>
+    <button onclick="navigator.clipboard.writeText('${verifyUrl}').then(()=>alert('Lien copié !'))">🔗 Copier le lien de vérification</button>
   </div>
+  ${certMarkup}
   <script>
   function telechargerCertificatImage(){
     const btn = document.getElementById('dlImgBtn');
@@ -1439,7 +1371,8 @@ function imprimerCertificat(num,nom,form,mention,score,date){
     }
     btn.disabled = true;
     btn.textContent = '⏳ Génération…';
-    html2canvas(document.querySelector('.pcx-outer'), {backgroundColor:null, scale:2, useCORS:true}).then(function(canvas){
+    const target = document.querySelector('[class^="cert-page-"]');
+    html2canvas(target, {backgroundColor:'#ffffff', scale:2, useCORS:true}).then(function(canvas){
       const link = document.createElement('a');
       link.download = 'Certificat-EPPRIDAD-${num}.png';
       link.href = canvas.toDataURL('image/png');
