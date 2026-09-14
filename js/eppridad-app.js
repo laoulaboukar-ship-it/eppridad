@@ -77,6 +77,14 @@ function normaliserTel(tel){
   if(t.length <= 8) return '227' + t; // numéro local nigérien
   return t;
 }
+// extraireOrdreFormation — lit le numéro d'ordre de la formation choisie à l'inscription,
+// stocké en texte dans inscriptions.resume (ex: "Prix: 15 000 FCFA · Paiement via wave · ID formation: 9").
+// C'est la source la plus fiable pour rattacher automatiquement le bon accès formation
+// (bien plus fiable qu'une recherche par titre ou par filière).
+function extraireOrdreFormation(resume){
+  const m = String(resume||'').match(/id\s*formation\s*:?\s*(\d+)/i);
+  return m ? m[1] : '';
+}
 function genererMotDePasseAleatoire(){
   const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#';
   let pwd=''; for(let i=0;i<9;i++) pwd+=chars[Math.floor(Math.random()*chars.length)];
@@ -4196,7 +4204,7 @@ function renderInscriptionCard(i){
 
           <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0;min-width:130px">
             ${i.type_inscription==='enligne'&&i.statut!=='traite'?`
-            <button onclick="quickActiverAcces('${safeAttr(i.reference)}','${safeAttr(i.prenom)}','${safeAttr(i.nom)}','${safeAttr(i.telephone)}','${safeAttr(i.email)}','${safeAttr(i.filiere)}')"
+            <button onclick="quickActiverAcces('${safeAttr(i.reference)}','${safeAttr(i.prenom)}','${safeAttr(i.nom)}','${safeAttr(i.telephone)}','${safeAttr(i.email)}','${safeAttr(i.filiere)}','${safeAttr(extraireOrdreFormation(i.resume))}')"
               style="background:linear-gradient(135deg,#0b2f25,#16503f);color:#C9A84C;border:none;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;text-align:center;letter-spacing:.3px;box-shadow:0 4px 14px rgba(22,80,63,.35);transition:all .2s"
               onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
               🔑 Activer l'accès en ligne
@@ -4286,6 +4294,12 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
       ? await db2.from('inscriptions').select('*').eq('email', email)
       : await db2.from('inscriptions').select('*').eq('reference', reference);
 
+    // Inscription précise concernée par cette fiche (utilisée pour retrouver la bonne formation)
+    const inscriptionCiblee = (inscriptionsLiees||[]).find(x=>x.reference===reference)
+      || (inscriptionsLiees||[]).find(x=>x.statut!=='traite')
+      || (inscriptionsLiees||[])[0];
+    const ordreFormationCible = extraireOrdreFormation(inscriptionCiblee?.resume);
+
     const body = document.getElementById('fiche-appr-body');
 
     if(!comptes.length){
@@ -4294,7 +4308,7 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
           <div style="font-size:13px;font-weight:700;color:#ffb74d">⚠️ Aucun compte d'accès actif trouvé pour cette personne.</div>
           <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">L'inscription existe mais aucun accès n'a encore été activé, ou le compte a été créé sous un email différent.</div>
         </div>
-        <button onclick="quickActiverAcces('${safeStr(reference)}','${safeStr(prenom)}','${safeStr(nom)}','${safeStr(telephone)}','${safeStr(email)}','')" style="width:100%;background:linear-gradient(135deg,var(--v2),var(--v3));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">
+        <button onclick="quickActiverAcces('${safeStr(reference)}','${safeStr(prenom)}','${safeStr(nom)}','${safeStr(telephone)}','${safeStr(email)}','','${safeStr(ordreFormationCible)}')" style="width:100%;background:linear-gradient(135deg,var(--v2),var(--v3));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:13px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">
           🔑 Activer un nouvel accès maintenant
         </button>`;
       return;
@@ -4387,7 +4401,7 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
     }
 
     html += `<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
-      <button onclick="quickActiverAcces('${safeStr(reference||'')}','${safeStr(prenom)}','${safeStr(nom)}','${safeStr(telephone||'')}','${safeStr(email||'')}','')" style="width:100%;background:rgba(255,255,255,.06);color:var(--w2);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+      <button onclick="quickActiverAcces('${safeStr(reference||'')}','${safeStr(prenom)}','${safeStr(nom)}','${safeStr(telephone||'')}','${safeStr(email||'')}','','${safeStr(ordreFormationCible)}')" style="width:100%;background:rgba(255,255,255,.06);color:var(--w2);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
         ➕ Activer une formation supplémentaire (nouveau matricule)
       </button>
     </div>`;
@@ -4406,7 +4420,7 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
 //           d'en créer un nouveau (évite les doublons type Faïzatou
 //           qui s'est retrouvée avec 2 matricules différents).
 // ══════════════════════════════════════════════════════════════
-async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre){
+async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre, formation_ordre){
   showLoadingOverlayV27(true, "Activation de l'accès…");
 
   try{
@@ -4418,11 +4432,11 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         adminMatricule:_s.matricule, adminPassword:_adminPwd,
-        reference, prenom, nom, tel, email, formation_titre
+        reference, prenom, nom, tel, email, formation_titre, formation_ordre
       })
     });
     const result = await res.json();
-    if(!res.ok) throw new Error(result.error || 'Erreur serveur.');
+    if(!res.ok) throw new Error(result.error || result.message || 'Erreur serveur.');
     const { matricule, pwd, formId } = result;
 
     // ── Email ────────────────────────────────────────────────────
