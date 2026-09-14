@@ -3091,7 +3091,7 @@ function openIdentifiantsModal(matricule, nomComplet, telephone, email){
     <div style="margin-bottom:18px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.4);margin-bottom:6px">Numéro WhatsApp (avec indicatif pays)</div>
       <div style="display:flex;gap:8px">
-        <input id="ident-tel" value="${escH((telephone||'').replace(/^\\+?227/,''))}" placeholder="Ex: 22790000000 (avec indicatif)" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:#fff;font-family:monospace">
+        <input id="ident-tel" value="${escH((telephone||'').replace(/^\+?227/,''))}" placeholder="Ex: 22790000000 (avec indicatif)" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:14px;color:#fff;font-family:monospace">
       </div>
       <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:6px">⚠️ Si l'apprenant n'a pas mis l'indicatif (227 pour le Niger, etc.), ajoutez-le devant le numéro avant d'envoyer.</div>
     </div>
@@ -3110,9 +3110,51 @@ function openIdentifiantsModal(matricule, nomComplet, telephone, email){
     <div id="ident-feedback" style="margin-top:12px;font-size:12px;color:#81c784;text-align:center"></div>
   `;
   modal.style.display = 'flex';
-  // Générer un mot de passe aléatoire dès l'ouverture de la modale
+  // Suggérer un mot de passe simple et mémorisable (prénom + jour/mois du jour),
+  // même format que pour les nouveaux comptes — l'admin peut toujours le modifier
+  // avant de cliquer "Réinitialiser".
   const pwdField = document.getElementById('ident-pwd');
-  if(pwdField && !pwdField.value) pwdField.value = genererMotDePasseAleatoire();
+  if(pwdField && !pwdField.value) pwdField.value = suggererMotDePasseSimple(nomComplet);
+
+  // Si le numéro n'a pas été transmis à l'ouverture, on le retrouve tout seul
+  // en arrière-plan (via l'email du compte, recherché dans les inscriptions)
+  // pour éviter d'avoir à le retaper à chaque fois.
+  if(!telephone){
+    rechercherTelephoneApprenant(matricule, email).then(tel=>{
+      const telField = document.getElementById('ident-tel');
+      if(tel && telField && !telField.value){
+        telField.value = tel.replace(/^\+?227/,'');
+      }
+    }).catch(()=>{});
+  }
+}
+
+// suggererMotDePasseSimple — même logique que côté serveur (prénom + JJMM du jour),
+// pour que les identifiants restés à l'ancien format soient faciles à mettre à jour.
+function suggererMotDePasseSimple(nomComplet){
+  const premierMot = String(nomComplet||'').trim().split(/\s+/)[0] || 'apprenant';
+  const base = premierMot.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'') || 'apprenant';
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2,'0');
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  return `${base}${dd}${mm}`;
+}
+
+// rechercherTelephoneApprenant — retrouve le numéro dans inscriptions via l'email
+// du compte (portail_comptes n'a pas de colonne téléphone), pour pré-remplir
+// automatiquement le champ WhatsApp de la modale Identifiants.
+async function rechercherTelephoneApprenant(matricule, email){
+  try{
+    const db = getDBv30();
+    let emailCible = email;
+    if(!emailCible && matricule){
+      const { data:compte } = await db.from('portail_comptes').select('email').eq('matricule', matricule).single();
+      emailCible = compte?.email;
+    }
+    if(!emailCible) return '';
+    const { data:insc } = await db.from('inscriptions').select('telephone').eq('email', emailCible).order('created_at',{ascending:false}).limit(1).single();
+    return insc?.telephone || '';
+  }catch(_){ return ''; }
 }
 
 function copierChamp(id){
