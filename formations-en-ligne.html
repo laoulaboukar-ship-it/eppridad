@@ -998,12 +998,18 @@ async function chargerFormationsSupabase(){
       _supaFormations = await res.json();
 
       // Ajouter dynamiquement les formations Supabase qui ne sont pas dans COURSES
-      const titresExistants = COURSES.map(c=>c.titre.toLowerCase().trim());
+      // (comparaison insensible aux accents — évite les faux doublons du type
+      // "Maraîchage" vs "Maraichage" qui ne s'écrivent pas pareil partout)
+      function normTitre(s){
+        return String(s||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      }
+      const titresExistants = COURSES.map(c=>normTitre(c.titre));
       (_supaFormations||[]).forEach(function(sup){
+        const supNorm = normTitre(sup.titre);
         const dejaDans = titresExistants.some(function(t){
-          return t===sup.titre.toLowerCase().trim() ||
-                 sup.titre.toLowerCase().includes(t.substring(0,15)) ||
-                 t.includes(sup.titre.toLowerCase().substring(0,15));
+          return t===supNorm ||
+                 supNorm.includes(t.substring(0,15)) ||
+                 t.includes(supNorm.substring(0,15));
         });
         if(!dejaDans && sup.publie){
           COURSES.push({
@@ -1020,7 +1026,7 @@ async function chargerFormationsSupabase(){
             supaId: sup.id,
             slug: sup.slug,
           });
-          titresExistants.push(sup.titre.toLowerCase().trim());
+          titresExistants.push(supNorm);
         }
       });
     }
