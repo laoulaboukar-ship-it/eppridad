@@ -4420,7 +4420,7 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
 //           d'en créer un nouveau (évite les doublons type Faïzatou
 //           qui s'est retrouvée avec 2 matricules différents).
 // ══════════════════════════════════════════════════════════════
-async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre, formation_ordre){
+async function quickActiverAcces(reference, prenom, nom, tel, email, formation_titre, formation_ordre, forceNewAccount){
   showLoadingOverlayV27(true, "Activation de l'accès…");
 
   try{
@@ -4432,11 +4432,30 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         adminMatricule:_s.matricule, adminPassword:_adminPwd,
-        reference, prenom, nom, tel, email, formation_titre, formation_ordre
+        reference, prenom, nom, tel, email, formation_titre, formation_ordre,
+        forceNewAccount: !!forceNewAccount
       })
     });
     const result = await res.json();
-    if(!res.ok) throw new Error(result.error || result.message || 'Erreur serveur.');
+    if(!res.ok){
+      // ── Doublon détecté par le serveur ────────────────────────
+      // Le message invite à "confirmer pour créer un nouveau compte" :
+      // on propose maintenant vraiment ce choix, au lieu de juste afficher
+      // l'erreur sans suite possible.
+      if(result.doublon && !forceNewAccount){
+        showLoadingOverlayV27(false);
+        const veutForcer = confirm(
+          (result.message || 'Un compte similaire existe déjà.') +
+          '\n\nCliquez sur OK pour créer quand même un nouveau compte distinct, ou Annuler pour ne rien faire' +
+          (result.matriculeExistant ? ' (et gérer plutôt le compte existant : '+result.matriculeExistant+').' : '.')
+        );
+        if(veutForcer){
+          return quickActiverAcces(reference, prenom, nom, tel, email, formation_titre, formation_ordre, true);
+        }
+        return; // Annulé par l'admin — pas d'erreur à afficher, c'était un choix volontaire
+      }
+      throw new Error(result.error || result.message || 'Erreur serveur.');
+    }
     const { matricule, pwd, formId } = result;
 
     // ── Email ────────────────────────────────────────────────────
