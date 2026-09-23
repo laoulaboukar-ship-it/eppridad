@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Formations en Ligne — EPPRIDAD | Certifiantes à Distance</title>
-<meta name="description" content="Formations certifiantes en ligne — EPPRIDAD Niamey. Agriculture, élevage, transformation agroalimentaire, environnement. 13 formations pratiques, certificat numérique vérifiable.">
+<meta name="description" content="Formations certifiantes en ligne — EPPRIDAD Niamey. Agriculture, élevage, transformation agroalimentaire, environnement. 29 formations pratiques, certificat numérique vérifiable.">
 <link rel="stylesheet" href="css/style.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a5d1a">
@@ -749,77 +749,6 @@ select.form-input:focus{background:#fff;}
     </div>
   </div>
 </div>
-        <div class="ps-title">Cours & Lectures</div>
-        <div class="ps-desc">Vous suivez les modules à votre rythme : cours texte enrichi, guides PDF illustrés, fiches pratiques de terrain.</div>
-      </div>
-      <div class="ps">
-        <div class="ps-circle">🔬<span class="ps-num">3</span></div>
-        <div class="ps-title">Exercices pratiques</div>
-        <div class="ps-desc">Après chaque module, vous réalisez un exercice sur le terrain ou à domicile, avec une fiche de suivi que vous remplissez.</div>
-      </div>
-      <div class="ps">
-        <div class="ps-circle">✅<span class="ps-num">4</span></div>
-        <div class="ps-title">Quiz de validation</div>
-        <div class="ps-desc">Un quiz de 20 questions à choix multiple valide chaque module. Score minimum : 70%. 3 tentatives autorisées par module.</div>
-      </div>
-      <div class="ps">
-        <div class="ps-circle">🏅<span class="ps-num">5</span></div>
-        <div class="ps-title">Certificat officiel</div>
-        <div class="ps-desc">Vous obtenez votre certificat EPPRIDAD numéroté, avec votre score, la mention et la signature du directeur pédagogique.</div>
-      </div>
-    </div>
-
-    <div class="process-detail">
-      <div class="pd-card">
-        <div class="pd-num">📹</div>
-        <div class="pd-title">Ce que contient chaque module</div>
-        <div class="pd-text">Chaque module (2h en moyenne) comprend :</div>
-        <ul class="pd-list">
-          <li>1 cours complet illustré avec schémas, tableaux et cas pratiques Niger</li>
-          <li>1 guide PDF illustré à télécharger et garder</li>
-          <li>1 fiche d'exercice pratique à réaliser sur le terrain</li>
-          <li>1 quiz de validation (min. 70% pour passer au module suivant)</li>
-          <li>Accès WhatsApp pour poser vos questions à l'équipe pédagogique EPPRIDAD</li>
-        </ul>
-      </div>
-      <div class="pd-card">
-        <div class="pd-num">🏛️</div>
-        <div class="pd-title">Crédibilité & Reconnaissance</div>
-        <div class="pd-text">Notre processus est conçu pour être auditable :</div>
-        <ul class="pd-list">
-          <li>Chaque formation enregistrée dans notre base de données Supabase (traçabilité)</li>
-          <li>Score de quiz horodaté, tentatives enregistrées, IP de connexion journalisée</li>
-          <li>Certificat avec numéro unique vérifiable sur notre site</li>
-          <li>Contenu conçu en accord avec les standards de formation professionnelle</li>
-          <li>Formations élaborées par des experts du terrain agricole nigérien</li>
-        </ul>
-      </div>
-      <div class="pd-card">
-        <div class="pd-num">💬</div>
-        <div class="pd-title">Support pédagogique inclus</div>
-        <div class="pd-text">Vous n'êtes jamais seul :</div>
-        <ul class="pd-list">
-          <li>Groupe WhatsApp dédié par formation (échanges entre apprenants)</li>
-          <li>Formateur EPPRIDAD répond sous 24h aux questions techniques</li>
-          <li>Correction personnalisée des exercices par l'équipe pédagogique EPPRIDAD</li>
-          <li>Accès au matériel de cours pendant 12 mois après la formation</li>
-        </ul>
-      </div>
-      <div class="pd-card">
-        <div class="pd-num">⏱️</div>
-        <div class="pd-title">Durée et rythme</div>
-        <div class="pd-text">Adapté à votre emploi du temps :</div>
-        <ul class="pd-list">
-          <li>Formations de 5 à 12 heures de contenu (étalées sur 1 à 4 semaines)</li>
-          <li>Aucun horaire fixe — vous avancez à votre rythme</li>
-          <li>Accès depuis votre téléphone, hors ligne possible</li>
-          <li>Pause possible — votre progression est sauvegardée</li>
-          <li>Délai maximum : 3 mois pour terminer une formation</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ══ MODAL INSCRIPTION ══ -->
 <div class="modal-overlay" id="enroll-modal">
@@ -1061,6 +990,14 @@ function getFormationData(courseId){
   return c;
 }
 
+// prixEffectif — le prix réellement dû, promo appliquée si la formation en a une.
+// Utilisé PARTOUT (carte, formulaire d'inscription, montant à payer, note admin)
+// pour que le prix annoncé au visiteur soit toujours le même que celui demandé au paiement.
+function prixEffectif(c){
+  if(!c) return 0;
+  return c.promo ? Math.round(c.prix*0.7) : c.prix;
+}
+
 
 // Ouvre/ferme le panneau de détail d'une card
 function toggleCardDetail(id){
@@ -1159,7 +1096,7 @@ var enrollStep=1;
 var selectedPay=null;
 
 function openEnroll(id){
-  currentCourse=COURSES.find(c=>c.id===id);
+  currentCourse=getFormationData(id);
   if(!currentCourse)return;
   enrollStep=1;selectedPay=null;
   document.getElementById('enroll-modal-title').textContent='🎓 '+currentCourse.titre;
@@ -1189,7 +1126,7 @@ function renderEnrollStep(){
     body.innerHTML=stepsHtml+`
       <div style="background:var(--gp);border:1px solid rgba(26,93,26,.2);border-radius:10px;padding:14px;margin-bottom:18px;">
         <div style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:4px;">${c.emoji} ${c.titre}</div>
-        <div style="font-size:12px;color:var(--tl);">⏱ ${c.duree} · ${c.niveau} · 🏅 Certifiante · Prix : ${c.prix.toLocaleString('fr-FR')} FCFA</div>
+        <div style="font-size:12px;color:var(--tl);">⏱ ${c.duree} · ${c.niveau} · 🏅 Certifiante · Prix : ${prixEffectif(c).toLocaleString('fr-FR')} FCFA</div>
       </div>
       <div class="form-group"><label class="form-label">Prénom et Nom *</label><input class="form-input" id="f-nom" placeholder="Ex: Aminatou Sidikou" required oninput="localStorage.setItem('enroll_nom',this.value)" value=""></div>
       <div class="form-group"><label class="form-label">Téléphone WhatsApp *</label><input class="form-input" id="f-tel" type="tel" placeholder="+227 XX XX XX XX" required oninput="localStorage.setItem('enroll_tel',this.value)" value=""></div>
@@ -1208,7 +1145,7 @@ function renderEnrollStep(){
       <button class="btn-confirm" onclick="saveEnrollData();goStep2()">Continuer vers le paiement →</button>`;
   } else if(enrollStep===2){
     body.innerHTML=stepsHtml+`
-      <div style="font-size:14px;font-weight:700;color:var(--dark);margin-bottom:16px;">Montant à payer : <span style="color:var(--g);font-size:20px;">${c.prix.toLocaleString('fr-FR')} FCFA</span></div>
+      <div style="font-size:14px;font-weight:700;color:var(--dark);margin-bottom:16px;">Montant à payer : <span style="color:var(--g);font-size:20px;">${prixEffectif(c).toLocaleString('fr-FR')} FCFA</span></div>
       <div style="background:rgba(22,80,63,.06);border:1px solid rgba(22,80,63,.15);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
         <div style="font-size:20px">📞</div>
         <div>
@@ -1246,7 +1183,7 @@ function renderEnrollStep(){
       `Téléphone : ${document.getElementById('f-tel')?.value||''}\n`+
       `Email : ${document.getElementById('f-email')?.value||'Non renseigné'}\n`+
       `Région : ${document.getElementById('f-region')?.value||''}\n`+
-      `Paiement : ${selectedPay?.toUpperCase()} — ${c.prix?.toLocaleString('fr-FR')} FCFA\n`+
+      `Paiement : ${selectedPay?.toUpperCase()} — ${prixEffectif(c).toLocaleString('fr-FR')} FCFA\n`+
       `Motif : ${document.getElementById('f-motif')?.value||'Non précisé'}\n\n`+
       `✅ Action requise : vérifier le paiement et activer l'accès dans le panel admin.`;
 
@@ -1319,7 +1256,7 @@ function selectPay(method,el){
   document.querySelectorAll('.pay-method').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
   const instr=document.getElementById('pay-instr');
-  const montant = currentCourse?.prix?.toLocaleString('fr-FR') || '—';
+  const montant = prixEffectif(currentCourse).toLocaleString('fr-FR') || '—';
   const waLink = `https://wa.me/${window.CFG ? window.CFG.WA_NUM : '22799851532'}?text=${encodeURIComponent('Bonjour EPPRIDAD, je viens d\'effectuer un dépôt pour la formation : '+( currentCourse?.titre||'')+'. Montant : '+montant+' FCFA. Veuillez trouver ma preuve de paiement ci-jointe.')}`;
   const proofNote = `<div style="margin-top:12px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.25);border-radius:9px;padding:12px 14px;">
     <div style="font-size:12.5px;font-weight:700;color:#1a7a40;margin-bottom:6px">📤 Envoyer la preuve de paiement</div>
@@ -1385,7 +1322,7 @@ function goStep3(){
       ville: region,
       type_inscription: 'enligne',
       statut: 'en_attente',
-      note_admin: `Prix: ${(currentCourse?.prix||0).toLocaleString('fr-FR')} FCFA · Paiement via ${selectedPay} · ID formation: ${currentCourse?.id||''}`,
+      note_admin: `Prix: ${prixEffectif(currentCourse).toLocaleString('fr-FR')} FCFA · Paiement via ${selectedPay} · ID formation: ${currentCourse?.id||''}`,
       lu: false,
       reference: ref
     }).catch(()=>{});
@@ -1397,7 +1334,7 @@ function goStep3(){
       '🎓 NOUVELLE INSCRIPTION EPPRIDAD\n' +
       '─────────────────────────────\n' +
       'Formation : ' + (currentCourse?.titre||'—') + '\n' +
-      'Prix      : ' + (currentCourse?.prix||0).toLocaleString('fr-FR') + ' FCFA\n' +
+      'Prix      : ' + prixEffectif(currentCourse).toLocaleString('fr-FR') + ' FCFA\n' +
       'Paiement  : ' + (selectedPay||'—') + '\n' +
       '─────────────────────────────\n' +
       'Nom       : ' + nom + '\n' +
@@ -1418,7 +1355,7 @@ function goStep3(){
       const emailBody = 
         'NOUVELLE INSCRIPTION FORMATION EN LIGNE\n\n' +
         'Formation  : ' + (currentCourse?.titre||'—') + '\n' +
-        'Prix       : ' + (currentCourse?.prix||0).toLocaleString('fr-FR') + ' FCFA\n' +
+        'Prix       : ' + prixEffectif(currentCourse).toLocaleString('fr-FR') + ' FCFA\n' +
         'Paiement   : ' + (selectedPay||'—') + '\n' +
         'Référence  : ' + ref + '\n\n' +
         'APPRENANT\n' +
