@@ -77,12 +77,14 @@ function normaliserTel(tel){
   if(t.length <= 8) return '227' + t; // numéro local nigérien
   return t;
 }
-// extraireOrdreFormation — lit le numéro d'ordre de la formation choisie à l'inscription,
-// stocké en texte dans inscriptions.resume (ex: "Prix: 15 000 FCFA · Paiement via wave · ID formation: 9").
-// C'est la source la plus fiable pour rattacher automatiquement le bon accès formation
-// (bien plus fiable qu'une recherche par titre ou par filière).
-function extraireOrdreFormation(resume){
-  const m = String(resume||'').match(/id\s*formation\s*:?\s*(\d+)/i);
+// extraireOrdreFormation — lit le numéro d'ordre de la formation choisie à l'inscription.
+// Cette info peut se trouver dans DEUX champs différents selon le formulaire d'origine :
+// - inscriptions.resume (anciens formulaires / autres sources)
+// - inscriptions.note_admin (formulaire actuel de formations-en-ligne.html)
+// On vérifie les deux pour ne jamais rater l'info selon la provenance de l'inscription.
+function extraireOrdreFormation(resume, noteAdmin){
+  const texte = String(resume||'') + ' ' + String(noteAdmin||'');
+  const m = texte.match(/id\s*formation\s*:?\s*(\d+)/i);
   return m ? m[1] : '';
 }
 function genererMotDePasseAleatoire(){
@@ -3148,7 +3150,9 @@ async function rechercherTelephoneApprenant(matricule, email){
     const db = getDBv30();
     let emailCible = email;
     if(!emailCible && matricule){
-      const { data:compte } = await db.from('portail_comptes').select('email').eq('matricule', matricule).single();
+      // Jamais d'accès direct à portail_comptes : on passe par la passerelle admin (règle du projet).
+      const comptes = await adminApi('lister_comptes', {}).then(r=>r.data||[]).catch(()=>[]);
+      const compte = comptes.find(x=>String(x.matricule||'').toUpperCase()===String(matricule).toUpperCase());
       emailCible = compte?.email;
     }
     if(!emailCible) return '';
@@ -3594,11 +3598,15 @@ async function ouvrirFicheApprenantParMatricule(matricule, nomComplet){
   modal.style.display='flex';
   try{
     const db2=getDBv30();
-    const [r1,r2,r3,r4]=await Promise.all([
-      db2.from('acces_formations').select('*').eq('matricule',matricule).order('created_at',{ascending:false}),
-      db2.from('certificats').select('*').eq('matricule',matricule).order('date_emission',{ascending:false}),
-      db2.from('formations_enligne').select('id,titre,emoji,prix_fcfa'),
-      db2.from('resultats_quiz').select('formation_id,pourcentage,reussi,created_at').eq('matricule',matricule).order('created_at',{ascending:false}),
+    const delaiDepasse = new Promise((_,reject)=>setTimeout(()=>reject(new Error("Le chargement prend trop de temps (connexion lente ou instable). Fermez cette fenêtre et réessayez.")), 12000));
+    const [r1,r2,r3,r4]=await Promise.race([
+      Promise.all([
+        db2.from('acces_formations').select('*').eq('matricule',matricule).order('created_at',{ascending:false}),
+        db2.from('certificats').select('*').eq('matricule',matricule).order('date_emission',{ascending:false}),
+        db2.from('formations_enligne').select('id,titre,emoji,prix_fcfa'),
+        db2.from('resultats_quiz').select('formation_id,pourcentage,reussi,created_at').eq('matricule',matricule).order('created_at',{ascending:false}),
+      ]),
+      delaiDepasse
     ]);
     const acces=r1.data||[], certs=r2.data||[], formations=r3.data||[], quiz=r4.data||[];
     const formMap={}; formations.forEach(f=>{formMap[f.id]=f;});
@@ -4246,7 +4254,7 @@ function renderInscriptionCard(i){
 
           <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0;min-width:130px">
             ${i.type_inscription==='enligne'&&i.statut!=='traite'?`
-            <button onclick="quickActiverAcces('${safeAttr(i.reference)}','${safeAttr(i.prenom)}','${safeAttr(i.nom)}','${safeAttr(i.telephone)}','${safeAttr(i.email)}','${safeAttr(i.filiere)}','${safeAttr(extraireOrdreFormation(i.resume))}')"
+            <button onclick="quickActiverAcces('${safeAttr(i.reference)}','${safeAttr(i.prenom)}','${safeAttr(i.nom)}','${safeAttr(i.telephone)}','${safeAttr(i.email)}','${safeAttr(i.filiere)}','${safeAttr(extraireOrdreFormation(i.resume, i.note_admin))}')"
               style="background:linear-gradient(135deg,#0b2f25,#16503f);color:#C9A84C;border:none;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;text-align:center;letter-spacing:.3px;box-shadow:0 4px 14px rgba(22,80,63,.35);transition:all .2s"
               onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
               🔑 Activer l'accès en ligne
@@ -4311,6 +4319,16 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
   </div>`;
   modal.style.display='flex';
 
+  // Filet de sécurité : si rien n'a remplacé le message de chargement après 12s
+  // (connexion lente, requête qui ne répond ni en succès ni en échec), on le dit
+  // clairement au lieu de laisser la fenêtre bloquée indéfiniment sans explication.
+  setTimeout(()=>{
+    const b = document.getElementById('fiche-appr-body');
+    if(b && b.innerHTML.includes('Recherche de tous les comptes liés')){
+      b.innerHTML = '<div style="text-align:center;padding:30px;color:#ef9a9a">Le chargement prend trop de temps (connexion lente ou instable).<br>Fermez cette fenêtre et réessayez.</div>';
+    }
+  }, 12000);
+
   try{
     const db2 = getDBv30();
 
@@ -4340,7 +4358,7 @@ async function ouvrirFicheApprenant(email, prenom, nom, telephone, reference){
     const inscriptionCiblee = (inscriptionsLiees||[]).find(x=>x.reference===reference)
       || (inscriptionsLiees||[]).find(x=>x.statut!=='traite')
       || (inscriptionsLiees||[])[0];
-    const ordreFormationCible = extraireOrdreFormation(inscriptionCiblee?.resume);
+    const ordreFormationCible = extraireOrdreFormation(inscriptionCiblee?.resume, inscriptionCiblee?.note_admin);
 
     const body = document.getElementById('fiche-appr-body');
 
@@ -4498,7 +4516,7 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
       }
       throw new Error(result.error || result.message || 'Erreur serveur.');
     }
-    const { matricule, pwd, formId } = result;
+    const { matricule, pwd, formId, accesErreur } = result;
 
     // ── Email ────────────────────────────────────────────────────
     if(email && typeof emailAccesAccorde === 'function'){
@@ -4525,6 +4543,13 @@ async function quickActiverAcces(reference, prenom, nom, tel, email, formation_t
       showActivationModal({ prenom, nom, matricule, pwd, formId, waUrl, tel: tel||'—', email: email||null });
     } else {
       toast('✅ Accès activé — Matricule : '+matricule+' / Mot de passe : '+pwd, 6000);
+    }
+
+    // Si le compte est créé mais que l'accès à la formation n'a pas pu être enregistré,
+    // on le dit clairement à l'admin (au lieu de laisser l'apprenant découvrir un espace vide).
+    if(accesErreur){
+      const msgAcces = '⚠️ Compte créé, mais l\'accès à la formation n\'a PAS été enregistré ('+accesErreur+'). Ajoutez-la via « Gérer accès » avant d\'envoyer les identifiants.';
+      if(typeof showToastV27==='function') showToastV27(msgAcces, '#e65100'); else toast(msgAcces, 9000);
     }
 
     if(typeof loadInscriptions==='function') loadInscriptions();
