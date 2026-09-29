@@ -201,9 +201,10 @@ async function doInscription(){
 }
 
 // ── SESSION UNIQUE — sécurité anti-partage de code ────────────
-function generateSessionToken(){
-  return 'tok_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2,10);
-}
+// Le jeton est désormais fabriqué uniquement côté serveur (login-securise),
+// avec une source aléatoire sécurisée. Cette ancienne fonction n'était plus
+// utilisée nulle part ici (le site l'a toujours reçu de la fonction serveur) ;
+// retirée pour ne pas laisser une fabrication de jeton devinable dans le code.
 
 var _sessionCheckInterval = null;
 function startSessionWatch(){
