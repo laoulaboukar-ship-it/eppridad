@@ -211,14 +211,18 @@ function startSessionWatch(){
   _sessionCheckInterval = setInterval(async function(){
     if(!_s || _s.role==='admin') return;
     try{
+      const localToken = localStorage.getItem('eppr_session_token_v30');
+      if(!localToken) return;
+      // Le site envoie désormais SON PROPRE jeton pour vérification ; le serveur
+      // ne le renvoie plus jamais (avant, il suffisait de connaître un matricule
+      // pour récupérer le jeton valide de n'importe quel apprenant).
       const res = await fetch(`${SUPABASE_URL}/functions/v1/verifier-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricule: _s.matricule })
+        body: JSON.stringify({ matricule: _s.matricule, token: localToken })
       });
       const data = await res.json();
       if(!data || !data.ok) return;
-      const localToken = localStorage.getItem('eppr_session_token_v30');
       if(data.statut==='suspendu' || data.statut==='supprime'){
         forceLogout('Votre compte a été suspendu. Contactez EPPRIDAD.');
         return;
@@ -227,7 +231,7 @@ function startSessionWatch(){
         forceLogout('Votre accès a expiré. Contactez EPPRIDAD pour le renouveler.');
         return;
       }
-      if(data.session_token && localToken && data.session_token !== localToken){
+      if(data.session_valide === false){
         forceLogout('⚠️ Votre session a été ouverte sur un autre appareil. Par sécurité, vous avez été déconnecté.');
       }
     }catch(e){ /* silencieux */ }
