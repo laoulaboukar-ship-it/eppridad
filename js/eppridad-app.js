@@ -637,7 +637,9 @@ async function ouvrirFormation(formationId, titre){
         if(isEnfant){
           const nomEnfant = prompt('🎓 Cette formation est pour votre enfant.\n\nVeuillez saisir le prénom et nom complet de l\'enfant\n(il apparaîtra sur le certificat) :');
           if(nomEnfant && nomEnfant.trim().length > 1){
-            await db.from('acces_formations').update({nom_certificat: nomEnfant.trim()}).eq('id', accesRow.id);
+            const token = localStorage.getItem('eppr_session_token_v30');
+            const { error: errNom } = await db.rpc('maj_nom_certificat', { p_matricule:_s.matricule, p_token:token, p_formation:formationId, p_nom:nomEnfant.trim() });
+            if(errNom) toast('⚠️ '+(errNom.message||"Impossible d'enregistrer le nom."), 4000);
           }
         }
       }
@@ -815,7 +817,10 @@ async function afficherContenu(module, onglet){
   }
 
   if(onglet==='quiz'){
-    const { data:qs } = await db.from('quiz_questions').select('*').eq('module_id',module.id).order('ordre');
+    // La bonne réponse et l'explication ne sont plus incluses ici : elles ne sont
+    // connues qu'après correction par le serveur (fonction soumettre_quiz), pour
+    // qu'on ne puisse plus les lire dans le navigateur avant d'avoir répondu.
+    const { data:qs } = await db.from('quiz_questions').select('id,module_id,formation_id,question,option_a,option_b,option_c,option_d,ordre,points').eq('module_id',module.id).order('ordre');
     // Vérifier résultat existant
     const { data:prev } = await db.from('resultats_quiz').select('*').eq('matricule',_s.matricule).eq('module_id',module.id).order('created_at',{ascending:false}).limit(1);
     const prevRes = prev?.[0];
@@ -956,36 +961,44 @@ function selOpt(qId, lettre){
 async function validerQuiz(questions, moduleId){
   if(Object.keys(_cours.quizRep).length < questions.length){ toast('⚠️ Répondez à toutes les questions.'); return; }
   _cours.quizDone = true;
-  let score = 0;
-  questions.forEach(q=>{
-    const rep = _cours.quizRep[q.id];
-    const bon = (q.reponse_correcte||'').toLowerCase().trim();
-    const optEl = document.getElementById(`opt-${q.id}-${rep}`);
-    const bonEl = document.getElementById(`opt-${q.id}-${bon}`);
-    document.querySelectorAll(`[id^="opt-${q.id}-"]`).forEach(e=>{ e.classList.add('disabled'); e.onclick=null; });
-    if(rep===bon){ score++; optEl?.classList.add('correct'); }
-    else { optEl?.classList.add('wrong'); bonEl?.classList.add('correct'); }
-    const exp = document.getElementById(`exp-${q.id}`);
-    if(exp&&q.explication){ exp.textContent = (rep===bon?'✅ ':'❌ ')+q.explication; exp.classList.add('show'); if(rep!==bon)exp.classList.add('wrong-expl'); }
+
+  // Le quiz est désormais corrigé PAR LE SERVEUR (fonction soumettre_quiz) : le
+  // navigateur ne calcule plus le score lui-même et ne connaît la bonne réponse
+  // qu'une fois la correction reçue. Aucune limite de tentatives : l'objectif
+  // est de comprendre et réussir, pas de bloquer.
+  const token = localStorage.getItem('eppr_session_token_v30');
+  const { data, error } = await getDBv30().rpc('soumettre_quiz', {
+    p_matricule: _s.matricule, p_token: token, p_module: moduleId, p_reponses: _cours.quizRep
   });
-  const pct = Math.round(score/questions.length*100);
-  const reussi = pct>=70;
-  // Sauvegarder
-  const { data:prev } = await getDBv30().from('resultats_quiz').select('tentative').eq('matricule',_s.matricule).eq('module_id',moduleId).order('created_at',{ascending:false}).limit(1);
-  const tent = (prev?.[0]?.tentative||0)+1;
-  await getDBv30().from('resultats_quiz').insert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,score,score_max:questions.length,pourcentage:pct,reussi,tentative:tent});
-  
+  if(error){
+    toast('⚠️ '+(error.message||'Erreur lors de la correction du quiz.'), 5000);
+    _cours.quizDone = false;
+    return;
+  }
+  const { score, score_max, pourcentage:pct, reussi, corrections } = data;
+
+  (corrections||[]).forEach(c=>{
+    const rep = _cours.quizRep[c.question_id];
+    const optEl = document.getElementById(`opt-${c.question_id}-${rep}`);
+    const bonEl = document.getElementById(`opt-${c.question_id}-${c.bonne_reponse}`);
+    document.querySelectorAll(`[id^="opt-${c.question_id}-"]`).forEach(e=>{ e.classList.add('disabled'); e.onclick=null; });
+    if(c.correct){ optEl?.classList.add('correct'); }
+    else { optEl?.classList.add('wrong'); bonEl?.classList.add('correct'); }
+    const exp = document.getElementById(`exp-${c.question_id}`);
+    if(exp&&c.explication){ exp.textContent = (c.correct?'✅ ':'❌ ')+c.explication; exp.classList.add('show'); if(!c.correct)exp.classList.add('wrong-expl'); }
+  });
+
   const resEl = document.getElementById('quiz-result');
   if(resEl){
     resEl.style.display='block';
     resEl.innerHTML=`
-      <div class="qr-score">${score}/${questions.length}</div>
+      <div class="qr-score">${score}/${score_max}</div>
       <div class="qr-pct">${pct}%</div>
       <div class="qr-mention" style="color:${reussi?'var(--ok)':'var(--rd)'}">${reussi?'🎉 Module validé !':'❌ Score insuffisant (minimum 70%)'}</div>
-      ${reussi?`<p style="color:var(--gris);font-size:13.5px;margin-bottom:16px">Félicitations ! Votre progression a été enregistrée.</p>`:`<p style="color:var(--gris);font-size:13.5px;margin-bottom:16px">Revoyez le cours et réessayez. ${tent>=3?'Contactez EPPRIDAD si vous avez besoin d\'aide.':''}</p>`}
+      ${reussi?`<p style="color:var(--gris);font-size:13.5px;margin-bottom:16px">Félicitations ! Votre progression a été enregistrée.</p>`:`<p style="color:var(--gris);font-size:13.5px;margin-bottom:16px">Revoyez le cours et réessayez, autant de fois que nécessaire.</p>`}
       <div class="qr-acts">
         ${reussi?`<button class="btn-qr btn-qr-next" onclick="marquerTermine('${moduleId}')">✅ Valider & continuer</button>`:''}
-        ${!reussi&&tent<3?`<button class="btn-qr btn-qr-redo" onclick="chargerModule(${_cours.moduleIdx})">🔄 Réessayer (${3-tent} restant${3-tent>1?'s':''})</button>`:''}
+        ${!reussi?`<button class="btn-qr btn-qr-redo" onclick="chargerModule(${_cours.moduleIdx})">🔄 Réessayer</button>`:''}
         <button class="btn-qr btn-qr-redo" onclick="switchOnglet('cours',null);document.querySelectorAll('.onglet').forEach((o,i)=>o.classList.toggle('active',i===0))">📖 Revoir le cours</button>
       </div>`;
     resEl.scrollIntoView({behavior:'smooth'});
@@ -994,7 +1007,9 @@ async function validerQuiz(questions, moduleId){
 }
 
 async function marquerTermine(moduleId){
-  await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:true,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id'});
+  const token = localStorage.getItem('eppr_session_token_v30');
+  const { error } = await getDBv30().rpc('marquer_module', { p_matricule:_s.matricule, p_token:token, p_module:moduleId, p_complete:true });
+  if(error){ toast('⚠️ '+(error.message||'Erreur lors de la validation du module.'), 5000); return; }
   toast('✅ Module complété !');
   await buildSidebarModules();
   verifierEtAttribuerBadge(_cours.formationId); // badges de progression
@@ -1029,14 +1044,14 @@ async function verifierEtAttribuerBadge(formationId){
     afficherBadgeNotification(badge);
 
     const { data:formation } = await db.from('formations_enligne').select('titre').eq('id', formationId).single();
-    await db.from('notifications_etudiant').insert({
+    try{ await db.from('notifications_etudiant').insert({
       matricule: _s.matricule,
       title: badge.ico + ' ' + badge.label,
       body: formation?.titre || 'Formation EPPRIDAD',
       type: 'badge',
       lu: false,
       date: new Date().toLocaleDateString('fr-FR'),
-    }).catch(()=>{});
+    }); }catch(_){}
   }catch(e){ console.warn('[badge]', e); } // jamais bloquant
 }
 
@@ -1147,7 +1162,8 @@ async function afficherRecommandations(){
 }
 
 async function trackLecture(moduleId){
-  await getDBv30().from('progression_apprenant').upsert({matricule:_s.matricule,formation_id:_cours.formationId,module_id:moduleId,complete:false,date_completion:new Date().toISOString()},{onConflict:'matricule,module_id'});
+  const token = localStorage.getItem('eppr_session_token_v30');
+  await getDBv30().rpc('marquer_module', { p_matricule:_s.matricule, p_token:token, p_module:moduleId, p_complete:false }).catch(()=>{});
 }
 
 function goModule(dir){
@@ -1158,35 +1174,25 @@ function goModule(dir){
 
 // ── CERTIFICAT ───────────────────────────────────────────────
 async function afficherCertificat(){
-  const db = getDBv30();
-  const { data:existing } = await db.from('certificats').select('*').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId).single();
-  
-  // nom_certificat : nom de l'enfant pour F29 (saisi dans acces_formations)
-  let nomCertificat = null;
-  try{
-    const { data:ar } = await db.from('acces_formations').select('nom_certificat').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId).single();
-    nomCertificat = ar?.nom_certificat || null;
-  }catch(_){}
-  const nomPourCertificat = nomCertificat || _s.nom || _s.matricule;
-
-  let cert = existing;
-  if(!cert){
-    // Générer le certificat
-    const { data:results } = await db.from('resultats_quiz').select('pourcentage,reussi').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId);
-    const scores = (results||[]).filter(r=>r.reussi).map(r=>r.pourcentage);
-    const avg = scores.length ? scores.reduce((a,b)=>a+b)/scores.length : 0;
-    const mention = avg>=90?'Excellence':avg>=80?'Très Bien':avg>=70?'Bien':'Passable';
-    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let suf=''; for(let i=0;i<6;i++) suf+=charset[Math.floor(Math.random()*charset.length)];
-    const num = `CERT-${new Date().getFullYear()}-EPP-${suf}`;
-    // nom_apprenant = nom_certificat si défini (F29 enfant), sinon nom du compte
-    const { data:newCert } = await db.from('certificats').insert({matricule:_s.matricule,formation_id:_cours.formationId,numero:num,nom_apprenant:nomPourCertificat,score_final:Math.round(avg*10)/10,mention,valide:true,date_emission:new Date().toISOString()}).select().single();
-    cert = newCert || {numero:num,nom_apprenant:nomPourCertificat,mention,score_final:Math.round(avg*10)/10,date_emission:new Date().toISOString()};
-  }
-  // Priorité : nom_certificat (enfant F29) > nom_apprenant stocké > nom du compte
-  const nomAffiche = nomCertificat || cert.nom_apprenant || _s.nom;
-
   const container = document.getElementById('module-content');
+  // Le certificat est désormais délivré PAR LE SERVEUR (fonction emettre_certificat) :
+  // il vérifie lui-même que tous les modules sont réussis, calcule la moyenne, la
+  // mention et le numéro. Si un module n'est pas encore réussi, le serveur refuse
+  // et on l'affiche clairement au lieu de générer un certificat prématuré.
+  const token = localStorage.getItem('eppr_session_token_v30');
+  const { data:cert, error } = await getDBv30().rpc('emettre_certificat', {
+    p_matricule: _s.matricule, p_token: token, p_formation: _cours.formationId
+  });
+  if(error){
+    container.innerHTML = `<div style="padding:50px 24px;text-align:center">
+      <div style="font-size:40px;margin-bottom:14px">🎓</div>
+      <div style="font-size:15px;font-weight:700;color:var(--dark,#222);margin-bottom:8px">Certificat pas encore disponible</div>
+      <div style="font-size:13px;color:var(--gris)">${escH(error.message||'Terminez tous les modules avec un quiz réussi (70% minimum) pour obtenir votre certificat.')}</div>
+    </div>`;
+    container.scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  const nomAffiche = cert.nom_apprenant || _s.nom;
   const dateStr = cert.date_emission ? new Date(cert.date_emission).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
   const formTitre = document.getElementById('cs-formation-titre').textContent;
   const verifyUrl = `https://www.eppridad.com/verifier.html?cert=${encodeURIComponent(cert.numero||'')}`;
@@ -1850,8 +1856,6 @@ async function ouvrirCorrectionExo(soumId){
     try{ await getDBv30().from('soumissions_exercices').update({statut:'en_correction'}).eq('id',soumId); s.statut='en_correction'; }catch(_){}
   }
 
-  const phone = s.matricule; // Le matricule contient parfois le tel — on utilisera le compte
-  const wa = `https://wa.me/${WA_NUM_V30}`;
 
   document.getElementById('exo-modal-content').innerHTML = `
     <!-- Header modal -->
@@ -1915,9 +1919,9 @@ async function ouvrirCorrectionExo(soumId){
         <button onclick="sauvegarderEtEnvoyerEmail('${soumId}','${s.matricule}','${escH(f.titre)}','${escH(m.titre)}')" style="background:rgba(33,150,243,.2);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex:1">
           ✉️ Sauvegarder + Email
         </button>
-        <a href="https://wa.me/${WA_NUM_V30}?text=${encodeURIComponent(`Correction exercice EPPRIDAD pour ${c.nom_complet||s.matricule} — Formation: ${f.titre} · Module ${m.ordre}`)}" target="_blank" style="background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:none;display:flex;align-items:center;gap:6px">
-          💬 WhatsApp
-        </a>
+        <button onclick="sauvegarderEtEnvoyerWhatsApp('${soumId}','${s.matricule}','${escH(c.nom_complet||s.matricule)}','${escH(f.titre)}','${escH(m.titre)}')" style="background:rgba(37,211,102,.12);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+          💬 Sauvegarder + WhatsApp
+        </button>
       </div>
     </div>`;
 
@@ -1969,14 +1973,14 @@ async function sauvegarderCorrectionExo(soumId, matricule, formationTitre, modul
     const bodyNotif = commentaire
       ? `${moduleTitre} — ${formationTitre}\n💬 ${commentaire}${note?` (Note : ${note}/20)`:''}`
       : `${moduleTitre} — ${formationTitre}${note?` (Note : ${note}/20)`:''}`;
-    await getDBv30().from('notifications_etudiant').insert({
+    try{ await getDBv30().from('notifications_etudiant').insert({
       matricule,
       title: msgStatut,
       body: bodyNotif,
       type: 'exercice',
       lu: false,
       date: new Date().toLocaleDateString('fr-FR'),
-    }).catch(e => console.warn('[notif exercice]', e));
+    }); }catch(e){ console.warn('[notif exercice]', e); }
 
     toast('✅ Correction sauvegardée — apprenant notifié');
     fermerModalExo();
@@ -1985,10 +1989,13 @@ async function sauvegarderCorrectionExo(soumId, matricule, formationTitre, modul
 }
 
 async function sauvegarderEtEnvoyerEmail(soumId, matricule, formationTitre, moduleTitre){
-  await sauvegarderCorrectionExo(soumId, matricule, formationTitre, moduleTitre);
-  // Envoyer email à l'apprenant
+  // On capture le commentaire et la note AVANT la sauvegarde : sauvegarderCorrectionExo()
+  // ferme la fenêtre de correction, donc lire ces champs après coup renvoyait toujours
+  // du vide, et l'email envoyait systématiquement un texte générique au lieu du vrai
+  // commentaire écrit par l'admin.
   const commentaire = document.getElementById('exo-commentaire')?.value||'Votre exercice a été corrigé.';
   const note = document.getElementById('exo-note')?.value;
+  await sauvegarderCorrectionExo(soumId, matricule, formationTitre, moduleTitre);
   if(typeof emailjs !== 'undefined'){
     const tousComptes = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
     const compte = (tousComptes||[]).find(c=>c.matricule===matricule);
@@ -2004,6 +2011,34 @@ async function sauvegarderEtEnvoyerEmail(soumId, matricule, formationTitre, modu
 }
 
 
+
+async function sauvegarderEtEnvoyerWhatsApp(soumId, matricule, nomComplet, formationTitre, moduleTitre){
+  // Même principe que pour l'email : on capture tout AVANT que la sauvegarde
+  // ne ferme la fenêtre de correction.
+  const statut = window._exoCorrectionStatut||'valide';
+  const commentaire = document.getElementById('exo-commentaire')?.value||'Votre exercice a été corrigé.';
+  const note = document.getElementById('exo-note')?.value;
+
+  await sauvegarderCorrectionExo(soumId, matricule, formationTitre, moduleTitre);
+
+  const tousComptes = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
+  const compte = (tousComptes||[]).find(c=>c.matricule===matricule);
+  // Numéro réel de l'apprenant (retrouvé via son email) : avant, ce bouton envoyait
+  // vers le numéro de l'école elle-même, avec un message qui ne contenait ni le
+  // commentaire ni la note — juste le nom de la formation et du module.
+  const telApprenant = await rechercherTelephoneApprenant(matricule, compte?.email);
+  if(!telApprenant){ toast('⚠️ Correction enregistrée, mais aucun numéro trouvé pour prévenir l\'apprenant par WhatsApp.', 5000); return; }
+
+  const msgStatut = {
+    valide     : '✅ Votre exercice a été validé',
+    corrige    : '📝 Votre exercice a été corrigé',
+    a_corriger : '🔄 Votre exercice nécessite des corrections',
+    refuse     : '❌ Votre exercice a été refusé',
+  }[statut] || '📝 Votre exercice a été corrigé';
+
+  const msg = `Bonjour ${nomComplet} 👋\n\n${msgStatut} — ${formationTitre} · ${moduleTitre}\n\n💬 ${commentaire}${note?`\n\nNote : ${note}/20`:''}\n\n📚 Votre espace EPPRIDAD :\nhttps://www.eppridad.com/espace-etudiant.html\n📞 +227 99 85 15 32`;
+  window.open(`https://wa.me/${normaliserTel(telApprenant)}?text=${encodeURIComponent(msg)}`, '_blank');
+}
 
 async function marquerNotifLue(notifId){
   await getDBv30().from('notifications_etudiant').update({lu:true}).eq('id',notifId).catch(()=>{});
@@ -2060,7 +2095,7 @@ async function confirmerMessageApprenant(matricule, nomComplet){
       type: 'message',
       lu: false,
       date: new Date().toLocaleDateString('fr-FR'),
-    }).catch(e => console.warn('[notif]', e));
+    });
     document.querySelector('div[style*="position:fixed"][style*="9999"]')?.remove();
     toast('✅ Message envoyé dans l\'espace de '+nomComplet);
   }catch(e){ toast('❌ Erreur: '+e.message); }
@@ -2071,8 +2106,12 @@ async function envoyerViaWhatsApp(matricule, nomComplet){
   const body  = document.getElementById('msg-body')?.value?.trim()||'';
   const tousComptes = await adminApi('lister_comptes',{}).then(r=>r.data||[]).catch(()=>[]);
   const compte = tousComptes.find(c=>c.matricule===matricule);
+  // Numéro réel de l'apprenant : avant, ce bouton ouvrait toujours une discussion
+  // avec le numéro de l'école elle-même au lieu de l'apprenant.
+  const telApprenant = await rechercherTelephoneApprenant(matricule, compte?.email);
+  if(!telApprenant){ toast('⚠️ Aucun numéro trouvé pour cet apprenant.', 4000); return; }
   const msg = `Bonjour ${nomComplet} 👋%0A%0A${titre ? titre+'%0A%0A':''}${body}%0A%0A📚 Votre espace EPPRIDAD :%0Ahttps://www.eppridad.com/espace-etudiant.html%0A📞 +227 99 85 15 32`;
-  window.open(`https://wa.me/${WA_NUM_V30}?text=${msg}`, '_blank');
+  window.open(`https://wa.me/${normaliserTel(telApprenant)}?text=${msg}`, '_blank');
 }
 
 async function loadAdmFinances(){
