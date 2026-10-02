@@ -1767,16 +1767,20 @@ async function loadAdmExercices(){
     const {data:soums} = await db2.from('soumissions_exercices')
       .select('*').order('date_soumission',{ascending:false}).limit(200);
 
-    // Charger formations et modules pour les noms
+    // Charger formations et modules pour les noms (+ le lien du guide de chaque module)
     const {data:formations} = await db2.from('formations_enligne').select('id,titre,emoji');
-    const {data:modules} = await db2.from('modules_cours').select('id,titre,ordre');
+    const {data:modules} = await db2.from('modules_cours').select('id,titre,ordre,pdf_url,video_url');
+    // L'énoncé de chaque exercice, pour l'afficher directement dans la fenêtre de correction
+    // (évite d'avoir à aller rouvrir le module pour voir la question posée à l'apprenant).
+    const {data:exercices} = await db2.from('exercices_modules').select('module_id,titre,situation,contenu_html').order('ordre');
     const comptes = await adminApi('lister_comptes', {}).then(r=>r.data).catch(()=>[]);
 
     const fMap={}; (formations||[]).forEach(f=>fMap[f.id]=f);
     const mMap={}; (modules||[]).forEach(m=>mMap[m.id]=m);
+    const eMap={}; (exercices||[]).forEach(e=>{ if(!eMap[e.module_id]) eMap[e.module_id]=e; });
     const cMap={}; (comptes||[]).forEach(c=>cMap[c.matricule]=c);
 
-    window._exoData = {soums:soums||[], fMap, mMap, cMap, STATUTS, REPONSES_RAPIDES};
+    window._exoData = {soums:soums||[], fMap, mMap, eMap, cMap, STATUTS, REPONSES_RAPIDES};
 
     // Stats
     const stats = {};
@@ -1842,12 +1846,13 @@ function rendreListeExercices(soums, fMap, mMap, cMap, STATUTS){
 }
 
 async function ouvrirCorrectionExo(soumId){
-  const {soums,fMap,mMap,cMap,STATUTS,REPONSES_RAPIDES} = window._exoData||{};
+  const {soums,fMap,mMap,eMap,cMap,STATUTS,REPONSES_RAPIDES} = window._exoData||{};
   const s = (soums||[]).find(x=>x.id===soumId);
   if(!s) return;
 
   const f = fMap[s.formation_id]||{titre:'Formation inconnue',emoji:'📚'};
   const m = mMap[s.module_id]||{titre:'Module inconnu',ordre:'?'};
+  const ex = (eMap||{})[s.module_id]||null;
   const c = cMap[s.matricule]||{nom_complet:s.matricule};
   const date = s.date_soumission ? new Date(s.date_soumission).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
 
@@ -1871,6 +1876,18 @@ async function ouvrirCorrectionExo(soumId){
         <div style="color:rgba(255,255,255,.7)">📅 <strong style="color:#fff">${date}</strong></div>
       </div>
     </div>
+
+    ${(m.pdf_url||m.video_url) ? `<!-- Guide du module (lien direct, plus besoin d'aller le rechercher) -->
+    <div style="padding:16px 28px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:10px;flex-wrap:wrap">
+      ${m.pdf_url?`<a href="${escH(m.pdf_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(33,150,243,.12);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:700;text-decoration:none;font-family:inherit">📄 Ouvrir le guide du module</a>`:''}
+      ${m.video_url?`<a href="${escH(m.video_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(33,150,243,.12);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:700;text-decoration:none;font-family:inherit">🎬 Vidéo du module</a>`:''}
+    </div>` : ''}
+
+    ${ex ? `<!-- Énoncé de l'exercice -->
+    <div style="padding:24px 28px;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.4);margin-bottom:10px">📋 Énoncé de l'exercice${ex.titre?` — ${escH(ex.titre)}`:''}</div>
+      <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:16px;font-size:13.5px;color:rgba(255,255,255,.85);line-height:1.7;max-height:260px;overflow-y:auto">${ex.contenu_html || escH(ex.situation||'').replace(/\n/g,'<br>')}</div>
+    </div>` : ''}
 
     <!-- Réponse apprenant -->
     <div style="padding:24px 28px;border-bottom:1px solid rgba(255,255,255,.08)">
