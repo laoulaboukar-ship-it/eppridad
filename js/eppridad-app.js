@@ -243,14 +243,30 @@ function stopSessionWatch(){
   if(_sessionCheckInterval){ clearInterval(_sessionCheckInterval); _sessionCheckInterval=null; }
 }
 
+// Affiche l'écran de connexion après une déconnexion.
+// Quand la page s'ouvre avec une session déjà enregistrée, le script de démarrage de
+// espace-etudiant.html masque l'écran de connexion par un style « en direct »
+// (style="display:none"). Ce style l'emporte sur la classe .active : la déconnexion
+// laissait alors un écran vide, jusqu'à l'actualisation de la page. On l'enlève ici.
+function afficherEcranConnexion(){
+  document.getElementById('app')?.classList.remove('active');
+  const auth = document.getElementById('page-auth');
+  if(auth){ auth.style.display=''; auth.classList.add('active'); }
+  // Petits compteurs posés à la racine de la page : invisibles d'habitude, mais le
+  // tableau de bord les allume (c'était le « 2 » resté affiché seul à l'écran).
+  ['bnavInscBadge','bnavBadge','pendingBadge','cmdBadge'].forEach(id=>{
+    const b = document.getElementById(id);
+    if(b) b.style.display='none';
+  });
+}
+
 function forceLogout(msg){
   stopSessionWatch();
   clearSession();
   localStorage.removeItem('eppr_session_token_v30');
   _s=null; _db=null; _adminPwd=null;
   setTimeout(()=>{
-    document.getElementById('app')?.classList.remove('active');
-    document.getElementById('page-auth')?.classList.add('active');
+    afficherEcranConnexion();
     const errEl = document.getElementById('err-cnx');
     if(errEl) errEl.textContent = msg;
     if(document.getElementById('inp-mat')) document.getElementById('inp-mat').value='';
@@ -275,8 +291,7 @@ function doLogout(){
   clearSession();
   localStorage.removeItem('eppr_session_token_v30');
   _s=null; _db=null; _adminPwd=null;
-  document.getElementById('app').classList.remove('active');
-  document.getElementById('page-auth').classList.add('active');
+  afficherEcranConnexion();
   document.getElementById('inp-mat').value='';
   document.getElementById('inp-mdp').value='';
   document.getElementById('err-cnx').textContent='';
