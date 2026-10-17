@@ -95,7 +95,11 @@ function genererMotDePasseAleatoire(){
 // safeStr — échappe une chaîne pour insertion sûre dans un attribut onclick='...'
 // Utilisée par espace-etudiant.js (legacy) — neutralise apostrophes, guillemets, retours ligne
 function safeStr(s){
+  // Sert à placer un texte DANS une chaîne JavaScript d'un attribut HTML (onclick="f('...')").
+  // Le navigateur décode d'abord les entités HTML de l'attribut, puis exécute le JavaScript : & < > doivent donc être neutralisés EN PREMIER
+  // (sinon « &#39; » redevient une apostrophe et permet d'injecter du code).
   return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/\\/g,'\\\\')
     .replace(/'/g,"\\'")
     .replace(/"/g,'&quot;')
@@ -945,7 +949,7 @@ function afficherQuiz(questions, moduleId, prevRes){
   
   _cours.quizRep = {};
   container.innerHTML=`<div class="quiz-wrap">
-    <div class="quiz-head"><div class="quiz-title">❓ Quiz de validation</div><div class="quiz-sub">${questions.length} question${questions.length>1?'s':''} · Score minimum 70% · ${prevRes?`Tentative ${(prevRes.tentative||1)+1}/3`:'Tentative 1/3'}</div></div>
+    <div class="quiz-head"><div class="quiz-title">❓ Quiz de validation</div><div class="quiz-sub">${questions.length} question${questions.length>1?'s':''} · Score minimum 70% · ${prevRes?`Tentative ${(prevRes.tentative||1)+1}`:'Tentative 1'}</div></div>
     ${questions.map((q,i)=>`<div class="quiz-q">
       <div class="quiz-qnum">Question ${i+1} / ${questions.length}</div>
       <div class="quiz-qtext">${escH(q.question)}</div>
@@ -1213,12 +1217,15 @@ async function afficherCertificat(){
   const verifyUrl = `https://www.eppridad.com/verifier.html?cert=${encodeURIComponent(cert.numero||'')}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(verifyUrl)}`;
   const certMarkup = buildCertificatMarkup(760, escH(cert.numero||'\u2014'), escH(nomAffiche), escH(formTitre), escH(cert.mention||'Bien'), cert.score_final||0, dateStr, verifyUrl, qrUrl);
+  // Les données du certificat sont gardées en mémoire : le bouton n'a plus besoin de les écrire dans son onclick
+  // (un nom ou un titre contenant une apostrophe, comme « N'Diaye » ou « l'élevage », cassait le bouton).
+  _certAffiche = { num: cert.numero||'', nom: nomAffiche, form: formTitre, mention: cert.mention||'Bien', score: cert.score_final||0, date: dateStr };
 
   container.innerHTML = `
   <div style="padding:24px 0;display:flex;flex-direction:column;align-items:center">
     ${certMarkup}
     <div class="cert-actions" style="margin-top:20px">
-      <button class="btn-cert btn-cert-dl" onclick="imprimerCertificat('${escH(cert.numero)}','${escH(nomAffiche)}','${escH(formTitre)}','${escH(cert.mention||'Bien')}','${cert.score_final||0}','${dateStr}')">📄 Télécharger le certificat</button>
+      <button class="btn-cert btn-cert-dl" onclick="imprimerCertificatAffiche()">📄 Télécharger le certificat</button>
       <a href="${waLink(`Bonjour ! J'ai obtenu mon certificat EPPRIDAD N° ${cert.numero} pour la formation "${formTitre}". Mention : ${cert.mention}. Score : ${cert.score_final}%.`)}" target="_blank" class="btn-cert btn-cert-wa">💬 Partager</a>
     </div>
   </div>`;
@@ -1377,57 +1384,116 @@ function buildCertificatMarkup(cw, num, nom, form, mention, score, date, verifyU
   </div>`;
 }
 
-function imprimerCertificat(num,nom,form,mention,score,date){
+// ── IMPRESSION / TÉLÉCHARGEMENT DU CERTIFICAT ──
+// Le certificat s'affiche dans une couche plein écran DE LA PAGE : plus de fenêtre surgissante (elles sont bloquées ou restent
+// vides sur téléphone et dans les navigateurs intégrés à WhatsApp / Facebook). L'impression ne garde que le certificat (A4 paysage, 1:1).
+const CERT_LARGEUR_A4 = 1122; // 297 mm à 96 dpi
+var _certAffiche = null;   // certificat actuellement affiché à l'apprenant (données gardées en mémoire, pas dans le HTML)
+function imprimerCertificatAffiche(){
+  const c = _certAffiche; if(!c) return;
+  imprimerCertificat(c.num, c.nom, c.form, c.mention, c.score, c.date);
+}
+function fermerCertificatPlein(){
+  const ov = document.getElementById('cert-plein'); if(ov) ov.remove();
+  document.body.classList.remove('cert-impression');
+  document.body.style.overflow = window._certOverflowAvant || '';
+  if(window._certResize){ window.removeEventListener('resize', window._certResize); window._certResize = null; }
+  if(window._certEchap){ document.removeEventListener('keydown', window._certEchap); window._certEchap = null; }
+}
+function _certAjuster(){
+  const ov = document.getElementById('cert-plein'); if(!ov) return;
+  const k = Math.min(1, (window.innerWidth - 24) / CERT_LARGEUR_A4);
+  const cadre = ov.querySelector('.cp-cadre'), ech = ov.querySelector('.cp-echelle');
+  cadre.style.width = Math.round(CERT_LARGEUR_A4 * k) + 'px';
+  cadre.style.height = Math.round(CERT_LARGEUR_A4 * 210 / 297 * k) + 'px';
+  ech.style.transform = 'scale(' + k + ')';
+}
+function chargerHtml2Canvas(){
+  return new Promise((ok, ko) => {
+    if(window.html2canvas) return ok(window.html2canvas);
+    const sc = document.createElement('script');
+    sc.src = 'js/vendor/html2canvas-1.4.1.min.js';   // hébergé sur le site : aucun script d'un réseau tiers dans la page connectée
+    sc.onload = () => window.html2canvas ? ok(window.html2canvas) : ko(new Error('html2canvas'));
+    sc.onerror = () => ko(new Error('chargement'));
+    document.head.appendChild(sc);
+  });
+}
+function _certMarkup(num,nom,form,mention,score,date){
   const verifyUrl = `https://www.eppridad.com/verifier.html?cert=${encodeURIComponent(num)}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(verifyUrl)}`;
-  const certMarkup = buildCertificatMarkup(1200, num, nom, form, mention, score, date, verifyUrl, qrUrl);
-  const w = window.open('','_blank','width=1260,height=920');
-  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Certificat EPPRIDAD — ${nom}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#e9e4d8;font-family:Arial,sans-serif;padding:26px;display:flex;flex-direction:column;align-items:center}
-    @media print{@page{size:A4 landscape;margin:0}body{background:#fff;padding:0}.no-print{display:none}[class^="cert-page-"]{box-shadow:none !important}}
-    .print-btn{display:flex;justify-content:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-    .print-btn button{background:#0F4D38;color:#C89B3C;border:none;border-radius:10px;padding:11px 26px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
-    .print-btn button:disabled{opacity:.6;cursor:wait}
-  </style></head><body>
-  <div class="print-btn no-print">
-    <button onclick="window.print()">🖨️ Imprimer</button>
-    <button id="dlImgBtn" onclick="telechargerCertificatImage()">📥 Télécharger (image)</button>
-    <button onclick="navigator.clipboard.writeText('${verifyUrl}').then(()=>alert('Lien copié !'))">🔗 Copier le lien de vérification</button>
-  </div>
-  ${certMarkup}
-  <script>
-  function telechargerCertificatImage(){
-    const btn = document.getElementById('dlImgBtn');
-    const original = btn.textContent;
-    if(typeof html2canvas === 'undefined'){
-      alert("Le téléchargement direct n'a pas pu se charger (connexion internet requise). Utilisez plutôt le bouton Imprimer, puis choisissez \\"Enregistrer en PDF\\" comme imprimante.");
-      return;
-    }
-    btn.disabled = true;
-    btn.textContent = '⏳ Génération…';
-    const target = document.querySelector('[class^="cert-page-"]');
-    html2canvas(target, {backgroundColor:'#ffffff', scale:2, useCORS:true}).then(function(canvas){
-      const link = document.createElement('a');
-      link.download = 'Certificat-EPPRIDAD-${num}.png';
-      link.href = canvas.toDataURL('image/png');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      btn.disabled = false;
-      btn.textContent = original;
-    }).catch(function(err){
-      alert("Le téléchargement direct a échoué. Utilisez plutôt le bouton Imprimer, puis choisissez \\"Enregistrer en PDF\\" comme imprimante.");
-      btn.disabled = false;
-      btn.textContent = original;
-    });
+  return { verifyUrl, html: buildCertificatMarkup(CERT_LARGEUR_A4, escH(num), escH(nom), escH(form), escH(mention), score, escH(date), verifyUrl, qrUrl) };
+}
+async function telechargerCertificatImage(num,nom,form,mention,score,date,bouton){
+  const original = bouton ? bouton.textContent : '';
+  let hors = null;
+  try{
+    if(bouton){ bouton.disabled = true; bouton.textContent = '⏳ Génération…'; }
+    const h2c = await chargerHtml2Canvas();
+    hors = document.createElement('div');
+    hors.style.cssText = 'position:fixed;left:-20000px;top:0;width:' + CERT_LARGEUR_A4 + 'px';
+    hors.innerHTML = _certMarkup(num,nom,form,mention,score,date).html;   // copie à taille réelle, hors écran : capture nette même sur téléphone
+    document.body.appendChild(hors);
+    const canvas = await h2c(hors.firstElementChild, {backgroundColor:'#ffffff', scale:2, useCORS:true});
+    const lien = document.createElement('a');
+    lien.download = 'Certificat-EPPRIDAD-' + String(num).replace(/[^A-Za-z0-9_-]/g,'') + '.png';
+    lien.href = canvas.toDataURL('image/png');
+    document.body.appendChild(lien); lien.click(); lien.remove();
+  }catch(e){
+    alert("Le téléchargement direct a échoué (connexion internet requise). Utilisez plutôt le bouton Imprimer, puis choisissez « Enregistrer en PDF » comme imprimante.");
+  }finally{
+    if(hors) hors.remove();
+    if(bouton){ bouton.disabled = false; bouton.textContent = original; }
   }
-  <\/script>
-  </body></html>`);
-  w.document.close();
+}
+function imprimerCertificat(num,nom,form,mention,score,date){
+  fermerCertificatPlein();
+  const { verifyUrl, html } = _certMarkup(num,nom,form,mention,score,date);
+  const ov = document.createElement('div');
+  ov.id = 'cert-plein'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-label','Certificat EPPRIDAD');
+  ov.innerHTML = `<style>
+    #cert-plein{position:fixed;inset:0;z-index:2147483000;background:#e9e4d8;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;padding:12px 12px 28px;font-family:Arial,sans-serif}
+    #cert-plein .cp-barre{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:4px 0 12px}
+    #cert-plein .cp-barre button{background:#0F4D38;color:#C89B3C;border:none;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;min-height:44px}
+    #cert-plein .cp-barre .cp-sec{background:#fff;color:#0F4D38;border:1px solid #0F4D38}
+    #cert-plein .cp-barre button:disabled{opacity:.6;cursor:wait}
+    #cert-plein .cp-aide{max-width:640px;text-align:center;font-size:12.5px;color:#4a4a3a;margin:0 0 14px;line-height:1.45}
+    #cert-plein .cp-cadre{position:relative;overflow:hidden;flex:none;background:#fff;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+    #cert-plein .cp-echelle{position:absolute;top:0;left:0;width:${CERT_LARGEUR_A4}px;transform-origin:top left}
+    @media print{
+      @page{size:A4 landscape;margin:0}
+      html,body.cert-impression{background:#fff!important;margin:0!important;padding:0!important;overflow:visible!important;height:auto!important}
+      body.cert-impression > *:not(#cert-plein){display:none!important}
+      #cert-plein{position:static!important;display:block!important;overflow:visible!important;background:#fff!important;padding:0!important}
+      #cert-plein .no-print{display:none!important}
+      #cert-plein .cp-cadre{width:297mm!important;height:210mm!important;box-shadow:none!important;overflow:hidden!important}
+      #cert-plein .cp-echelle{transform:none!important}
+      #cert-plein [class^="cert-page-"]{box-shadow:none!important}
+    }
+  </style>
+  <div class="cp-barre no-print">
+    <button type="button" id="cp-imprimer">🖨️ Imprimer / PDF</button>
+    <button type="button" id="cp-image" class="cp-sec">📥 Télécharger (image)</button>
+    <button type="button" id="cp-lien" class="cp-sec">🔗 Copier le lien de vérification</button>
+    <button type="button" id="cp-fermer" class="cp-sec">✕ Fermer</button>
+  </div>
+  <p class="cp-aide no-print">Si l'impression ne démarre pas (navigateur intégré à WhatsApp ou Facebook), ouvrez eppridad.com dans <b>Chrome</b> ou <b>Safari</b>, ou utilisez « Télécharger (image) ».</p>
+  <div class="cp-cadre"><div class="cp-echelle">${html}</div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#cp-imprimer').addEventListener('click', () => { try{ window.print(); }catch(e){ alert("L'impression n'est pas possible ici. Ouvrez eppridad.com dans Chrome ou Safari."); } });
+  ov.querySelector('#cp-image').addEventListener('click', ev => telechargerCertificatImage(num,nom,form,mention,score,date,ev.currentTarget));
+  ov.querySelector('#cp-lien').addEventListener('click', () => {
+    const ok = () => alert('Lien copié !');
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(verifyUrl).then(ok).catch(() => prompt('Copiez ce lien :', verifyUrl));
+    else prompt('Copiez ce lien :', verifyUrl);
+  });
+  ov.querySelector('#cp-fermer').addEventListener('click', fermerCertificatPlein);
+  window._certOverflowAvant = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+  document.body.classList.add('cert-impression');
+  window._certResize = _certAjuster; window.addEventListener('resize', _certAjuster);
+  window._certEchap = e => { if(e.key === 'Escape') fermerCertificatPlein(); }; document.addEventListener('keydown', window._certEchap);
+  _certAjuster(); ov.scrollTop = 0;
+  ov.querySelector('#cp-imprimer').focus();
 }
 
 
@@ -1541,8 +1607,8 @@ async function impersonateStudent(matricule){
   const stColor   = stCompte==='actif'?'#4caf50':stCompte==='pending'?'#ff9800':'var(--w3)';
   const stLabel   = stCompte==='actif'?'✅ Actif':stCompte==='pending'?'⏳ En attente':'— Aucun';
 
-  const matJS = (matricule||'').replace(/'/g,"\'");
-  const nomJS = (e?(e.nom+' '+e.prenom):'').replace(/'/g,"\'");
+  const matJS = safeStr(matricule||'');
+  const nomJS = safeStr(e?(e.nom+' '+e.prenom):'');
 
   modal.innerHTML=`
   <div style="background:var(--v1);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:28px 32px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.6)">
@@ -1945,13 +2011,13 @@ async function ouvrirCorrectionExo(soumId){
 
       <!-- Boutons d'action -->
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button onclick="sauvegarderCorrectionExo('${soumId}','${s.matricule}','${escH(f.titre)}','${escH(m.titre)}')" style="background:linear-gradient(135deg,var(--v3),var(--v4));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex:1">
+        <button onclick="sauvegarderCorrectionExo('${soumId}','${safeStr(s.matricule)}','${safeStr(f.titre)}','${safeStr(m.titre)}')" style="background:linear-gradient(135deg,var(--v3),var(--v4));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex:1">
           💾 Sauvegarder
         </button>
-        <button onclick="sauvegarderEtEnvoyerEmail('${soumId}','${s.matricule}','${escH(f.titre)}','${escH(m.titre)}')" style="background:rgba(33,150,243,.2);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex:1">
+        <button onclick="sauvegarderEtEnvoyerEmail('${soumId}','${safeStr(s.matricule)}','${safeStr(f.titre)}','${safeStr(m.titre)}')" style="background:rgba(33,150,243,.2);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;flex:1">
           ✉️ Sauvegarder + Email
         </button>
-        <button onclick="sauvegarderEtEnvoyerWhatsApp('${soumId}','${s.matricule}','${escH(c.nom_complet||s.matricule)}','${escH(f.titre)}','${escH(m.titre)}')" style="background:rgba(37,211,102,.12);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+        <button onclick="sauvegarderEtEnvoyerWhatsApp('${soumId}','${safeStr(s.matricule)}','${safeStr(c.nom_complet||s.matricule)}','${safeStr(f.titre)}','${safeStr(m.titre)}')" style="background:rgba(37,211,102,.12);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
           💬 Sauvegarder + WhatsApp
         </button>
       </div>
@@ -2777,10 +2843,10 @@ function afficherTableauCertificats(certs,formMap){
       const f=formMap[c.formation_id];
       const date=c.date_emission?new Date(c.date_emission).toLocaleDateString('fr-FR'):'—';
       const bg=i%2===0?'rgba(255,255,255,.02)':'rgba(255,255,255,.04)';
-      const numS=(c.numero||'').replace(/'/g,"\\'");
-      const nomS=(c.nom_apprenant||'').replace(/'/g,"\\'");
-      const titreS=(f?.titre||'').replace(/'/g,"\\'");
-      const mentionS=(c.mention||'Bien').replace(/'/g,"\\'");
+      const numS=safeStr((c.numero||''));
+      const nomS=safeStr((c.nom_apprenant||''));
+      const titreS=safeStr((f?.titre||''));
+      const mentionS=safeStr((c.mention||'Bien'));
       return `<tr style="background:${bg};border-bottom:1px solid rgba(255,255,255,.05)">
         <td style="padding:10px 12px;font-weight:700;color:var(--w)">${escH(c.nom_apprenant||'—')}</td>
         <td style="padding:10px 12px;font-family:monospace;font-size:11px;color:var(--or)">${escH(c.matricule)}</td>
@@ -3097,10 +3163,10 @@ async function loadAdminStudents(filter=''){
     const tel = telMap[k1]||telMap[k2]||'';
     const telDisplay = tel ? escH(tel) : '<span style="color:rgba(255,255,255,.25)">—</span>';
 
-    const matJS = e.matricule.replace(/'/g,"\\'");
-    const nomJS = `${e.nom} ${e.prenom}`.replace(/'/g,"\\'");
-    const telJS = (tel||'').replace(/'/g,"\\'");
-    const emailJS = (acc?.email||'').replace(/'/g,"\\'");
+    const matJS = safeStr(e.matricule);
+    const nomJS = safeStr(`${e.nom} ${e.prenom}`);
+    const telJS = safeStr((tel||''));
+    const emailJS = safeStr((acc?.email||''));
 
     return `<tr>
       <td style="font-weight:700;font-size:12px;color:var(--primary)">${e.matricule}</td>
@@ -3175,13 +3241,13 @@ function openIdentifiantsModal(matricule, nomComplet, telephone, email){
     </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button onclick="reinitialiserMotDePasse('${matricule.replace(/'/g,"\\\\'")}')" style="flex:1;min-width:160px;background:linear-gradient(135deg,var(--v3),var(--v4));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+      <button onclick="reinitialiserMotDePasse('${safeStr(matricule)}')" style="flex:1;min-width:160px;background:linear-gradient(135deg,var(--v3),var(--v4));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
         🔄 Réinitialiser le mot de passe
       </button>
-      <button onclick="copierTousIdentifiants('${escH(nomComplet)}')" style="flex:1;min-width:160px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+      <button onclick="copierTousIdentifiants('${safeStr(nomComplet)}')" style="flex:1;min-width:160px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
         📋 Copier le message complet
       </button>
-      <button onclick="envoyerIdentifiantsWhatsApp('${escH(nomComplet)}')" style="flex:1;min-width:160px;background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+      <button onclick="envoyerIdentifiantsWhatsApp('${safeStr(nomComplet)}')" style="flex:1;min-width:160px;background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:11px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
         💬 Envoyer via WhatsApp
       </button>
     </div>
@@ -3629,8 +3695,8 @@ function afficherTableauEnLigne(comptes, accesMap, certMap, formMap){
       const bg = i%2===0?'rgba(255,255,255,.02)':'rgba(255,255,255,.04)';
       const statutColor = c.statut==='suspendu'?'#ef9a9a':isExpired?'#ffb74d':'#81c784';
       const statutLabel = c.statut==='suspendu'?'⏸ Suspendu':isExpired?'⛔ Expiré':'✅ Actif';
-      const matJS = c.matricule.replace(/'/g,"\\'");
-      const nomJS = (c.nom_complet||'').replace(/'/g,"\\'");
+      const matJS = safeStr(c.matricule);
+      const nomJS = safeStr((c.nom_complet||''));
 
       return `<tr style="background:${bg};border-bottom:1px solid rgba(255,255,255,.05)">
         <td style="padding:10px 12px;font-weight:800;color:var(--or);font-family:monospace;white-space:nowrap">${escH(c.matricule)}</td>
@@ -3659,8 +3725,8 @@ async function ouvrirFicheApprenantParMatricule(matricule, nomComplet){
     document.body.appendChild(modal);
     modal.addEventListener('click',e=>{if(e.target===modal) modal.style.display='none';});
   }
-  const matS=(matricule||'').replace(/'/g,"\\'");
-  const nomS=(nomComplet||'').replace(/'/g,"\\'");
+  const matS=safeStr((matricule||''));
+  const nomS=safeStr((nomComplet||''));
   modal.innerHTML=`<div style="background:#0f2818;border:1px solid rgba(201,168,76,.25);border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto">
     <div style="background:rgba(255,255,255,.04);padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">
       <div>
@@ -3777,7 +3843,7 @@ async function ouvrirModifierApprenant(matricule){
             <option value="pending" ${c.statut==='pending'?'selected':''}>⏳ En attente</option>
           </select>
         </div>
-        <button onclick="sauvegarderModifApprenant('${matricule}')" style="width:100%;background:linear-gradient(135deg,var(--v2),var(--v3));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px">
+        <button onclick="sauvegarderModifApprenant('${safeStr(matricule)}')" style="width:100%;background:linear-gradient(135deg,var(--v2),var(--v3));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px">
           💾 Sauvegarder les modifications
         </button>
         <div id="ma-feedback" style="font-size:12px;text-align:center;color:#81c784;min-height:18px"></div>
@@ -3848,9 +3914,9 @@ async function ouvrirGestionAcces(matricule, nomComplet){
                 ${a.montant_paye?`<div style="font-size:11px;color:var(--w3)">${a.moyen_paiement||'—'} · ${a.montant_paye.toLocaleString('fr-FR')} FCFA</div>`:''}
               </div>
               <div style="display:flex;gap:6px;flex-wrap:wrap">
-                <button onclick="prolongerAcces('${a.id}','${matricule}')" style="background:rgba(33,150,243,.15);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📅 Prolonger</button>
-                <button onclick="toggleAcces('${a.id}',${!a.actif},'${matricule}')" style="background:rgba(255,255,255,.07);color:var(--w2);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">${a.actif?'⏸ Suspendre':'▶️ Activer'}</button>
-                <button onclick="ouvrirPaiementModal('${a.id}','${matricule}','${escH(nomComplet)}','${escH(f?.titre||'')}')" style="background:rgba(201,168,76,.12);color:var(--or);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">💰 Paiement</button>
+                <button onclick="prolongerAcces('${a.id}','${safeStr(matricule)}')" style="background:rgba(33,150,243,.15);color:#64b5f6;border:1px solid rgba(33,150,243,.3);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📅 Prolonger</button>
+                <button onclick="toggleAcces('${a.id}',${!a.actif},'${safeStr(matricule)}')" style="background:rgba(255,255,255,.07);color:var(--w2);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">${a.actif?'⏸ Suspendre':'▶️ Activer'}</button>
+                <button onclick="ouvrirPaiementModal('${a.id}','${safeStr(matricule)}','${safeStr(nomComplet)}','${safeStr(f?.titre||'')}')" style="background:rgba(201,168,76,.12);color:var(--or);border:1px solid rgba(201,168,76,.25);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">💰 Paiement</button>
               </div>
             </div>`;
           }).join('')}
@@ -3869,7 +3935,7 @@ async function ouvrirGestionAcces(matricule, nomComplet){
             <option value="1y" selected>1 an</option>
             <option value="2y">2 ans</option>
           </select>
-          <button onclick="ajouterAccesFormation('${matricule}')" style="flex:1;background:linear-gradient(135deg,var(--v2),var(--v3));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:9px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+          <button onclick="ajouterAccesFormation('${safeStr(matricule)}')" style="flex:1;background:linear-gradient(135deg,var(--v2),var(--v3));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:9px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
             ➕ Activer l'accès
           </button>
         </div>
@@ -3982,8 +4048,8 @@ async function ouvrirGestionCertificats(matricule, nomComplet){
                 <div style="font-size:11px;color:var(--w3)">Émis le ${date} · ${ct.valide?'✅ Valide':'⛔ Révoqué'}</div>
               </div>
               <div style="display:flex;gap:6px">
-                <button onclick="voirCertificat('${escH(ct.numero||'')}','${escH(nomComplet)}','${escH(f?.titre||'')}','${escH(ct.mention||'Bien')}',${ct.score_final||0},'${date}')" style="background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">👁 Voir</button>
-                <button onclick="toggleCertificat('${ct.id}',${!ct.valide},'${matricule}','${escH(nomComplet)}')" style="background:rgba(255,255,255,.07);color:var(--w2);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">${ct.valide?'⛔ Révoquer':'✅ Valider'}</button>
+                <button onclick="voirCertificat('${safeStr(ct.numero||'')}','${safeStr(nomComplet)}','${safeStr(f?.titre||'')}','${safeStr(ct.mention||'Bien')}',${ct.score_final||0},'${date}')" style="background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">👁 Voir</button>
+                <button onclick="toggleCertificat('${ct.id}',${!ct.valide},'${safeStr(matricule)}','${safeStr(nomComplet)}')" style="background:rgba(255,255,255,.07);color:var(--w2);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">${ct.valide?'⛔ Révoquer':'✅ Valider'}</button>
               </div>
             </div>`;
           }).join('')}
@@ -4005,7 +4071,7 @@ async function ouvrirGestionCertificats(matricule, nomComplet){
             </select>
             <input id="cert-score-inp" type="number" value="80" min="0" max="100" placeholder="Score %" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 12px;font-size:13px;color:#fff;font-family:inherit;outline:none">
           </div>
-          <button onclick="emettreManuelCertificat('${matricule}','${escH(nomComplet)}')" style="width:100%;background:linear-gradient(135deg,var(--v2),var(--v3));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:9px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+          <button onclick="emettreManuelCertificat('${safeStr(matricule)}','${safeStr(nomComplet)}')" style="width:100%;background:linear-gradient(135deg,var(--v2),var(--v3));color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:9px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
             🏅 Émettre le certificat
           </button>
           <div id="cert-feedback" style="font-size:12px;text-align:center;color:#81c784;min-height:18px"></div>
@@ -4141,7 +4207,7 @@ async function voirModulesFormation(formationId, titreFormation){
               ${hasPdf?`<div style="margin-top:8px"><a href="${escH(m.pdf_url)}" target="_blank" style="font-size:11px;color:#64b5f6">🔗 Voir le PDF</a></div>`:''}
               <div style="margin-top:8px">
                 <input id="pdf-input-${m.id}" type="text" placeholder="Coller le lien Google Drive du PDF…" value="${hasPdf?escH(m.pdf_url):''}" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:7px 10px;font-size:11px;color:#fff;font-family:monospace;box-sizing:border-box;margin-bottom:6px">
-                <button onclick="sauvegarderPdfModule('${m.id}','${formationId}','${escH(titreFormation||'')}')" style="background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">💾 Enregistrer le PDF</button>
+                <button onclick="sauvegarderPdfModule('${m.id}','${formationId}','${safeStr(titreFormation||'')}')" style="background:rgba(201,168,76,.15);color:var(--or);border:1px solid rgba(201,168,76,.3);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">💾 Enregistrer le PDF</button>
               </div>
             </div>`;
           }).join('')}
