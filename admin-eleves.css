@@ -1,0 +1,55 @@
+/* EPPRIDAD — Administration de l'espace élèves (complète css/espace-eleve.css) */
+.admin-nav{position:sticky;top:57px;z-index:15;display:flex;gap:.35rem;overflow-x:auto;padding:.5rem 1rem;background:rgba(7,18,14,.94);border-bottom:1px solid var(--w4)}
+.admin-onglet{flex:none;padding:.55rem .9rem;border-radius:99px;border:1px solid var(--w4);background:transparent;color:var(--w2);font-weight:600;font-size:.9rem;min-height:40px}
+.admin-onglet.actif{background:var(--v4);border-color:var(--v5);color:#fff}
+.admin-onglet:focus-visible,.champ select:focus-visible{outline:2px solid var(--or);outline-offset:2px}
+.admin-contenu{max-width:1180px;margin:0 auto;width:100%;padding-bottom:3rem}
+.chiffres{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:.85rem}
+.chiffre{background:var(--w5);border:1px solid var(--w4);border-radius:var(--rad);padding:.8rem 1rem}
+.chiffre.attention{border-color:rgba(201,168,76,.55);background:var(--or4)}
+.chiffre-val{font-family:var(--disp);font-size:1.8rem;font-weight:700;color:var(--w);line-height:1.1}
+.chiffre-lib{font-size:.8rem;color:var(--w3)}
+.champ select,.champ textarea,.filtres select,.filtres input[type=search],.champ input[type=date],.champ input[type=file]{width:100%;padding:.7rem .8rem;border-radius:10px;border:1px solid var(--w4);background:var(--w5);color:var(--w);font-size:1rem;font-family:inherit}
+.champ select option,.filtres select option{background:var(--v1);color:var(--w)}
+.champ textarea{resize:vertical;min-height:7rem}
+.filtres{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end;margin-bottom:.7rem}
+.filtres>*{flex:1 1 180px}
+.case{display:flex;align-items:center;gap:.5rem;font-size:.92rem;color:var(--w2);min-height:44px}
+.case input{width:1.15rem;height:1.15rem}
+.liste-simple{margin:.4rem 0;padding-left:1.1rem}
+.liste-simple li{padding:.15rem 0}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.gras{font-weight:700}
+.mdp{font-size:1.05rem;letter-spacing:.06em;color:var(--or3)}
+.ok-texte{color:var(--vert);font-weight:700}
+.ligne-ko td{background:var(--rouge2)}
+.sous-titre{margin:1.2rem 0 .6rem}
+progress{width:100%;height:.9rem;accent-color:var(--v5)}
+.badge.etat-actif{background:var(--vert2);color:#8fdcae}
+.badge.etat-initial{background:var(--or4);color:var(--or3)}
+.badge.etat-a_generer{background:var(--w4);color:var(--w2)}
+.badge.etat-verrouille,.badge.etat-desactive{background:var(--rouge2);color:#ff9e9b}
+.badge.etat-aucun{background:var(--w5);color:var(--w3)}
+.actions-ligne{white-space:nowrap}
+.actions-ligne .btn{margin-right:.35rem}
+.btn.confirmation{background:var(--rouge2);border-color:var(--rouge);color:#ffb4b2}
+.message-admin-tete{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.tableau-eleves td,.tableau-eleves th{white-space:nowrap}
+.tableau-eleves td:first-child{white-space:normal}
+.zone-impression{display:none}
+.fiche-acces{border:1px dashed #888;padding:10mm;margin:0 0 8mm;color:#000;background:#fff;font-size:11pt;line-height:1.5}
+.fiche-tete{font-size:14pt;margin-bottom:3mm;border-bottom:1px solid #000;padding-bottom:2mm}
+.fiche-lib{color:#333}
+.gros-mdp{font-size:15pt;letter-spacing:.08em}
+.fiche-note{font-size:9.5pt;color:#333;margin-top:3mm}
+@media print{
+  .coque,.toast{display:none!important}
+  .zone-impression{display:block!important}
+  html,body{background:#fff!important;color:#000!important}
+  .fiche-acces{break-inside:avoid;page-break-inside:avoid}
+}
+
+.secours{margin:.3rem 0 .6rem;border:1px dashed var(--w4);border-radius:10px;padding:.5rem .8rem}
+.secours summary{cursor:pointer;color:var(--or3);font-weight:600;min-height:32px}
+.secours .champ{margin-top:.6rem}
+.champ input[type=password]{width:100%}
