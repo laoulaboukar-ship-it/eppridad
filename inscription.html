@@ -292,14 +292,14 @@
       <div class="dropdown"><a href="filieres.html#agrosylvopastorale">Agrosylvopastorale (CAP)</a><a href="filieres.html#agriculture">Agriculture &amp; Productions Végétales</a><a href="filieres.html#elevage">Élevage &amp; Santé Animale</a><a href="filieres.html#environnement">Environnement &amp; Eaux-Forêts</a><a href="filieres.html#genie">Génie Rural</a><a href="filieres.html#socioeconomie">Socio-Économie Rurale</a><a href="filieres.html#agroalimentaire">Transformation Agroalimentaire</a></div>
     </li>
     <li><a href="services.html">Services <span class="arrow">▾</span></a>
-      <div class="dropdown"><a href="services.html#academique">Formation Académique</a><a href="services.html#courtes">Formations Courtes</a><a href="services.html#accompagnement">Accompagnement Technique</a></div>
+      <div class="dropdown"><a href="services.html#academique">Formation Académique</a><a href="formations-courtes.html">Formations Courtes</a><a href="services.html#accompagnement">Accompagnement Technique</a></div>
     </li>
     <li><a href="formations-en-ligne.html" style="color:var(--gold-light);font-weight:600;">🎓 Cours en ligne</a></li>
     <li><a href="marketplace.html" style="color:var(--gold-light);font-weight:600;">🛒 Boutique</a></li>
     <li><a href="inscription.html" class="active" style="color:var(--gold);font-weight:700;">✍️ S'inscrire <span class="arrow">▾</span></a>
       <div class="dropdown">
         <a href="inscription.html#diplomante">🎓 Formation diplômante</a>
-        <a href="inscription.html#courte">📜 Formation courte certifiante</a>
+        <a href="formations-courtes.html#preinscription">📜 Formation courte certifiante</a>
         <a href="inscription.html#enligne">💻 Formation en ligne</a>
         <a href="contact.html">📞 Contact &amp; Localisation</a>
         <a href="galerie.html">📸 Galerie &amp; Infos</a>
@@ -345,7 +345,7 @@
     <button class="type-tab" id="tab-courte" onclick="switchType('courte')">
       <span class="type-tab-icon">📜</span>
       <span class="type-tab-label">Formation Courte</span>
-      <span class="type-tab-sub">Certifiante · 1 mois · Week-end</span>
+      <span class="type-tab-sub">Certifiante · Un week-end · Dès 24 000 FCFA</span>
       <span class="type-tab-badge">Populaire</span>
     </button>
     <button class="type-tab" id="tab-enligne" onclick="switchType('enligne')">
@@ -487,144 +487,13 @@
 
   <!-- ═══ PANEL 2 : FORMATION COURTE ═══ -->
   <div class="insc-panel" id="panel-courte">
-    <div class="panel-layout">
-      <div class="panel-info">
-        <div class="section-tag">Formations certifiantes week-end</div>
+    <div class="panel-layout" style="display:block;max-width:760px;margin:0 auto">
+      <div class="panel-info" style="text-align:center">
+        <div class="section-tag">Formations pratiques et certifiantes</div>
         <h2 class="section-title">Formations <span class="gold">Courtes</span></h2>
-        <p style="color:var(--text-light);font-size:14px;line-height:1.75;margin:12px 0 24px;font-family:'Outfit',sans-serif;">
-          Acquérez une compétence professionnelle en 4 week-ends (samedi + dimanche). Certificat officiel EPPRIDAD à la fin. Ouvertes à tous, sans conditions de diplôme.
-        </p>
-
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-light);margin-bottom:12px;font-family:'Outfit',sans-serif;">Sélectionnez votre formation</div>
-        <div class="fc-grid" id="fc-grid">
-          <div class="fc-card" onclick="selectFC(this,'Maraîchage intensif & irrigation')">
-            <div class="fc-icon">🥬</div>
-            <div class="fc-info">
-              <div class="fc-title">Maraîchage intensif &amp; irrigation</div>
-              <div class="fc-meta">4 week-ends · Pratique terrain · Niamey</div>
-            </div>
-            <div style="text-align:right"><div class="fc-price">45 000 FCFA</div><div class="fc-check">✓</div></div>
-          </div>
-          <div class="fc-card" onclick="selectFC(this,'Aviculture pratique rentable')">
-            <div class="fc-icon">🐔</div>
-            <div class="fc-info">
-              <div class="fc-title">Aviculture pratique rentable</div>
-              <div class="fc-meta">4 week-ends · Construction poulailler incluse</div>
-            </div>
-            <div style="text-align:right"><div class="fc-price">45 000 FCFA</div><div class="fc-check">✓</div></div>
-          </div>
-          <div class="fc-card" onclick="selectFC(this,'Transformation agroalimentaire (fromages, huiles, jus)')">
-            <div class="fc-icon">🧀</div>
-            <div class="fc-info">
-              <div class="fc-title">Transformation agroalimentaire</div>
-              <div class="fc-meta">Fromages · Huiles · Jus · 4 week-ends</div>
-            </div>
-            <div style="text-align:right"><div class="fc-price">45 000 FCFA</div><div class="fc-check">✓</div></div>
-          </div>
-          <div class="fc-card" onclick="selectFC(this,'Reboisement & techniques RNA')">
-            <div class="fc-icon">🌳</div>
-            <div class="fc-info">
-              <div class="fc-title">Reboisement &amp; techniques RNA</div>
-              <div class="fc-meta">Régénération naturelle assistée · 3 week-ends</div>
-            </div>
-            <div style="text-align:right"><div class="fc-price">45 000 FCFA</div><div class="fc-check">✓</div></div>
-          </div>
-          <div class="fc-card" onclick="selectFC(this,'Gestion d\'exploitation agricole')">
-            <div class="fc-icon">📊</div>
-            <div class="fc-info">
-              <div class="fc-title">Gestion d'exploitation agricole</div>
-              <div class="fc-meta">Business plan · Comptabilité · 4 week-ends</div>
-            </div>
-            <div style="text-align:right"><div class="fc-price">45 000 FCFA</div><div class="fc-check">✓</div></div>
-          </div>
-          <div class="fc-card" onclick="selectFC(this,'Soins vétérinaires de base (petits ruminants)')">
-            <div class="fc-icon">🐐</div>
-            <div class="fc-info">
-              <div class="fc-title">Soins vétérinaires de base</div>
-              <div class="fc-meta">Caprins &amp; ovins · 3 week-ends</div>
-            </div>
-            <div style="text-align:right"><div class="fc-price">45 000 FCFA</div><div class="fc-check">✓</div></div>
-          </div>
-          <div class="fc-card" onclick="selectFC(this,'Construction digue filtrante & génie rural')">
-            <div class="fc-icon">🏗️</div>
-            <div class="fc-info">
-              <div class="fc-title">Génie rural — Digue filtrante</div>
-              <div class="fc-meta">Récupération eaux de pluie · 3 week-ends</div>
-            </div>
-            <div style="text-align:right"><div class="fc-price">45 000 FCFA</div><div class="fc-check">✓</div></div>
-          </div>
-          <div class="fc-card" onclick="selectFC(this,'Apiculture & production de miel')">
-            <div class="fc-icon">🍯</div>
-            <div class="fc-info">
-              <div class="fc-title">Apiculture &amp; production de miel</div>
-              <div class="fc-meta">Ruches kenyanes · 4 week-ends</div>
-            </div>
-            <div style="text-align:right"><div class="fc-price">45 000 FCFA</div><div class="fc-check">✓</div></div>
-          </div>
-        </div>
-
-        <div style="background:var(--gold-pale);border:1px solid rgba(212,175,55,.25);border-radius:10px;padding:14px 16px;margin-top:4px">
-          <div style="font-size:13px;font-weight:700;color:#7d5a00;margin-bottom:6px;font-family:'Outfit',sans-serif;">💳 Paiement</div>
-          <p style="font-size:12.5px;color:var(--text-light);line-height:1.6;font-family:'Outfit',sans-serif;">Paiement en une fois ou en deux tranches. Amana, Nita, Wave, virement ou cash à l'école. Un reçu officiel vous est remis à l'inscription.</p>
-        </div>
-      </div>
-
-      <div class="panel-form" id="form-courte-wrap">
-        <div class="insc-form-box">
-          <div class="insc-form-title">Réserver ma place</div>
-          <div class="insc-form-sub">Les formations démarrent le 1er week-end de chaque mois.</div>
-          <div class="form-selection-preview" id="preview-fc">
-            Sélectionnez une formation ci-contre pour voir les détails ↑
-          </div>
-          <div id="confirm-fc" class="insc-confirm">
-            <div class="confirm-anim">✅</div>
-            <div class="confirm-title">Réservation envoyée !</div>
-            <div class="confirm-text">Votre demande de réservation a été transmise. L'équipe EPPRIDAD vous confirmera les dates et modalités de paiement dans les 24 heures.</div>
-            <div class="confirm-ref" id="ref-fc"></div>
-            <button onclick="resetForm('fc')" style="background:var(--green);color:#fff;border:none;border-radius:9px;padding:11px 24px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:10px">Nouvelle demande</button>
-          </div>
-          <form id="form-fc" onsubmit="submitInscription(event,'courte')">
-            <div class="fg-row">
-              <div class="fg-dark"><label>Prénom *</label><input name="prenom" placeholder="Votre prénom" required></div>
-              <div class="fg-dark"><label>Nom *</label><input name="nom" placeholder="Votre nom" required></div>
-            </div>
-            <div class="fg-dark">
-              <label>Téléphone *</label>
-              <div class="fg-tel-row">
-                <select name="indicatif">
-                  <option value="+227" selected>🇳🇪 +227</option>
-                  <option value="+226">🇧🇫 +226</option>
-                  <option value="+223">🇲🇱 +223</option>
-                  <option value="+234">🇳🇬 +234</option>
-                  <option value="+225">🇨🇮 +225</option>
-                  <option value="+33">🇫🇷 +33</option>
-                </select>
-                <input name="telephone" type="tel" placeholder="XX XX XX XX" required>
-              </div>
-              <div style="font-size:11px;color:var(--green);margin-top:5px;font-family:'Outfit',sans-serif">⚠️ Numéro WhatsApp actif obligatoire — vos identifiants de connexion vous seront envoyés sur ce numéro.</div>
-            </div>
-            <div class="fg-dark"><label>Email (optionnel)</label><input name="email" type="email" placeholder="votre@email.com"></div>
-            <div class="fg-dark"><label>Ville de résidence</label><input name="ville" placeholder="Ex: Niamey, Agadez..."></div>
-            <div class="fg-dark"><label>Disponibilité week-end</label>
-              <select name="disponibilite">
-                <option value="">Quand pouvez-vous commencer ?</option>
-                <option>Dès le prochain week-end disponible</option>
-                <option>Dans 2 à 4 semaines</option>
-                <option>Dans 1 à 2 mois</option>
-                <option>En planification</option>
-              </select>
-            </div>
-            <div class="fg-dark"><label>Questions / Message</label><textarea name="message" rows="2" placeholder="Questions sur le planning, les tarifs, le contenu..."></textarea></div>
-            <button type="submit" class="btn-submit-insc" id="btn-fc" style="background:linear-gradient(135deg,var(--gold),var(--gold-light))">
-              <span>📤 Réserver ma place</span>
-            </button>
-            <div class="send-info">
-              <div class="send-info-row">📧 Envoyé à eppridad@gmail.com</div>
-              <div class="send-info-row">💬 Notification WhatsApp à l'école</div>
-              <div class="send-info-row">⏱ Confirmation sous 24 heures</div>
-            </div>
-          </form>
-        </div>
+        <p style="color:var(--text-light);font-size:15px;line-height:1.75;margin:12px 0 22px;font-family:'Outfit',sans-serif;">Cinq formations pratiques d'un week-end (théorie le samedi, pratique le dimanche, déjeuner offert), du 7 novembre au 6 décembre 2026. 24 000 FCFA par formation, avec un demi-tarif sur une formation si vous avez déjà obtenu un certificat en ligne EPPRIDAD. Préinscription gratuite et sans engagement.</p>
+        <ul style="list-style:none;margin:0 0 26px;padding:0"><li style="padding:10px 14px;background:var(--off-white);border-radius:10px;margin-bottom:8px;font-size:14px;line-height:1.5;text-align:left"><strong>🥬 Créer son potager productif</strong><br><span style="color:var(--text-light)">7 et 8 novembre 2026 · 9 h – 13 h</span></li><li style="padding:10px 14px;background:var(--off-white);border-radius:10px;margin-bottom:8px;font-size:14px;line-height:1.5;text-align:left"><strong>🐔 Réussir son élevage de poulets</strong><br><span style="color:var(--text-light)">14 et 15 novembre 2026 · 9 h – 13 h</span></li><li style="padding:10px 14px;background:var(--off-white);border-radius:10px;margin-bottom:8px;font-size:14px;line-height:1.5;text-align:left"><strong>♻️ Fabriquer son compost</strong><br><span style="color:var(--text-light)">21 et 22 novembre 2026 · 9 h – 13 h</span></li><li style="padding:10px 14px;background:var(--off-white);border-radius:10px;margin-bottom:8px;font-size:14px;line-height:1.5;text-align:left"><strong>💧 Installer son goutte-à-goutte</strong><br><span style="color:var(--text-light)">28 et 29 novembre 2026 · 9 h – 13 h</span></li><li style="padding:10px 14px;background:var(--off-white);border-radius:10px;margin-bottom:8px;font-size:14px;line-height:1.5;text-align:left"><strong>💰 Vendre ses produits au bon prix</strong><br><span style="color:var(--text-light)">5 et 6 décembre 2026 · 9 h – 13 h</span></li></ul>
+        <a href="formations-courtes.html#preinscription" class="btn btn-gold">Voir les formations et se préinscrire</a>
       </div>
     </div>
   </div>
@@ -796,7 +665,7 @@
     </div>
     <div class="footer-col"><h4>Inscription</h4><ul>
       <li><a href="inscription.html#diplomante">Formation Diplômante</a></li>
-      <li><a href="inscription.html#courte">Formation Courte</a></li>
+      <li><a href="formations-courtes.html#preinscription">Formation Courte</a></li>
       <li><a href="inscription.html#enligne">Formation en Ligne</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a href="galerie.html">Galerie &amp; Infos</a></li>
