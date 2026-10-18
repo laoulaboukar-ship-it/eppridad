@@ -326,6 +326,9 @@ var NAV_ADM = [
   {id:'page-adm-formations',    ico:'💻', label:'Gestion formations'},
   {id:'page-adm-docs',          ico:'📚', label:'Bibliothèque'},
   {id:'page-adm-galerie',       ico:'🖼️', label:'Galerie & Vidéos'},
+  // Outils de la Direction : ils s'ouvrent dans un NOUVEL onglet (chacun demande sa propre connexion) ; ce centre de contrôle reste ouvert.
+  {id:'ext-suivi-courtes',      ico:'📜', label:'Suivi formations courtes ↗', href:'suivi-courtes.html'},
+  {id:'ext-admin-eleves',       ico:'🎓', label:'Espace élèves (administration) ↗', href:'admin-eleves.html'},
 ];
 
 function buildSidebar(){
@@ -336,7 +339,11 @@ function buildSidebar(){
   document.getElementById('sb-av').textContent = prenom[0].toUpperCase();
   document.getElementById('sb-name').textContent = _s.nom||_s.matricule;
   document.getElementById('sb-role').textContent = {admin:'Administrateur',enligne:'Apprenant en ligne',etudiant:'Étudiant diplômant'}[_s.role]||_s.role;
-  sbEl.innerHTML = nav.map(n=>`
+  sbEl.innerHTML = nav.map(n=> n.href ? `
+    <div class="sb-item" id="nav-${n.id}" onclick="ouvrirOutil('${safeStr(n.href)}')">
+      <span class="sb-item-ico">${n.ico}</span>
+      <span>${n.label}</span>
+    </div>` : `
     <div class="sb-item" id="nav-${n.id}" onclick="goto('${n.id}')">
       <span class="sb-item-ico">${n.ico}</span>
       <span>${n.label}</span>
@@ -350,6 +357,9 @@ function buildSidebar(){
       <span class="mnav-label">${n.label.split(' ')[0]}</span>
     </button>`).join('')}</div>`;
 }
+
+// Ouvre un outil de la Direction (page séparée) dans un nouvel onglet, sans quitter le centre de contrôle.
+function ouvrirOutil(url){ closeSB(); window.open(url, '_blank', 'noopener'); }
 
 function goto(id){
   closeSB();
