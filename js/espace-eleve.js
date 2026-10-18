@@ -275,7 +275,7 @@
       champMdp('mdp-actuel', obligatoire ? 'Mot de passe reçu de l\'administration' : 'Mot de passe actuel', 'current-password'),
       champMdp('mdp-nouveau', 'Nouveau mot de passe', 'new-password'),
       champMdp('mdp-confirm', 'Confirmer le nouveau mot de passe', 'new-password'),
-      h('p', { class: 'aide petit', id: 'aide-mdp-nouveau', text: '8 caractères minimum, avec au moins une lettre et un chiffre. Ne mettez pas votre identifiant dans le mot de passe.' }),
+      h('p', { class: 'aide petit', id: 'aide-mdp-nouveau', text: '4 caractères minimum (chiffres ou lettres), faciles à retenir pour vous. Évitez 1234, 0000 ou aaaa, et ne mettez pas votre identifiant.' }),
       erreur, bouton,
       obligatoire ? null : h('button', { type: 'button', class: 'btn btn-sec', onclick: function () { afficher('profil'); } }, 'Annuler'));
     r.appendChild(h('main', { class: 'ecran-connexion' }, enteteMarque('Sécurité de votre compte'), form));
