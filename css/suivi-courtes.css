@@ -66,3 +66,31 @@
   .sc-actions{gap:.4rem}.sc-actions .btn{flex:1 1 calc(50% - .3rem);padding:.5rem .5rem;font-size:.86rem;min-height:44px}
 }
 @media print{.sc-contenu{display:none!important}.zone-impression .sc-imp{display:table}}
+
+/* ── Étape 7 : invitations, import Google Forms, logistique ── */
+@media(min-width:1100px){.sc-contenu .chiffres{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.sc-actions .btn.actif{outline:2px solid var(--or);outline-offset:1px}
+.sc-st small.sc-invite{display:block;margin-top:.2rem;font-size:.72rem;color:var(--w3)}
+.sc-panneau{margin:0 0 .9rem}.sc-panneau h2{margin-bottom:.4rem}
+.sc-progression{font-weight:600;color:var(--or3);margin:.2rem 0 .4rem}
+.sc-invite-qui{margin:.2rem 0 .5rem;color:var(--w2);overflow-wrap:anywhere}.sc-invite-qui b{color:var(--w)}
+.sc-message{white-space:pre-wrap;overflow-wrap:anywhere;font-family:var(--corps);font-size:.88rem;line-height:1.45;background:rgba(0,0,0,.25);border:1px solid var(--w4);border-radius:var(--rad);padding:.75rem .85rem;margin:0 0 .7rem;color:var(--w2);max-height:28rem;overflow:auto}
+.sc-table-defile{overflow-x:auto;margin:.5rem 0 .7rem;border:1px solid var(--w4);border-radius:var(--rad)}
+.sc-import-table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:640px}
+.sc-import-table th,.sc-import-table td{padding:.45rem .6rem;border-bottom:1px solid var(--w4);text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.sc-import-table th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--w3);white-space:nowrap;overflow-wrap:normal}
+.sc-import-table tr.sc-imp-nouveau td:last-child{color:var(--or3)}.sc-import-table tr.sc-imp-rejet td:last-child{color:#ffb4a8}.sc-import-table tr.sc-imp-doublon td{opacity:.75}
+.sc-inverser{min-height:0;padding:.1rem .45rem;margin-left:.3rem}
+.sc-import-bilan{font-weight:600}
+.sc-logi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.7rem}
+.sc-logi-carte{border:1px solid var(--w4);border-radius:var(--rad);background:var(--w5);padding:.8rem .9rem;display:flex;flex-direction:column;gap:.35rem;min-width:0}
+.sc-logi-carte h3{font-size:1rem;margin:0;color:var(--w)}
+.sc-logi-nb{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.35rem;margin:.2rem 0}
+.sc-logi-nb div{background:rgba(0,0,0,.2);border-radius:8px;padding:.35rem .5rem}.sc-logi-nb b{display:block;font-size:1.25rem;color:var(--w)}.sc-logi-nb span{font-size:.74rem;color:var(--w3)}
+.sc-logi-lieu{font-size:.86rem;color:var(--w2);overflow-wrap:anywhere}.sc-places{font-weight:600;color:var(--or3)}
+/* Téléphone : les boutons de la barre forment une rangée défilante (comme les chiffres), pour que la liste reste visible dès le premier écran */
+@media(max-width:700px){
+  .sc-barre .sc-actions{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:.3rem;scroll-snap-type:x proximity}
+  .sc-barre .sc-actions .btn{flex:0 0 auto;white-space:nowrap;scroll-snap-align:start}
+  .sc-panneau .sc-actions .btn{flex:1 1 100%}
+}
