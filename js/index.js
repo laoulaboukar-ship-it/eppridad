@@ -6,11 +6,11 @@
   function getPosts(){try{return JSON.parse(localStorage.getItem(STORE)||'[]');}catch(e){return[];}}
   
   const defaultTicker=[
-    'Semestre 1 · 2025/2026 — Taux de réussite : '+STATS.taux+'%',
-    STATS.admis+' étudiants admis sur '+STATS.total,
-    'Meilleure moyenne du semestre : '+STATS.best+'/20',
+    '2025-2026 : 28 élèves formés',
+    '2026-2027 : 56 élèves inscrits en présentiel',
+    'Formation en ligne : 60 apprenants inscrits · 11 certifiés',
     'Inscriptions 2026–2027 ouvertes — Rejoignez EPPRIDAD !',
-    'Ferme-école de 8 ha — Formation 100% pratique',
+    '3 sites de pratique en service à Niamey — Formation 100% pratique',
   ];
 
   let _carIdx=0,_carPosts=[],_carAuto;
