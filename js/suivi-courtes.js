@@ -7,11 +7,11 @@
   /* ───────────────────────── 1. OUTILS PURS (testables sans navigateur) ───────────────────────── */
 
   var FORMATIONS = [
-    { code: 'potager', court: 'Potager', titre: 'Créer son potager productif', dates: '7 et 8 novembre 2026' },
-    { code: 'poulets', court: 'Poulets', titre: 'Réussir son élevage de poulets', dates: '14 et 15 novembre 2026' },
-    { code: 'compost', court: 'Compost', titre: 'Fabriquer son compost', dates: '21 et 22 novembre 2026' },
-    { code: 'goutte', court: 'Goutte-à-goutte', titre: 'Installer son goutte-à-goutte', dates: '28 et 29 novembre 2026' },
-    { code: 'vente', court: 'Vente', titre: 'Vendre ses produits au bon prix', dates: '5 et 6 décembre 2026' }
+    { code: 'potager', court: 'Potager', titre: 'Créer son potager productif', dates: '7 et 8 novembre 2026', jours: 'samedi 7 et dimanche 8 novembre', limite: 'mercredi 4 novembre' },
+    { code: 'poulets', court: 'Poulets', titre: 'Réussir son élevage de poulets', dates: '14 et 15 novembre 2026', jours: 'samedi 14 et dimanche 15 novembre', limite: 'mercredi 11 novembre' },
+    { code: 'compost', court: 'Compost', titre: 'Fabriquer son compost', dates: '21 et 22 novembre 2026', jours: 'samedi 21 et dimanche 22 novembre', limite: 'mercredi 18 novembre' },
+    { code: 'goutte', court: 'Goutte-à-goutte', titre: 'Installer son goutte-à-goutte', dates: '28 et 29 novembre 2026', jours: 'samedi 28 et dimanche 29 novembre', limite: 'mercredi 25 novembre' },
+    { code: 'vente', court: 'Vente', titre: 'Vendre ses produits au bon prix', dates: '5 et 6 décembre 2026', jours: 'samedi 5 et dimanche 6 décembre', limite: 'mercredi 2 décembre' }
   ];
   var STATUTS = [
     { code: 'a_contacter', lib: 'À contacter' }, { code: 'contacte', lib: 'Contacté' }, { code: 'attente_paiement', lib: 'En attente de paiement' },
@@ -48,11 +48,11 @@
   }
   function listeCourte(l) { return (l.formations || []).map(function (c) { var f = formationParCode(c); return f ? f.court : c; }).join(', '); }
 
-  function messageRelance(l) {
+  function messageRelance(l, lieux) {
     var prenom = String(l.prenom || '').trim() || 'Madame, Monsieur', ref = l.reference, total = fmtFCFA(l.total), paye = Number(l.paye) || 0;
     if (l.statut === 'paye') {
       return 'Bonjour ' + prenom + ', nous avons bien reçu votre paiement de ' + fmtFCFA(paye) + '. Votre place est confirmée pour : ' + listeFormations(l, true) +
-        '. Rendez-vous à l\u2019EPPRIDAD (Harobanda, Commune 5, Niamey), de 9 h à 13 h. Merci et à bientôt !';
+        '. Horaires : ' + HORAIRES + '. Théorie le samedi ' + SIEGE + ' ; pratique le dimanche (' + textePratique(l, lieux) + '). Merci et à bientôt !';
     }
     if (l.statut === 'annule') {
       return 'Bonjour ' + prenom + ', ici l\u2019EPPRIDAD. Votre préinscription (' + ref + ') est annulée. Si vous souhaitez vous inscrire à nouveau, répondez simplement à ce message. Merci !';
@@ -60,7 +60,7 @@
     var base = 'Bonjour ' + prenom + ', ici l\u2019EPPRIDAD. Nous avons bien reçu votre préinscription (' + ref + ') : ' + listeFormations(l, true) + '. Total : ' + total +
       (l.certifie ? ' (demi-tarif appliqué sur une formation)' : '') + '.';
     if (l.statut === 'attente_paiement' && paye > 0) base += ' Vous avez déjà réglé ' + fmtFCFA(paye) + ' ; il reste ' + fmtFCFA(reste(l)) + ' à payer.';
-    return base + ' Pour confirmer votre place, vous pouvez payer par Wave, Nita ou Amana au ' + NUMERO_OFFICIEL + ', ou en espèces à l\u2019école (Harobanda, Commune 5, Niamey). Votre place est confirmée après le paiement. Merci !';
+    return base + ' Pour confirmer votre place, vous pouvez payer par Wave, Nita ou Amana au ' + NUMERO_OFFICIEL + ', ou en espèces ' + SIEGE + '. Votre place est confirmée après le paiement. Merci !';
   }
 
   function sansAccent(s) { var t = String(s || '').toLowerCase(); try { t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { /* ancien navigateur */ } return t; }
@@ -71,19 +71,22 @@
       if (f.source && l.source !== f.source) return false;
       if (f.formation && (l.formations || []).indexOf(f.formation) < 0) return false;
       if (f.aEncaisser && !(l.statut !== 'annule' && reste(l) > 0)) return false;
+      if (f.invitation === 'non' && (l.invite_le || l.statut === 'paye' || l.statut === 'annule')) return false;
+      if (f.invitation === 'oui' && !l.invite_le) return false;
       if (!q) return true;
       var texte = sansAccent([l.prenom, l.nom, l.reference, l.ville, l.email, l.responsable, l.telephone].join(' '));
       return texte.indexOf(q) >= 0 || (qc.length >= 3 && chiffres(l.telephone).indexOf(qc) >= 0);
     });
   }
   function statistiques(lignes) {
-    var s = { personnes: 0, parStatut: {}, parFormation: {}, attendu: 0, recu: 0, aEncaisser: 0 };
+    var s = { personnes: 0, parStatut: {}, parFormation: {}, attendu: 0, recu: 0, aEncaisser: 0, aInviter: 0 };
     STATUTS.forEach(function (x) { s.parStatut[x.code] = 0; });
     FORMATIONS.forEach(function (x) { s.parFormation[x.code] = { personnes: 0, payees: 0 }; });
     lignes.forEach(function (l) {
       s.parStatut[l.statut] = (s.parStatut[l.statut] || 0) + 1; s.recu += Number(l.paye) || 0;
       if (l.statut === 'annule') return;
       s.personnes++; s.attendu += Number(l.total) || 0; s.aEncaisser += reste(l);
+      if (l.statut !== 'paye' && !l.invite_le) s.aInviter++;
       (l.formations || []).forEach(function (c) { if (s.parFormation[c]) { s.parFormation[c].personnes++; if (l.statut === 'paye') s.parFormation[c].payees++; } });
     });
     return s;
@@ -94,21 +97,220 @@
     return t;
   }
 
+
+  /* ── Invitation à confirmer : lieux, horaires, date limite de paiement (décisions de la Direction, 23/10/2026) ── */
+  var SIEGE = 'au siège de l\u2019EPPRIDAD, Harobanda Gaweye, sur le grand goudron de l\u2019avenue des Chinois';
+  var LIEU_DEFAUT = 'site de pratique de Timéré, Harobanda (Commune 5)';
+  var HORAIRES = 'de 9 h à 13 h';
+  function lieuxParCode(liste) { var o = {}; (liste || []).forEach(function (x) { if (x && x.code) o[x.code] = x; }); return o; }
+  function lieuPratique(code, lieux) { var x = lieux && lieux[code]; return (x && x.lieu_pratique) || LIEU_DEFAUT; }
+  function salutation(l) { return nomComplet(l) || 'Madame, Monsieur'; }
+  // Lieu(x) de la pratique pour une fiche : un seul texte si toutes ses formations ont le même lieu, sinon formation par formation.
+  function textePratique(l, lieux) {
+    var codes = (l.formations || []).filter(function (c) { return formationParCode(c); }), uniques = {};
+    codes.forEach(function (c) { uniques[lieuPratique(c, lieux)] = 1; });
+    if (Object.keys(uniques).length <= 1) return lieuPratique(codes[0], lieux);
+    return codes.map(function (c) { return formationParCode(c).court + ' : ' + lieuPratique(c, lieux); }).join(' ; ');
+  }
+  function messageInvitation(l, lieux) {
+    var codes = (l.formations || []).filter(function (c) { return formationParCode(c); }), paye = Number(l.paye) || 0;
+    var t = 'Bonjour ' + salutation(l) + ', ici l\u2019EPPRIDAD. Merci pour votre préinscription (' + l.reference + ') aux formations courtes.\n\n' + (codes.length > 1 ? 'Vos formations :' : 'Votre formation :');
+    codes.forEach(function (c) {
+      var f = formationParCode(c);
+      t += '\n• ' + f.titre + ' — ' + f.jours + '\n   Pratique : ' + lieuPratique(c, lieux) + '\n   Paiement au plus tard le ' + f.limite;
+    });
+    t += '\n\nHoraires : ' + HORAIRES + ' les deux jours. La théorie a lieu le samedi ' + SIEGE + ' ; la pratique, le dimanche.';
+    t += '\n\nPour confirmer votre inscription, réglez ' + (paye > 0 ? 'le reste, soit ' + fmtFCFA(reste(l)) + ' (déjà reçu : ' + fmtFCFA(paye) + ')' : fmtFCFA(l.total)) +
+      (l.certifie ? ' (demi-tarif appliqué sur une formation)' : '') + ' :\n• par Wave, Nita ou Amana au ' + NUMERO_OFFICIEL + ', en indiquant votre référence ' + l.reference + ' ;\n• ou en espèces ' + SIEGE + '.';
+    t += '\n\nNous vous conseillons de payer dès réception de ce message : les places sont attribuées dans l\u2019ordre des paiements, et un paiement en avance vous garantit votre place si la salle est complète.';
+    return t + '\n\nUne question ? Répondez simplement à ce message. À très bientôt !';
+  }
+
+  /* ── Import Google Forms : lecture d'un fichier .xlsx (sans bibliothèque, sur l'appareil) ou .csv ── */
+  function normEntete(s) { return sansAccent(String(s === null || s === undefined ? '' : s)).replace(/[\u2019']/g, '\'').replace(/\s+/g, ' ').trim(); }
+  function lireCsv(texte) {
+    texte = String(texte || '').replace(/^\ufeff/, '');
+    var tete = texte.split(/\r?\n/, 1)[0] || '', nb = function (c) { return tete.split(c).length; };
+    var sep = nb(';') > nb(',') && nb(';') >= nb('\t') ? ';' : (nb('\t') > nb(',') ? '\t' : ',');
+    var lignes = [], ligne = [], champ = '', guil = false, i, c;
+    for (i = 0; i < texte.length; i++) {
+      c = texte[i];
+      if (guil) { if (c === '"') { if (texte[i + 1] === '"') { champ += '"'; i++; } else guil = false; } else champ += c; }
+      else if (c === '"') guil = true;
+      else if (c === sep) { ligne.push(champ); champ = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && texte[i + 1] === '\n') i++; ligne.push(champ); lignes.push(ligne); ligne = []; champ = ''; }
+      else champ += c;
+    }
+    if (champ !== '' || ligne.length) { ligne.push(champ); lignes.push(ligne); }
+    return lignes;
+  }
+  function u16(b, o) { return b[o] | (b[o + 1] << 8); }
+  function u32(b, o) { return (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0; }
+  function inflerBrut(octets) {
+    if (typeof DecompressionStream === 'undefined' || typeof Response === 'undefined') return Promise.reject(new Error('DECOMPRESSION'));
+    try { return new Response(new Blob([octets]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer().then(function (ab) { return new Uint8Array(ab); }); }
+    catch (e) { return Promise.reject(new Error('DECOMPRESSION')); }
+  }
+  // Lit l'archive ZIP d'un .xlsx et renvoie (promesse) ses fichiers .xml / .rels.
+  function lireZip(b) {
+    var fin = -1, i, k;
+    for (i = b.length - 22; i >= Math.max(0, b.length - 65557); i--) if (u32(b, i) === 0x06054b50) { fin = i; break; }
+    if (fin < 0) return Promise.reject(new Error('ZIP'));
+    var n = u16(b, fin + 10), p = u32(b, fin + 16), fichiers = {}, taches = [], dec = new TextDecoder();
+    for (k = 0; k < n; k++) {
+      if (p + 46 > b.length || u32(b, p) !== 0x02014b50) return Promise.reject(new Error('ZIP'));
+      var methode = u16(b, p + 10), taille = u32(b, p + 20), lnom = u16(b, p + 28), lext = u16(b, p + 30), lcom = u16(b, p + 32), local = u32(b, p + 42);
+      var nom = dec.decode(b.subarray(p + 46, p + 46 + lnom));
+      p += 46 + lnom + lext + lcom;
+      if (!/\.(xml|rels)$/i.test(nom)) continue;
+      if (local + 30 > b.length || u32(b, local) !== 0x04034b50) return Promise.reject(new Error('ZIP'));
+      var debut = local + 30 + u16(b, local + 26) + u16(b, local + 28), donnees = b.subarray(debut, debut + taille);
+      if (methode === 0) fichiers[nom] = donnees;
+      else if (methode === 8) taches.push((function (nm, dn) { return inflerBrut(dn).then(function (x) { fichiers[nm] = x; }); })(nom, donnees));
+    }
+    return Promise.all(taches).then(function () { return fichiers; });
+  }
+  function deXml(s) {
+    return String(s).replace(/&#x([0-9a-f]+);/gi, function (m, x) { return String.fromCodePoint(parseInt(x, 16)); }).replace(/&#(\d+);/g, function (m, d) { return String.fromCodePoint(parseInt(d, 10)); })
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, '\'').replace(/&amp;/g, '&');
+  }
+  function textesT(xml) { var t = '', m, re = /<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g; while ((m = re.exec(xml))) t += deXml(m[1]); return t; }
+  function indexColonne(lettres) { var n = 0; for (var i = 0; i < lettres.length; i++) n = n * 26 + (lettres.charCodeAt(i) - 64); return n - 1; }
+  function feuilleDepuisXml(xml, partages) {
+    var lignes = [], mr, rr = /<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g;
+    while ((mr = rr.exec(xml || ''))) {
+      var ligne = [], mc, rc = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g, corpsLigne = mr[2] || '';
+      while ((mc = rc.exec(corpsLigne))) {
+        var at = mc[1], corps = mc[2] || '', ref = /\br="([A-Z]+)\d+"/.exec(at), ty = /\bt="([^"]+)"/.exec(at), v = /<v>([\s\S]*?)<\/v>/.exec(corps), type = ty ? ty[1] : 'n', val = '';
+        if (type === 'inlineStr') val = textesT(corps);
+        else if (v) {
+          val = deXml(v[1]);
+          if (type === 's') val = partages[parseInt(val, 10)] || '';
+          else if (type === 'n') { var x = Number(val); if (val !== '' && !isNaN(x)) val = x; }
+          else if (type === 'b') val = val === '1';
+        }
+        ligne[ref ? indexColonne(ref[1]) : ligne.length] = val;
+      }
+      for (var j = 0; j < ligne.length; j++) if (ligne[j] === undefined) ligne[j] = '';
+      var rn = /\br="(\d+)"/.exec(mr[1]);
+      lignes[rn ? parseInt(rn[1], 10) - 1 : lignes.length] = ligne;
+    }
+    for (var k = 0; k < lignes.length; k++) if (!lignes[k]) lignes[k] = [];
+    return lignes;
+  }
+  function lireXlsx(octets) {
+    return lireZip(octets).then(function (f) {
+      var dec = new TextDecoder(), txt = function (n) { return f[n] ? dec.decode(f[n]) : ''; }, wb = txt('xl/workbook.xml'), m;
+      if (!wb) throw new Error('XLSX');
+      var rels = {}, rr = /<Relationship\b[^>]*>/g, rx = txt('xl/_rels/workbook.xml.rels');
+      while ((m = rr.exec(rx))) { var id = /\bId="([^"]+)"/.exec(m[0]), cible = /\bTarget="([^"]+)"/.exec(m[0]); if (id && cible) rels[id[1]] = deXml(cible[1]); }
+      var partages = [], rs = /<si>([\s\S]*?)<\/si>/g, sst = txt('xl/sharedStrings.xml').replace(/<rPh\b[\s\S]*?<\/rPh>/g, '');
+      while ((m = rs.exec(sst))) partages.push(textesT(m[1]));
+      var feuilles = [], rf = /<sheet\b[^>]*>/g;
+      while ((m = rf.exec(wb))) {
+        var nom = /\bname="([^"]*)"/.exec(m[0]), rid = /\br:id="([^"]+)"/.exec(m[0]), cib = rid && rels[rid[1]];
+        if (!cib) continue;
+        var chemin = cib.charAt(0) === '/' ? cib.slice(1) : 'xl/' + cib.replace(/^\.\//, '');
+        feuilles.push({ nom: nom ? deXml(nom[1]) : '', lignes: feuilleDepuisXml(txt(chemin), partages) });
+      }
+      return feuilles;
+    });
+  }
+  // Colonnes reconnues par leur titre (sans accents ni majuscules). L'ordre compte : « nom de votre formation certifiante » avant « formations ».
+  var COLONNES = [
+    ['recu', /^(horodat|timestamp|date et heure)/], ['nomComplet', /(nom et prenom|prenom et nom|nom complet|nom & prenom)/], ['prenom', /^prenom/], ['nom', /^nom\b/],
+    ['telephone', /(whatsapp|telephone|numero|portable)/], ['ville', /(ville|quartier|residence|commune)/], ['situation', /(situation|profil)/],
+    ['justificatif', /(nom de (votre|la) formation certifiante|ancienne formation certifiante)/],
+    ['formations', /(formation\(s\)|formations selectionnees|formations souhaitees|formations choisies|souhaitez-vous suivre)/],
+    ['certifie', /(certification|certifie)/], ['projet', /(pourquoi|motif|motivation)/]
+  ];
+  function reperColonnes(entete) {
+    var m = {}, pris = {};
+    COLONNES.forEach(function (c) {
+      for (var i = 0; i < (entete || []).length; i++) { if (pris[i]) continue; var e = normEntete(entete[i]); if (e && c[1].test(e)) { m[c[0]] = i; pris[i] = 1; return; } }
+    });
+    return m;
+  }
+  // Choisit la feuille des réponses : de préférence celle qui a la colonne « Horodateur » de Google Forms, puis celle qui a le plus de réponses.
+  function choisirFeuille(feuilles) {
+    var meilleur = null;
+    (feuilles || []).forEach(function (f) {
+      for (var r = 0; r < Math.min(5, f.lignes.length); r++) {
+        var c = reperColonnes(f.lignes[r]);
+        if (c.telephone === undefined || c.formations === undefined || (c.nomComplet === undefined && c.prenom === undefined)) continue;
+        var donnees = f.lignes.slice(r + 1).filter(function (l) { var v = l && l[c.telephone]; return v !== undefined && v !== null && String(v).trim() !== ''; }).length;
+        var score = (c.recu !== undefined && /^(horodat|timestamp)/.test(normEntete(f.lignes[r][c.recu])) ? 2000000 : (c.recu !== undefined ? 1000000 : 0)) + donnees;
+        if (!meilleur || score > meilleur.score) meilleur = { feuille: f.nom, ligneEntete: r, colonnes: c, score: score, lignes: f.lignes };
+        break;
+      }
+    });
+    return meilleur;
+  }
+  var MOTS_FORMATIONS = [['potager', /potager/], ['poulets', /poulet/], ['compost', /compost/], ['goutte', /goutte/], ['vente', /(vendre|vente|prix|entrepreneuriat)/]];
+  function formationsDepuisTexte(t) { var s = sansAccent(t); return MOTS_FORMATIONS.filter(function (x) { return x[1].test(s); }).map(function (x) { return x[0]; }); }
+  function situationCode(t) {
+    var s = sansAccent(t).trim();
+    if (!s) return null;
+    if (/etudiant/.test(s)) return 'etudiant';
+    if (/eleveur|eleveuse/.test(s)) return 'eleveur';
+    if (/eleve/.test(s)) return 'eleve';
+    if (/entrepren/.test(s)) return 'entrepreneur';
+    if (/agricult|producteur|productrice|cultivat/.test(s)) return 'agriculteur';
+    if (/salari|professionnel|fonctionnaire|employe/.test(s)) return 'professionnel';
+    if (/reconversion/.test(s)) return 'reconversion';
+    return 'autre';
+  }
+  function decouperNom(t) { var m = String(t || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean); return { prenom: m[0] || '', nom: m.slice(1).join(' ') }; }
+  function telDepuisCellule(v) { return typeof v === 'number' ? String(Math.round(v)) : String(v === null || v === undefined ? '' : v).trim(); }
+  // Date du formulaire → texte ISO à l'heure de Niamey (UTC+1). Accepte le nombre Excel, « jj/mm/aaaa hh:mm:ss » et « aaaa-mm-jj hh:mm:ss ».
+  function dateDepuisCellule(v) {
+    var p2 = function (x) { x = String(parseInt(x, 10) || 0); return x.length < 2 ? '0' + x : x; }, m;
+    if (typeof v === 'number' && v > 40000 && v < 80000) {
+      var d = new Date(Math.round((v - 25569) * 86400) * 1000);
+      return d.getUTCFullYear() + '-' + p2(d.getUTCMonth() + 1) + '-' + p2(d.getUTCDate()) + 'T' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(d.getUTCSeconds()) + '+01:00';
+    }
+    var s = String(v === null || v === undefined ? '' : v).trim();
+    if ((m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/.exec(s))) return m[3] + '-' + p2(m[2]) + '-' + p2(m[1]) + 'T' + p2(m[4] || 0) + ':' + p2(m[5] || 0) + ':' + p2(m[6] || 0) + '+01:00';
+    if ((m = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/.exec(s))) return m[1] + '-' + m[2] + '-' + m[3] + 'T' + p2(m[4] || 0) + ':' + p2(m[5] || 0) + ':' + p2(m[6] || 0) + '+01:00';
+    return null;
+  }
+  // Transforme les lignes de la feuille choisie en fiches prêtes pour le serveur (qui revérifie tout).
+  function preparerImport(choix) {
+    var c = choix.colonnes, res = [];
+    choix.lignes.slice(choix.ligneEntete + 1).forEach(function (l, k) {
+      if (!l) return;
+      var val = function (i) { var x = i === undefined ? '' : l[i]; return x === undefined || x === null ? '' : x; }, txt = function (i) { return String(val(i)).replace(/\s+/g, ' ').trim(); };
+      var noms = c.nomComplet !== undefined ? decouperNom(val(c.nomComplet)) : { prenom: txt(c.prenom), nom: txt(c.nom) };
+      var tel = telDepuisCellule(val(c.telephone));
+      if (!noms.prenom && !noms.nom && !tel) return;
+      var sit = txt(c.situation), code = situationCode(sit), cv = val(c.certifie), cert = cv === true || /^(oui|yes|vrai|true|1)\b/.test(sansAccent(String(cv)).trim());
+      var champs = { prenom: noms.prenom, nom: noms.nom, telephone: tel, ville: txt(c.ville).slice(0, 80), formations: formationsDepuisTexte(String(val(c.formations))), certifie: cert };
+      if (txt(c.projet)) champs.projet = String(val(c.projet)).trim().slice(0, 1500);
+      if (code) champs.situation = code;
+      if (cert && txt(c.justificatif)) champs.justificatif = txt(c.justificatif).slice(0, 120);
+      if (code === 'autre') champs.notes = 'Situation indiquée dans le formulaire : ' + sit.slice(0, 200);
+      var recu = c.recu !== undefined ? dateDepuisCellule(val(c.recu)) : null;
+      if (recu) champs.recu_le = recu;
+      res.push({ ligne: choix.ligneEntete + k + 2, champs: champs, complet: c.nomComplet !== undefined ? String(val(c.nomComplet)).replace(/\s+/g, ' ').trim() : '' });
+    });
+    return res;
+  }
+
   /* ── Export Excel (.xlsx) : fichier généré dans le navigateur, sans bibliothèque ni envoi sur Internet ── */
-  var ENTETES = ['Référence', 'Reçue le', 'Origine', 'Nom', 'Prénom', 'Téléphone', 'E-mail', 'Ville', 'Situation', 'Formations', 'Certifié en ligne', 'Demi-tarif sur', 'Total (FCFA)', 'Payé (FCFA)', 'Reste (FCFA)', 'Statut', 'Responsable', 'Contact préféré', 'Projet / question', 'Notes', 'Paiements'];
+  var ENTETES = ['Référence', 'Reçue le', 'Origine', 'Nom', 'Prénom', 'Téléphone', 'E-mail', 'Ville', 'Situation', 'Formations', 'Certifié en ligne', 'Demi-tarif sur', 'Total (FCFA)', 'Payé (FCFA)', 'Reste (FCFA)', 'Statut', 'Responsable', 'Contact préféré', 'Projet / question', 'Notes', 'Paiements', 'Invitée le', 'Invitations'];
   function lignesExport(lignes) {
     return lignes.map(function (l) {
       var f = l.demi_tarif ? formationParCode(l.demi_tarif) : null;
       return [l.reference, fmtDate(l.cree_le), SOURCES[l.source] || l.source, l.nom, l.prenom, telAffiche(l.telephone), l.email || '', l.ville || '', SITUATIONS[l.situation] || l.situation || '', listeFormations(l, true),
         l.certifie ? 'Oui' + (l.justificatif ? ' (' + l.justificatif + ')' : '') : 'Non', f ? f.titre : '', Number(l.total) || 0, Number(l.paye) || 0, l.statut === 'annule' ? 0 : reste(l), libStatut(l.statut), l.responsable || '', l.contact || '', l.projet || '', l.notes || '',
-        (l.paiements || []).map(function (p) { return fmtNombre(p.montant) + ' FCFA ' + (MODES[p.mode] || p.mode) + ' le ' + fmtDate(p.paye_le) + (p.transaction ? ' (' + p.transaction + ')' : ''); }).join(' ; ')];
+        (l.paiements || []).map(function (p) { return fmtNombre(p.montant) + ' FCFA ' + (MODES[p.mode] || p.mode) + ' le ' + fmtDate(p.paye_le) + (p.transaction ? ' (' + p.transaction + ')' : ''); }).join(' ; '), fmtDate(l.invite_le), Number(l.invitations) || 0];
     });
   }
   function echapperXml(s) { return String(s).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function nomColonne(i) { var s = ''; i++; while (i > 0) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
-  var COLONNES_NUM = { 12: true, 13: true, 14: true };
+  var COLONNES_NUM = { 12: true, 13: true, 14: true, 22: true };
   function feuilleXml(rows) {
-    var larg = [14, 11, 13, 18, 16, 18, 24, 14, 20, 46, 18, 28, 13, 13, 13, 22, 16, 14, 40, 40, 50];
+    var larg = [14, 11, 13, 18, 16, 18, 24, 14, 20, 46, 18, 28, 13, 13, 13, 22, 16, 14, 40, 40, 50, 12, 11];
     var x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>';
     larg.forEach(function (w, i) { x += '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>'; });
     x += '</cols><sheetData>';
@@ -165,7 +367,10 @@
 
   var OUTILS = { FORMATIONS: FORMATIONS, STATUTS: STATUTS, SOURCES: SOURCES, MODES: MODES, SITUATIONS: SITUATIONS, fmtNombre: fmtNombre, fmtFCFA: fmtFCFA, fmtDate: fmtDate, totalFormations: totalFormations, reste: reste, tropPercu: tropPercu, nomComplet: nomComplet,
     telAffiche: telAffiche, lienAppel: lienAppel, lienWhatsApp: lienWhatsApp, listeFormations: listeFormations, listeCourte: listeCourte, messageRelance: messageRelance, filtrer: filtrer, statistiques: statistiques, listeWhatsApp: listeWhatsApp,
-    lignesExport: lignesExport, ENTETES: ENTETES, construireXlsx: construireXlsx, crc32: crc32, echapperXml: echapperXml, libStatut: libStatut };
+    lignesExport: lignesExport, ENTETES: ENTETES, construireXlsx: construireXlsx, crc32: crc32, echapperXml: echapperXml, libStatut: libStatut,
+    messageInvitation: messageInvitation, textePratique: textePratique, lieuxParCode: lieuxParCode, LIEU_DEFAUT: LIEU_DEFAUT, SIEGE: SIEGE, lireCsv: lireCsv, lireXlsx: lireXlsx, lireZip: lireZip,
+    feuilleDepuisXml: feuilleDepuisXml, reperColonnes: reperColonnes, choisirFeuille: choisirFeuille, preparerImport: preparerImport, formationsDepuisTexte: formationsDepuisTexte,
+    situationCode: situationCode, decouperNom: decouperNom, dateDepuisCellule: dateDepuisCellule, telDepuisCellule: telDepuisCellule };
   if (typeof document === 'undefined') { if (typeof module !== 'undefined') module.exports = OUTILS; return; }
 
   // Cette page ne doit jamais s'afficher dans le cadre d'un autre site.
@@ -175,7 +380,8 @@
   /* ───────────────────────── 2. ÉTAT ET APPELS SERVEUR ───────────────────────── */
 
   var CLE = 'eppr_suivi_session', INACTIVITE_MS = 15 * 60 * 1000;
-  var S = { token: null, lignes: [], filtre: { q: '', formation: '', statut: '', source: '', aEncaisser: false }, ouvert: null, edition: null, ajout: false, derniere: 0, chargement: false };
+  var S = { token: null, lignes: [], filtre: { q: '', formation: '', statut: '', source: '', aEncaisser: false, invitation: '' }, ouvert: null, edition: null, ajout: false, derniere: 0, chargement: false,
+            lieux: null, complement: true, panneau: null, invit: { file: [], pos: 0, faits: 0, passes: 0, ouvert: false }, imp: { items: [] } };
   var client = null, minuteur = null;
 
   function creerClient() {
@@ -284,7 +490,7 @@
     return appeler('admin_courtes_liste', avecToken()).then(function (d) {
       S.chargement = false;
       if (!d || !d.ok) { afficherErreurEcran((d && d.message) || 'Chargement impossible.'); return; }
-      S.lignes = d.lignes || []; rendre();
+      S.lignes = d.lignes || []; return chargerLieux().then(rendre, rendre);
     }).catch(function (e) { S.chargement = false; if (e && e.expiree) return; afficherErreurEcran(texteErreur(e)); });
   }
   function afficherErreurEcran(m) {
@@ -303,7 +509,7 @@
     c.appendChild(h('div', { class: 'titre-ecran' }, h('h1', { text: 'Suivi des formations courtes' }), h('p', { class: 'aide', text: 'Toutes les préinscriptions (site, WhatsApp, Google Forms…) au même endroit : appeler, relancer, encaisser, exporter.' })));
     c.appendChild(h('section', { class: 'chiffres' },
       chiffre('Préinscrits (hors annulés)', fmtNombre(st.personnes)), chiffre('À contacter', fmtNombre(st.parStatut.a_contacter), st.parStatut.a_contacter ? 'attention' : ''),
-      chiffre('En attente de paiement', fmtNombre(st.parStatut.attente_paiement)), chiffre('Payés — places confirmées', fmtNombre(st.parStatut.paye)),
+      chiffre('En attente de paiement', fmtNombre(st.parStatut.attente_paiement)), chiffre('Payés — places confirmées', fmtNombre(st.parStatut.paye)), chiffre('Pas encore invités', fmtNombre(st.aInviter), st.aInviter ? 'attention' : ''),
       chiffre('Montant attendu', fmtNombre(st.attendu), 'monnaie', 'FCFA'), chiffre('Montant reçu', fmtNombre(st.recu), 'monnaie', 'FCFA'), chiffre('Reste à encaisser', fmtNombre(st.aEncaisser), 'monnaie' + (st.aEncaisser ? ' attention' : ''), 'FCFA')));
     c.appendChild(h('section', { class: 'sc-formations', 'aria-label': 'Par formation' }, FORMATIONS.map(function (f) {
       var x = st.parFormation[f.code];
@@ -312,6 +518,7 @@
     })));
     c.appendChild(barreOutils());
     if (S.ajout) c.appendChild(carteAjout());
+    if (S.panneau === 'inviter') c.appendChild(panneauInviter()); else if (S.panneau === 'importer') c.appendChild(panneauImporter()); else if (S.panneau === 'logistique') c.appendChild(panneauLogistique());
     var vue = filtrer(S.lignes, S.filtre);
     c.appendChild(h('p', { class: 'sc-compte', 'aria-live': 'polite', text: vue.length + ' personne' + (vue.length > 1 ? 's' : '') + ' affichée' + (vue.length > 1 ? 's' : '') + (vue.length !== S.lignes.length ? ' sur ' + S.lignes.length : '') }));
     var liste = h('section', { class: 'sc-liste', 'aria-label': 'Préinscriptions' });
@@ -338,13 +545,17 @@
     encaisser.firstChild.checked = !!S.filtre.aEncaisser; encaisser.firstChild.addEventListener('change', function (ev) { syncRecherche(); S.filtre.aEncaisser = ev.target.checked; rendre(); });
     return h('section', { class: 'carte sc-barre' },
       h('div', { class: 'filtres' }, q, sel('sc-f-formation', 'Toutes les formations', FORMATIONS.map(function (f) { return [f.code, f.titre]; }), 'formation'),
-        sel('sc-f-statut', 'Tous les statuts', STATUTS.map(function (s) { return [s.code, s.lib]; }), 'statut'), sel('sc-f-source', 'Toutes les origines', Object.keys(SOURCES).map(function (k) { return [k, SOURCES[k]]; }), 'source'), encaisser),
+        sel('sc-f-statut', 'Tous les statuts', STATUTS.map(function (s) { return [s.code, s.lib]; }), 'statut'), sel('sc-f-source', 'Toutes les origines', Object.keys(SOURCES).map(function (k) { return [k, SOURCES[k]]; }), 'source'),
+        sel('sc-f-invitation', 'Invitation : toutes', [['non', 'Pas encore invitées'], ['oui', 'Déjà invitées']], 'invitation'), encaisser),
       h('div', { class: 'actions sc-actions' },
-        h('button', { type: 'button', class: 'btn', id: 'sc-ajouter', onclick: function () { S.ajout = !S.ajout; rendre(); if (S.ajout) { var p = document.getElementById('sc-ajout'); if (p) p.scrollIntoView({ block: 'start' }); } } }, S.ajout ? 'Fermer l\'ajout' : '+ Ajouter une personne'),
+        h('button', { type: 'button', class: 'btn', id: 'sc-ajouter', onclick: function () { S.ajout = !S.ajout; if (S.ajout) S.panneau = null; rendre(); if (S.ajout) { var p = document.getElementById('sc-ajout'); if (p) p.scrollIntoView({ block: 'start' }); } } }, S.ajout ? 'Fermer l\'ajout' : '+ Ajouter une personne'),
+        h('button', { type: 'button', class: 'btn' + (S.panneau === 'inviter' ? ' actif' : ''), id: 'sc-inviter', 'aria-pressed': S.panneau === 'inviter' ? 'true' : 'false', onclick: function () { basculerPanneau('inviter'); } }, '✉️ Inviter à confirmer'),
+        h('button', { type: 'button', class: 'btn btn-sec' + (S.panneau === 'importer' ? ' actif' : ''), id: 'sc-importer', 'aria-pressed': S.panneau === 'importer' ? 'true' : 'false', onclick: function () { basculerPanneau('importer'); } }, '⬆ Importer Google Forms'),
+        h('button', { type: 'button', class: 'btn btn-sec' + (S.panneau === 'logistique' ? ' actif' : ''), id: 'sc-logistique', 'aria-pressed': S.panneau === 'logistique' ? 'true' : 'false', onclick: function () { basculerPanneau('logistique'); } }, '📍 Logistique et lieux'),
         h('button', { type: 'button', class: 'btn btn-sec', id: 'sc-export', onclick: exporterExcel }, '⬇ Exporter (Excel)'),
         h('button', { type: 'button', class: 'btn btn-sec', id: 'sc-copier', onclick: copierListe }, '📋 Copier la liste (WhatsApp)'),
         h('button', { type: 'button', class: 'btn btn-sec', id: 'sc-imprimer', onclick: imprimerFicheAppel }, '🖨 Fiche d\'appel'),
-        h('button', { type: 'button', class: 'btn btn-sec', onclick: function () { S.filtre = { q: '', formation: '', statut: '', source: '', aEncaisser: false }; rendre(); } }, 'Effacer les filtres')));
+        h('button', { type: 'button', class: 'btn btn-sec', onclick: function () { S.filtre = { q: '', formation: '', statut: '', source: '', aEncaisser: false, invitation: '' }; rendre(); } }, 'Effacer les filtres')));
   }
   // Frappe dans la recherche : on ne reconstruit que la liste (le champ garde le focus).
   function rendreListeSeule() {
@@ -367,7 +578,7 @@
       h('span', { class: 'sc-c sc-form', 'data-lib': 'Formations', text: listeCourte(l) }),
       h('span', { class: 'sc-c sc-num', 'data-lib': 'Total', text: fmtNombre(l.total) }),
       h('span', { class: 'sc-c sc-num', 'data-lib': 'Payé', text: fmtNombre(l.paye) }),
-      h('span', { class: 'sc-c sc-st' }, badge(l.statut)));
+      h('span', { class: 'sc-c sc-st' }, badge(l.statut), l.invite_le ? h('small', { class: 'sc-invite', text: '✉ invitée le ' + fmtDate(l.invite_le) }) : null));
     var a = h('article', { class: 'sc-fiche sc-f-' + l.statut + (ouvert ? ' ouvert' : ''), id: 'f-' + l.reference }, resume);
     if (ouvert) a.appendChild(detail(l, id));
     return a;
@@ -380,13 +591,15 @@
     var enEdition = S.edition === l.reference;
     var gauche = h('div', { class: 'sc-col' },
       h('div', { class: 'sc-actions-ligne' },
-        lien(lienAppel(l.telephone), '📞 Appeler', 'btn btn-petit'), lien(lienWhatsApp(l.telephone, messageRelance(l)), '💬 WhatsApp (message prêt)', 'btn btn-petit btn-wa'),
+        lien(lienAppel(l.telephone), '📞 Appeler', 'btn btn-petit'), lien(lienWhatsApp(l.telephone, messageRelance(l, S.lieux)), '💬 WhatsApp (message prêt)', 'btn btn-petit btn-wa'),
+        invitable(l) ? lien(lienWhatsApp(l.telephone, messageInvitation(l, S.lieux)), '✉️ Invitation à confirmer', 'btn btn-petit btn-wa') : null,
+        invitable(l) && S.complement ? h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function (ev) { noterInvitation(l, ev.currentTarget); } }, '✓ Noter l\'invitation envoyée') : null,
         h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { S.edition = enEdition ? null : l.reference; rendre(); } }, enEdition ? 'Annuler la modification' : '✏️ Modifier les informations')),
       enEdition ? blocEdition(l) : dl([
         ['Téléphone', telAffiche(l.telephone)], l.email ? ['E-mail', l.email] : null, ['Ville', l.ville || '—'], ['Situation', SITUATIONS[l.situation] || l.situation || '—'], ['Origine', SOURCES[l.source] || l.source],
         ['Reçue le', fmtDateHeure(l.cree_le)], ['Formations', h('ul', { class: 'sc-ul' }, (l.formations || []).map(function (c) { var f = formationParCode(c); return h('li', { text: f ? f.titre + ' — ' + f.dates : c }); }))],
         ['Certifié(e) en ligne', l.certifie ? 'Oui' + (l.justificatif ? ' — ' + l.justificatif : '') : 'Non'], l.certifie && l.demi_tarif ? ['Demi-tarif sur', (formationParCode(l.demi_tarif) || { titre: l.demi_tarif }).titre] : null,
-        ['Contact préféré', l.contact || 'WhatsApp'], l.projet ? ['Projet / question', h('span', { class: 'sc-pre', text: l.projet })] : null, ['Total indicatif', fmtFCFA(l.total)]]));
+        ['Contact préféré', l.contact || 'WhatsApp'], ['Invitation', l.invite_le ? 'Envoyée le ' + fmtDateHeure(l.invite_le) + (l.invitations > 1 ? ' (' + l.invitations + ' envois)' : '') : 'Pas encore envoyée'], l.projet ? ['Projet / question', h('span', { class: 'sc-pre', text: l.projet })] : null, ['Total indicatif', fmtFCFA(l.total)]]));
     var droite = h('div', { class: 'sc-col' }, blocSuivi(l), blocPaiements(l), blocSuppression(l));
     return h('div', { class: 'sc-detail', id: id }, gauche, droite);
   }
@@ -521,6 +734,190 @@
       }).catch(function (e) { if (e && e.expiree) return; erreur.textContent = texteErreur(e); b.disabled = false; });
     } }, 'Ajouter au suivi');
     return h('section', { class: 'carte sc-bloc', id: 'sc-ajout' }, h('h2', { text: 'Ajouter une personne' }), h('p', { class: 'aide', text: 'Pour une demande reçue par WhatsApp, téléphone, Google Forms ou sur place.' }), fp.el, erreur, b);
+  }
+
+  /* ───────────────────────── 7 bis. INVITATIONS, IMPORT GOOGLE FORMS, LOGISTIQUE ───────────────────────── */
+
+  function trouver(ref) { for (var i = 0; i < S.lignes.length; i++) if (S.lignes[i].reference === ref) return S.lignes[i]; return null; }
+  function invitable(l) { return l.statut !== 'paye' && l.statut !== 'annule'; }
+  function chargerLieux() {
+    return appeler('admin_courtes_lieux', avecToken()).then(function (d) { if (d && d.ok) { S.lieux = lieuxParCode(d.lieux); S.complement = true; } },
+      function (e) { if (e && e.expiree) throw e; if (e && e.installation) S.complement = false; });
+  }
+  function basculerPanneau(p) {
+    syncRecherche(); S.panneau = S.panneau === p ? null : p; S.ajout = false; rendre();
+    var el = document.getElementById('sc-panneau-' + p); if (el && S.panneau === p) el.scrollIntoView({ block: 'start' });
+  }
+  function avisComplement() { return h('p', { class: 'erreur', role: 'alert', text: 'Cette fonction demande d\u2019installer d\u2019abord le complément dans la base (fichier SQL « 2_INSTALLER_invitations_import.sql »).' }); }
+  function noterInvitation(l, bouton, suite) {
+    if (bouton) bouton.disabled = true;
+    return appeler('admin_courtes_inviter', avecToken({ p_reference: l.reference })).then(function (d) {
+      if (!d || !d.ok) { toast((d && d.message) || 'Enregistrement impossible.'); if (bouton) bouton.disabled = false; return; }
+      mettreAJour(d.ligne); if (suite) suite(d.ligne); else { toast('Invitation notée : ' + nomComplet(d.ligne) + ' passe « En attente de paiement ».'); rendre(); }
+    }).catch(function (e) { if (e && e.expiree) return; toast(texteErreur(e)); if (bouton) bouton.disabled = false; });
+  }
+
+  // Envoi assisté : WhatsApp s'ouvre avec le message déjà écrit ; on revient ici et on passe à la personne suivante.
+  function panneauInviter() {
+    var I = S.invit, sec = h('section', { class: 'carte sc-bloc sc-panneau', id: 'sc-panneau-inviter' }, h('h2', { text: 'Inviter à confirmer (envoi assisté)' }));
+    if (!S.complement) { sec.appendChild(avisComplement()); return sec; }
+    if (!I.file.length) {
+      var cands = listeAffichee().filter(invitable);
+      sec.appendChild(h('p', { class: 'aide', text: 'Les messages partent de votre WhatsApp, une personne à la fois : WhatsApp s\u2019ouvre avec l\u2019invitation déjà écrite (formations, lieux, horaires, montant, date limite), vous appuyez sur Envoyer, puis vous revenez ici pour passer à la personne suivante.' }));
+      sec.appendChild(h('p', { class: 'aide', text: 'Personnes concernées : celles affichées par vos filtres, sauf les personnes déjà payées ou annulées. Conseil : choisissez « Pas encore invitées » dans le filtre « Invitation ».' }));
+      sec.appendChild(h('button', { type: 'button', class: 'btn', id: 'sc-inviter-commencer', disabled: cands.length ? null : true, onclick: function () {
+        I.file = cands.map(function (x) { return x.reference; }); I.pos = 0; I.faits = 0; I.passes = 0; I.ouvert = false; rendre();
+      } }, cands.length ? 'Commencer : ' + cands.length + ' personne' + (cands.length > 1 ? 's' : '') : 'Aucune personne à inviter avec ces filtres'));
+      return sec;
+    }
+    while (I.pos < I.file.length && !(trouver(I.file[I.pos]) && invitable(trouver(I.file[I.pos])))) { I.pos++; I.passes++; }
+    if (I.pos >= I.file.length) {
+      sec.appendChild(h('p', { class: 'ok-texte', id: 'sc-inviter-fin', text: 'Terminé : ' + I.faits + ' invitation' + (I.faits > 1 ? 's' : '') + ' notée' + (I.faits > 1 ? 's' : '') + ', ' + I.passes + ' personne' + (I.passes > 1 ? 's' : '') + ' passée' + (I.passes > 1 ? 's' : '') + '.' }));
+      sec.appendChild(h('button', { type: 'button', class: 'btn btn-sec', onclick: function () { I.file = []; rendre(); } }, 'Nouvel envoi'));
+      return sec;
+    }
+    var l = trouver(I.file[I.pos]), msg = messageInvitation(l, S.lieux), url = lienWhatsApp(l.telephone, msg);
+    var envoye = h('button', { type: 'button', class: 'btn' + (I.ouvert ? '' : ' btn-sec'), id: 'sc-inviter-envoye', onclick: function () {
+      noterInvitation(l, envoye, function () { I.faits++; I.pos++; I.ouvert = false; rendre(); });
+    } }, '\u2713 Envoyé — personne suivante');
+    var ouvrir = url ? h('a', { href: url, target: '_blank', rel: 'noopener noreferrer', class: 'btn btn-wa', id: 'sc-inviter-wa', onclick: function () { I.ouvert = true; envoye.className = 'btn'; } }, '💬 Ouvrir WhatsApp avec le message')
+      : h('p', { class: 'erreur', text: 'Numéro WhatsApp invalide : corrigez la fiche ou passez à la personne suivante.' });
+    sec.appendChild(h('p', { class: 'sc-progression', id: 'sc-inviter-progression', text: 'Personne ' + (I.pos + 1) + ' sur ' + I.file.length + ' · ' + I.faits + ' invitation' + (I.faits > 1 ? 's' : '') + ' notée' + (I.faits > 1 ? 's' : '') }));
+    sec.appendChild(h('p', { class: 'sc-invite-qui' }, h('b', { text: nomComplet(l) }), ' · ' + telAffiche(l.telephone) + ' · ' + listeCourte(l) + ' · ' + (reste(l) > 0 ? 'à payer : ' + fmtFCFA(reste(l)) : 'soldé') + (l.invite_le ? ' · déjà invitée le ' + fmtDate(l.invite_le) : '')));
+    sec.appendChild(h('pre', { class: 'sc-message', id: 'sc-inviter-message', text: msg }));
+    sec.appendChild(h('div', { class: 'sc-actions' }, ouvrir, url ? envoye : null,
+      h('button', { type: 'button', class: 'btn btn-sec', id: 'sc-inviter-passer', onclick: function () { I.pos++; I.passes++; I.ouvert = false; rendre(); } }, 'Passer'),
+      h('button', { type: 'button', class: 'btn btn-sec', onclick: function () { I.file = []; rendre(); } }, 'Arrêter')));
+    sec.appendChild(h('p', { class: 'aide', text: 'Appuyez sur « Envoyé » seulement après avoir envoyé le message dans WhatsApp : la date d\u2019invitation est notée et la personne passe « En attente de paiement ».' }));
+    return sec;
+  }
+
+  // Import : le fichier est lu sur l'appareil ; le serveur vérifie d'abord (rien n'est enregistré), puis importe après confirmation.
+  function panneauImporter() {
+    var P = S.imp, sec = h('section', { class: 'carte sc-bloc sc-panneau', id: 'sc-panneau-importer' }, h('h2', { text: 'Importer les réponses Google Forms' }));
+    if (!S.complement) { sec.appendChild(avisComplement()); return sec; }
+    sec.appendChild(h('p', { class: 'aide', text: 'Dans Google Forms : onglet « Réponses », icône Google Sheets ; puis dans la feuille : Fichier → Télécharger → Microsoft Excel (.xlsx) ou CSV. Le fichier est lu sur cet appareil : rien n\u2019est enregistré avant votre confirmation. Une personne déjà dans le suivi (même numéro) n\u2019est jamais ajoutée deux fois.' }));
+    var entree = h('input', { type: 'file', id: 'sc-import-fichier', accept: '.xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'aria-label': 'Fichier des réponses Google Forms' });
+    entree.addEventListener('change', function () { var f = entree.files && entree.files[0]; if (f) lireFichierImport(f); });
+    sec.appendChild(h('label', { class: 'champ' }, h('span', { text: 'Fichier des réponses (.xlsx ou .csv)' }), entree));
+    if (P.enCours) sec.appendChild(h('p', { class: 'chargement', text: 'Lecture et vérification…' }));
+    if (P.erreur) sec.appendChild(h('p', { class: 'erreur', role: 'alert', id: 'sc-import-erreur', text: P.erreur }));
+    if (P.resultat && !P.enCours) sec.appendChild(resultatImport());
+    return sec;
+  }
+  function messageErreurImport(e) {
+    var c = e && e.message;
+    if (e && (e.reseau || e.installation)) return texteErreur(e);
+    if (c === 'COLONNES') return 'Colonnes introuvables : le fichier doit contenir au moins « Nom et prénom », « Numéro WhatsApp » et les formations choisies.';
+    if (c === 'VIDE') return 'Aucune réponse trouvée dans ce fichier.';
+    if (c === 'TROP') return 'Plus de 300 réponses : importez le fichier en plusieurs fois.';
+    if (c === 'TAILLE') return 'Fichier trop volumineux (5 Mo au maximum).';
+    if (c === 'DECOMPRESSION') return 'Ce navigateur ne sait pas ouvrir les fichiers Excel : téléchargez plutôt la feuille au format CSV, ou utilisez un navigateur à jour.';
+    return 'Fichier illisible. Téléchargez la feuille au format Excel (.xlsx) ou CSV, puis réessayez.';
+  }
+  function lireFichierImport(f) {
+    var P = S.imp; P.erreur = ''; P.resultat = null; P.items = []; P.nomFichier = f.name; P.feuille = ''; P.enCours = true; rendre();
+    Promise.resolve().then(function () {
+      if (f.size > 5 * 1024 * 1024) throw new Error('TAILLE');
+      return f.arrayBuffer();
+    }).then(function (ab) {
+      var oct = new Uint8Array(ab);
+      if (/\.csv$/i.test(f.name) || (oct[0] !== 0x50 || oct[1] !== 0x4b)) return [{ nom: '', lignes: lireCsv(new TextDecoder().decode(oct)) }];
+      return lireXlsx(oct);
+    }).then(function (feuilles) {
+      var choix = choisirFeuille(feuilles); if (!choix) throw new Error('COLONNES');
+      var items = preparerImport(choix); if (!items.length) throw new Error('VIDE'); if (items.length > 300) throw new Error('TROP');
+      P.items = items; P.feuille = choix.feuille;
+      return verifierImport();
+    }).catch(function (e) { if (e && e.expiree) return; P.enCours = false; P.erreur = messageErreurImport(e); rendre(); });
+  }
+  function verifierImport() {
+    var P = S.imp; P.enCours = true; rendre();
+    return appeler('admin_courtes_importer', avecToken({ p_lignes: P.items.map(function (x) { return x.champs; }), p_simuler: true })).then(function (d) {
+      P.enCours = false; if (!d || !d.ok) { P.erreur = (d && d.message) || 'Vérification impossible.'; rendre(); return; }
+      P.erreur = ''; P.resultat = d; rendre();
+    });
+  }
+  function resultatImport() {
+    var P = S.imp, d = P.resultat, etat = {};
+    (d.nouveaux || []).forEach(function (x) { etat[x.index] = { type: 'nouveau', x: x }; });
+    (d.doublons || []).forEach(function (x) { etat[x.index] = { type: 'doublon', x: x }; });
+    (d.rejets || []).forEach(function (x) { etat[x.index] = { type: 'rejet', x: x }; });
+    var nbN = (d.nouveaux || []).length, nbD = (d.doublons || []).length, nbR = (d.rejets || []).length;
+    var bloc = h('div', { class: 'sc-import-res', id: 'sc-import-resultat' });
+    bloc.appendChild(h('p', { class: d.simulation ? 'sc-import-bilan' : 'ok-texte sc-import-bilan', id: 'sc-import-bilan',
+      text: (d.simulation ? 'Vérification de « ' + P.nomFichier + ' »' + (P.feuille ? ' (feuille « ' + P.feuille + ' »)' : '') + ' : ' : 'Import terminé : ') +
+        nbN + (d.simulation ? ' nouvelle' + (nbN > 1 ? 's' : '') + ' personne' + (nbN > 1 ? 's' : '') + ' à importer' : ' personne' + (nbN > 1 ? 's' : '') + ' ajoutée' + (nbN > 1 ? 's' : '') + ' (statut « À contacter »)') +
+        ', ' + nbD + ' déjà dans le suivi, ' + nbR + ' à corriger.' }));
+    var corps = h('tbody');
+    P.items.forEach(function (it, i) {
+      var e = etat[i + 1] || { type: 'rejet', x: { message: 'Non traitée.' } }, ch = it.champs, res;
+      if (e.type === 'nouveau') res = d.simulation ? 'Nouvelle — ' + fmtFCFA(e.x.total) : 'Ajoutée : ' + e.x.reference;
+      else if (e.type === 'doublon') res = e.x.reference ? 'Déjà dans le suivi (' + e.x.reference + ')' : e.x.motif;
+      else res = 'À corriger : ' + (!ch.nom && ch.prenom ? 'un seul mot dans « Nom et prénom » (nom de famille manquant).' : e.x.message) + ' Ajoutez-la à la main avec « + Ajouter une personne ».';
+      var inverser = d.simulation && e.type !== 'doublon' && ch.prenom && ch.nom ? h('button', { type: 'button', class: 'btn btn-sec btn-petit sc-inverser', title: 'Inverser prénom et nom', 'aria-label': 'Inverser prénom et nom (ligne ' + it.ligne + ')', onclick: function () {
+        if (it.complet) { var m = it.complet.split(' '); it.dernier = !it.dernier; ch.prenom = it.dernier ? m[m.length - 1] : m[0]; ch.nom = (it.dernier ? m.slice(0, -1) : m.slice(1)).join(' '); }
+        else { var t = ch.prenom; ch.prenom = ch.nom; ch.nom = t; }
+        verifierImport().catch(function (err) { if (err && err.expiree) return; P.enCours = false; P.erreur = messageErreurImport(err); rendre(); });
+      } }, '\u21c4') : null;
+      corps.appendChild(h('tr', { class: 'sc-imp-' + e.type },
+        h('td', { text: String(it.ligne) }), h('td', null, h('b', { text: ch.prenom || '—' }), ' ', ch.nom || '', inverser ? ' ' : '', inverser),
+        h('td', { text: e.type === 'nouveau' && e.x.telephone ? telAffiche(e.x.telephone) : (ch.telephone || '—') }), h('td', { text: (ch.formations || []).map(function (c) { return formationParCode(c).court; }).join(', ') || '—' }), h('td', { text: res })));
+    });
+    bloc.appendChild(h('div', { class: 'sc-table-defile' }, h('table', { class: 'sc-import-table' },
+      h('thead', null, h('tr', null, ['Ligne', 'Prénom · nom', 'Téléphone', 'Formations', 'Résultat'].map(function (t) { return h('th', { text: t }); }))), corps)));
+    if (d.simulation) {
+      bloc.appendChild(h('p', { class: 'aide', text: 'Le prénom est pris comme le premier mot de « Nom et prénom » ; si c\u2019est le dernier mot, utilisez \u21c4. Les invitations s\u2019adressent à la personne par son nom complet.' }));
+      if (nbN) {
+        var b = h('button', { type: 'button', class: 'btn', id: 'sc-import-valider', onclick: function () {
+          b.disabled = true; P.enCours = true; rendre();
+          appeler('admin_courtes_importer', avecToken({ p_lignes: P.items.map(function (x) { return x.champs; }), p_simuler: false })).then(function (r) {
+            P.enCours = false; if (!r || !r.ok) { P.erreur = (r && r.message) || 'Import impossible.'; rendre(); return; }
+            P.resultat = r; toast((r.nouveaux || []).length + ' personne(s) importée(s).'); return recharger();
+          }).catch(function (e) { if (e && e.expiree) return; P.enCours = false; P.erreur = messageErreurImport(e); rendre(); });
+        } }, 'Importer ' + nbN + ' nouvelle' + (nbN > 1 ? 's' : '') + ' personne' + (nbN > 1 ? 's' : ''));
+        bloc.appendChild(b);
+      }
+    } else bloc.appendChild(h('button', { type: 'button', class: 'btn btn-sec', onclick: function () { S.imp = { items: [] }; S.panneau = null; rendre(); } }, 'Fermer'));
+    return bloc;
+  }
+
+  // Logistique : effectifs par week-end, lieu de la pratique et nombre de places (repris dans les invitations).
+  function panneauLogistique() {
+    var sec = h('section', { class: 'carte sc-bloc sc-panneau', id: 'sc-panneau-logistique' }, h('h2', { text: 'Logistique par week-end' }),
+      h('p', { class: 'aide', text: 'Horaires : ' + HORAIRES + '. Théorie le samedi ' + SIEGE + ' ; pratique le dimanche, au lieu indiqué pour chaque formation. Ce lieu est repris automatiquement dans les invitations : si vous le changez après avoir invité, prévenez les personnes déjà invitées.' }));
+    if (!S.complement) { sec.appendChild(avisComplement()); return sec; }
+    var grille = h('div', { class: 'sc-logi' });
+    FORMATIONS.forEach(function (f) {
+      var ls = S.lignes.filter(function (l) { return l.statut !== 'annule' && (l.formations || []).indexOf(f.code) > -1; });
+      var nb = function (fn) { return ls.filter(fn).length; };
+      var payes = nb(function (l) { return l.statut === 'paye'; }), invites = nb(function (l) { return l.statut !== 'paye' && l.invite_le; }), aInviter = nb(function (l) { return l.statut !== 'paye' && !l.invite_le; }), acompte = nb(function (l) { return l.statut !== 'paye' && (Number(l.paye) || 0) > 0; });
+      var L = (S.lieux && S.lieux[f.code]) || { lieu_pratique: LIEU_DEFAUT, capacite: null, defaut: true };
+      var lieu = h('input', { type: 'text', maxlength: '200', value: L.defaut ? '' : L.lieu_pratique, placeholder: LIEU_DEFAUT, 'aria-label': 'Lieu de pratique — ' + f.titre });
+      var cap = h('input', { type: 'number', min: '1', max: '1000', step: '1', inputmode: 'numeric', value: L.capacite ? String(L.capacite) : '', placeholder: 'Sans limite', 'aria-label': 'Nombre de places — ' + f.titre });
+      var err = h('p', { class: 'erreur', role: 'alert' });
+      var b = h('button', { type: 'button', class: 'btn btn-petit', onclick: function () {
+        err.textContent = ''; var brut = cap.value.trim(), c = brut ? parseInt(brut, 10) : null;
+        if (brut && !(c >= 1 && c <= 1000)) { err.textContent = 'Nombre de places : de 1 à 1 000, ou vide.'; return; }
+        b.disabled = true;
+        appeler('admin_courtes_lieu_modifier', avecToken({ p_code: f.code, p_lieu: lieu.value.trim() || null, p_capacite: c })).then(function (d) {
+          if (!d || !d.ok) { err.textContent = (d && d.message) || 'Enregistrement impossible.'; b.disabled = false; return; }
+          S.lieux = lieuxParCode(d.lieux); toast('Lieu et places enregistrés pour « ' + f.court + ' ».'); rendre();
+        }).catch(function (e) { if (e && e.expiree) return; err.textContent = texteErreur(e); b.disabled = false; });
+      } }, 'Enregistrer');
+      var restantes = L.capacite ? L.capacite - payes : null;
+      grille.appendChild(h('div', { class: 'sc-logi-carte', 'data-code': f.code },
+        h('h3', { text: f.titre }), h('p', { class: 'sc-fdates', text: f.jours + ' · paiement au plus tard le ' + f.limite }),
+        h('div', { class: 'sc-logi-nb' }, [['Préinscrits', ls.length], ['Payés', payes], ['Invités, en attente', invites], ['À inviter', aInviter]].map(function (x) { return h('div', null, h('b', { text: String(x[1]) }), h('span', { text: x[0] })); })),
+        acompte ? h('p', { class: 'aide', text: acompte + ' personne' + (acompte > 1 ? 's' : '') + ' avec un acompte' }) : null,
+        L.capacite ? h('p', { class: restantes <= 0 ? 'erreur sc-places' : 'sc-places', text: restantes <= 0 ? 'Complet : ' + payes + ' payé' + (payes > 1 ? 's' : '') + ' pour ' + L.capacite + ' places' : restantes + ' place' + (restantes > 1 ? 's' : '') + ' restante' + (restantes > 1 ? 's' : '') + ' sur ' + L.capacite }) : null,
+        h('p', { class: 'sc-logi-lieu', text: 'Pratique : ' + L.lieu_pratique }),
+        h('label', { class: 'champ' }, h('span', { text: 'Autre lieu de pratique (vide = lieu habituel)' }), lieu),
+        h('label', { class: 'champ' }, h('span', { text: 'Nombre de places (facultatif)' }), cap), err,
+        h('div', { class: 'sc-actions' }, b, h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { S.filtre = { q: '', formation: f.code, statut: '', source: '', aEncaisser: false, invitation: '' }; S.panneau = null; rendre(); } }, 'Voir la liste'))));
+    });
+    sec.appendChild(grille);
+    return sec;
   }
 
   /* ───────────────────────── 8. EXPORTS ───────────────────────── */
