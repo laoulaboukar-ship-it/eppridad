@@ -106,6 +106,39 @@ a{text-decoration:none;color:inherit}
 .msg-err{background:var(--rd2);border-color:rgba(229,57,53,.3);color:#ff8080}
 .msg-ok{background:var(--ok2);border-color:rgba(46,125,82,.3);color:#6ee7b7}
 .msg:not(:empty){display:block}
+/* ===== Étape 10 : connexion guidée (classes cx-) ===== */
+.cx-espace{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--w2);margin:-8px 0 20px;padding:9px 12px;border-radius:11px;background:rgba(255,255,255,.06)}
+.cx-espace b{color:var(--or3)}
+.cx-espace a{font-weight:700;color:var(--w2);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.cx-intro{font-size:13.5px;color:var(--w3);line-height:1.55;margin:0 0 18px}
+.cx-intro b{color:var(--w2)}
+.cx-aide{font-size:12.5px;color:var(--w3);margin-top:6px;line-height:1.45}
+.cx-saisie{position:relative}
+.cx-saisie .form-input{padding-right:96px}
+.cx-voir{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--or3);padding:10px 12px;font-family:var(--font-body);border-radius:9px}
+.cx-voir:focus-visible,.cx-guide-btn:focus-visible,.cx-espace a:focus-visible{outline:2px solid var(--or3);outline-offset:2px}
+.cx-aide-err{border:1px solid rgba(255,138,128,.4);background:rgba(229,57,53,.08);border-radius:12px;padding:12px 14px;margin:-4px 0 14px;font-size:13px;color:var(--w2);line-height:1.55}
+.cx-aide-err b{color:var(--w)}
+.cx-aide-err ul{margin:4px 0 0;padding-left:18px}
+.cx-aide-err li b{white-space:nowrap}
+#wp-forgot-btn{margin-bottom:16px}
+.cx-guide-btn{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;margin-top:18px;padding:13px 15px;border-radius:13px;border:1px solid rgba(201,168,76,.4);background:var(--or4);text-align:left;font-family:var(--font-body);color:var(--w)}
+.cx-guide-btn b{display:block;font-size:14.5px;color:var(--or3)}
+.cx-guide-btn small{font-size:12px;color:var(--w3)}
+.cx-guide-btn i{font-style:normal;font-size:22px;line-height:1;color:var(--or3);transition:transform .25s}
+.cx-guide-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.cx-guide{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+.cx-guide.cx-ouvert{grid-template-rows:1fr}
+.cx-guide>div{overflow:hidden}
+.cx-guide ol{list-style:none;counter-reset:cx;margin:0;padding:16px 2px 2px}
+.cx-guide li{counter-increment:cx;position:relative;padding:0 0 16px 44px;font-size:13.5px;line-height:1.55;color:var(--w2)}
+.cx-guide li::before{content:counter(cx);position:absolute;left:0;top:-3px;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--or);color:var(--or3);font-weight:800;font-size:13px;display:grid;place-items:center}
+.cx-guide li:not(:last-child)::after{content:"";position:absolute;left:14.5px;top:30px;bottom:1px;width:1px;background:rgba(201,168,76,.35)}
+.cx-guide li b{color:var(--w)}
+.cx-guide code{font-family:inherit;font-weight:800;color:var(--or3);letter-spacing:.4px;white-space:nowrap}
+.cx-liens{margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);display:grid;gap:9px;font-size:12.5px;color:var(--w3);line-height:1.5}
+.cx-liens a{color:var(--or);font-weight:700;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.cx-guide,.cx-guide-btn i{transition:none}}
 .btn-main{display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--v3),var(--v4));color:var(--w);border-radius:13px;font-size:15px;font-weight:700;transition:all .2s;box-shadow:0 4px 16px rgba(22,80,63,.4);letter-spacing:.2px;margin-top:4px;font-family:var(--font-body)}
 .btn-main:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(22,80,63,.5)}
 .btn-main:active{transform:none;box-shadow:none}
@@ -511,39 +544,51 @@ select.inp option{background:#1a3a2a;color:#fff}
 <div id="page-auth">
   <a href="https://www.eppridad.com" class="auth-back">← Retour au site EPPRIDAD</a>
   <div class="auth-card">
+    <div class="cx-espace"><span>Espace <b>Formations en ligne</b></span><a href="espace.html">Changer d'espace</a></div>
     <div class="auth-logo-wrap">
       <div class="auth-emblem"><img src="images/logo.png" alt="EPPRIDAD" onerror="this.style.display='none'"><span style="display:none;font-size:36px">🎓</span></div>
       <div class="auth-title">EPPRIDAD</div>
       <div class="auth-sub">Portail Académique & Formation</div>
     </div>
-    <div class="tab-row">
+    <div class="tab-row" style="display:none">
       <button class="tab-btn active" id="tab-cnx" onclick="switchTab('cnx')">Connexion</button>
       <button class="tab-btn" id="tab-ins" onclick="switchTab('ins')">Créer un compte</button>
     </div>
 
     <!-- LOGIN -->
     <div id="form-cnx">
-      <div class="msg msg-err" id="err-cnx"></div>
+      <p class="cx-intro">Utilisez le matricule et le mot de passe que l'EPPRIDAD vous a envoyés.</p>
+      <div class="msg msg-err" id="err-cnx" role="alert"></div>
+      <div class="cx-aide-err" id="cx-aide-err" hidden><b>Vérifiez ces trois points :</b><ul><li>les tirets sont bien écrits, comme dans <b>ENL-NOM-123</b> ;</li><li>le chiffre 0 n'est pas confondu avec la lettre O ;</li><li>le mot de passe est recopié exactement comme dans le message reçu.</li></ul></div>
       <div class="form-group">
         <label class="form-label">Matricule</label>
-        <input class="form-input" type="text" id="inp-mat" placeholder="Ex: EPPRI25-001 ou ENL2604-XXXX" autocomplete="username" autocapitalize="none" spellcheck="false">
+        <input class="form-input" type="text" id="inp-mat" placeholder="Exemple : ENL-NOM-123" autocomplete="username" autocapitalize="characters" spellcheck="false" oninput="cxMat(this)">
+        <div class="cx-aide">Majuscules ou minuscules : les deux sont acceptées. Gardez les tirets.</div>
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe</label>
-        <input class="form-input" type="password" id="inp-mdp" placeholder="Votre mot de passe" autocomplete="current-password">
+        <div class="cx-saisie"><input class="form-input" type="password" id="inp-mdp" placeholder="Votre mot de passe" autocomplete="current-password"><button type="button" class="cx-voir" onclick="cxVoir(this)" aria-pressed="false">Afficher</button></div>
       </div>
       <button class="btn-main" id="btn-login" onclick="doLogin()">🔐 Se connecter</button>
-      <div class="auth-link">Pas encore de compte ? <a onclick="switchTab('ins')">Créer mon accès</a></div>
+      <button type="button" class="cx-guide-btn" onclick="cxGuide(this)" aria-expanded="false" aria-controls="cx-guide"><span><b>Première connexion ?</b><small>Le guide en 4 étapes</small></span><i aria-hidden="true">+</i></button>
+      <div class="cx-guide" id="cx-guide"><div><ol>
+        <li><b>Ouvrez le message de l'EPPRIDAD.</b> Il contient votre matricule et votre mot de passe.</li>
+        <li><b>Écrivez votre matricule</b> dans la première case, avec les tirets. Exemple : <code>ENL-NOM-123</code></li>
+        <li><b>Écrivez votre mot de passe</b> dans la deuxième case, puis appuyez sur « Se connecter ».</li>
+        <li><b>Ouvrez votre formation.</b> Sur votre tableau de bord, appuyez sur « Continuer la formation ».</li>
+      </ol></div></div>
+      <div class="cx-liens"><div>Vous avez un matricule mais pas encore de mot de passe ? <a onclick="switchTab('ins')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')switchTab('ins')">Choisir mon mot de passe</a></div><div>Pas encore inscrit ? <a href="formations-en-ligne.html">Voir les formations en ligne</a></div></div>
       <div class="auth-link" style="margin-top:8px"><a href="https://wa.me/22799851532?text=Bonjour%20EPPRIDAD%2C%20j'ai%20besoin%20d'aide%20pour%20me%20connecter." target="_blank" style="color:var(--gris2)">💬 Aide : WhatsApp +227 99 85 15 32</a></div>
     </div>
 
     <!-- REGISTER -->
     <div id="form-ins" style="display:none">
-      <div class="msg msg-err" id="err-ins"></div>
+      <p class="cx-intro"><b>Première activation.</b> Écrivez le matricule reçu de l'EPPRIDAD, puis choisissez votre mot de passe.</p>
+      <div class="msg msg-err" id="err-ins" role="alert"></div>
       <div class="msg msg-ok" id="ok-ins"></div>
       <div class="form-group">
         <label class="form-label">Matricule attribué par EPPRIDAD</label>
-        <input class="form-input" type="text" id="ins-mat" placeholder="Votre matricule (reçu par WhatsApp)" autocapitalize="none">
+        <input class="form-input" type="text" id="ins-mat" placeholder="Votre matricule (reçu par WhatsApp)" autocapitalize="characters" spellcheck="false" oninput="cxMat(this)">
       </div>
       <div class="form-group">
         <label class="form-label">Choisir un mot de passe</label>
@@ -554,10 +599,20 @@ select.inp option{background:#1a3a2a;color:#fff}
         <input class="form-input" type="password" id="ins-pwd2" placeholder="Répétez le mot de passe">
       </div>
       <button class="btn-main" id="btn-ins" onclick="doInscription()">✅ Créer mon compte</button>
-      <div class="auth-link">Déjà un compte ? <a onclick="switchTab('cnx')">Se connecter</a></div>
+      <div class="auth-link">Vous avez déjà votre mot de passe ? <a onclick="switchTab('cnx')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')switchTab('cnx')">Retour à la connexion</a></div>
     </div>
   </div>
 </div>
+
+<script>
+/* Étape 10 : aides de la page de connexion. Ne touche ni à la session ni aux appels au serveur. */
+function cxMat(el){var p=el.selectionStart,a=el.value,b=a.toUpperCase().replace(/\s+/g,'');if(a!==b){el.value=b;try{var q=Math.max(0,p-(a.length-b.length));el.setSelectionRange(q,q);}catch(e){}}}
+function cxVoir(btn){var m=document.getElementById('inp-mdp');if(!m)return;var vu=m.type==='text';m.type=vu?'password':'text';btn.textContent=vu?'Afficher':'Masquer';btn.setAttribute('aria-pressed',String(!vu));}
+function cxGuide(btn){var g=document.getElementById('cx-guide');if(!g)return;var o=g.classList.toggle('cx-ouvert');btn.setAttribute('aria-expanded',String(o));}
+(function(){var err=document.getElementById('err-cnx'),aide=document.getElementById('cx-aide-err');if(!err||!aide||!window.MutationObserver)return;
+function maj(){var t=err.textContent||'';var montrer=/inconnu|incorrect/i.test(t);if(montrer&&err.nextSibling!==aide){err.parentNode.insertBefore(aide,err.nextSibling);}aide.hidden=!montrer;}
+new MutationObserver(maj).observe(err,{childList:true,characterData:true,subtree:true});maj();})();
+</script>
 
 <!-- APP PRINCIPAL -->
 <div id="app">
