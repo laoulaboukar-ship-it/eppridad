@@ -7,11 +7,11 @@
   /* ───────────────────────── 1. OUTILS PURS (testables sans navigateur) ───────────────────────── */
 
   var FORMATIONS = [
-    { code: 'potager', court: 'Potager', titre: 'Créer son potager productif', dates: '7 et 8 novembre 2026', jours: 'samedi 7 et dimanche 8 novembre', limite: 'mercredi 4 novembre' },
-    { code: 'poulets', court: 'Poulets', titre: 'Réussir son élevage de poulets', dates: '14 et 15 novembre 2026', jours: 'samedi 14 et dimanche 15 novembre', limite: 'mercredi 11 novembre' },
-    { code: 'compost', court: 'Compost', titre: 'Fabriquer son compost', dates: '21 et 22 novembre 2026', jours: 'samedi 21 et dimanche 22 novembre', limite: 'mercredi 18 novembre' },
-    { code: 'goutte', court: 'Goutte-à-goutte', titre: 'Installer son goutte-à-goutte', dates: '28 et 29 novembre 2026', jours: 'samedi 28 et dimanche 29 novembre', limite: 'mercredi 25 novembre' },
-    { code: 'vente', court: 'Vente', titre: 'Vendre ses produits au bon prix', dates: '5 et 6 décembre 2026', jours: 'samedi 5 et dimanche 6 décembre', limite: 'mercredi 2 décembre' }
+    { code: 'potager', court: 'Potager', titre: 'Créer son potager productif', dates: '14 et 15 novembre 2026', jours: 'samedi 14 et dimanche 15 novembre', limite: 'mercredi 11 novembre' },
+    { code: 'poulets', court: 'Poulets', titre: 'Réussir son élevage de poulets', dates: '21 et 22 novembre 2026', jours: 'samedi 21 et dimanche 22 novembre', limite: 'mercredi 18 novembre' },
+    { code: 'compost', court: 'Compost', titre: 'Fabriquer son compost', dates: '28 et 29 novembre 2026', jours: 'samedi 28 et dimanche 29 novembre', limite: 'mercredi 25 novembre' },
+    { code: 'goutte', court: 'Goutte-à-goutte', titre: 'Installer son goutte-à-goutte', dates: '5 et 6 décembre 2026', jours: 'samedi 5 et dimanche 6 décembre', limite: 'mercredi 2 décembre' },
+    { code: 'vente', court: 'Vente', titre: 'Vendre ses produits au bon prix', dates: '12 et 13 décembre 2026', jours: 'samedi 12 et dimanche 13 décembre', limite: 'mercredi 9 décembre' }
   ];
   var STATUTS = [
     { code: 'a_contacter', lib: 'À contacter' }, { code: 'contacte', lib: 'Contacté' }, { code: 'attente_paiement', lib: 'En attente de paiement' },
