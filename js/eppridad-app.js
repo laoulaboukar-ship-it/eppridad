@@ -411,6 +411,160 @@ async function loadDashboard(){
   loadEtudDashboard();
 }
 
+// ── TABLEAU DE BORD APPRENANT EN LIGNE : REPRISE ET PARCOURS (étape 11) ──────
+// Lecture seule. Mêmes tables et mêmes filtres que le reste du portail. Aucune écriture.
+function tdbStyle(){
+  if(document.getElementById('tdb-style')) return;
+  const st = document.createElement('style'); st.id = 'tdb-style';
+  st.textContent = `
+.tdb-salut{font-family:var(--font-disp);font-size:26px;font-weight:700;line-height:1.2;color:var(--w)}
+.tdb-ou{font-size:14.5px;color:var(--w3);margin:6px 0 20px;line-height:1.5}
+.tdb-reprise{border-radius:20px;padding:20px 18px 18px;background:linear-gradient(160deg,var(--v3) 0%,var(--v2) 70%);border:1px solid rgba(201,168,76,.45);box-shadow:0 14px 40px rgba(0,0,0,.45);max-width:640px}
+.tdb-lbl{font-size:12.5px;color:var(--or3);font-weight:700}
+.tdb-titre{font-family:var(--font-disp);font-size:20px;font-weight:700;line-height:1.25;margin:3px 0 14px;color:var(--w)}
+.tdb-barre{height:9px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden}
+.tdb-barre i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--or),var(--or3));transform-origin:left;animation:tdbBarre .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes tdbBarre{from{transform:scaleX(0)}}
+.tdb-barre-txt{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--w2);margin-top:6px}
+.tdb-suite{margin:16px 0 14px;padding:14px;border-radius:14px;background:rgba(0,0,0,.24)}
+.tdb-suite small{display:block;font-size:12.5px;color:var(--w3)}
+.tdb-suite strong{display:block;font-size:16px;line-height:1.35;margin-top:1px;color:var(--w)}
+.tdb-suite em{display:block;font-style:normal;font-size:12.5px;color:var(--or3);margin-top:8px}
+.tdb-btn{display:block;width:100%;text-align:center;font-family:var(--font-body);font-size:16px;font-weight:800;padding:15px;border-radius:14px;background:linear-gradient(180deg,var(--or3),var(--or));color:#1b1503;box-shadow:0 6px 22px rgba(201,168,76,.25);cursor:pointer}
+.tdb-btn:active{transform:translateY(1px)}
+.tdb-btn:focus-visible,.tdb-pas:focus-visible,.tdb-autre:focus-visible{outline:2px solid var(--or3);outline-offset:3px}
+.tdb-note{font-size:12.5px;color:var(--w3);text-align:center;margin-top:10px}
+.tdb-h{font-size:16px;font-weight:800;margin:30px 0 14px;color:var(--w)}
+.tdb-parcours{list-style:none;margin:0;padding:0;max-width:640px}
+.tdb-parcours li{position:relative;padding-bottom:18px}
+.tdb-parcours li:not(:last-child)::after{content:"";position:absolute;left:14.5px;top:30px;bottom:0;width:1.5px;background:rgba(255,255,255,.12)}
+.tdb-parcours li.tdb-ok:not(:last-child)::after{background:var(--or)}
+.tdb-pas{display:flex;gap:14px;align-items:flex-start;width:100%;text-align:left;font-family:var(--font-body);color:inherit;border-radius:10px}
+button.tdb-pas{cursor:pointer}
+.tdb-pt{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;border:1.5px solid rgba(255,255,255,.12);color:var(--w3);background:var(--v0);position:relative;z-index:1}
+.tdb-ok .tdb-pt{background:var(--or);border-color:var(--or);color:#1b1503}
+.tdb-ici .tdb-pt{border-color:var(--or3);color:var(--or3);box-shadow:0 0 0 5px rgba(201,168,76,.16)}
+.tdb-pas b{display:block;font-size:14.5px;font-weight:700;line-height:1.35;color:var(--w3)}
+.tdb-ok .tdb-pas b,.tdb-ici .tdb-pas b{color:var(--w)}
+.tdb-pas small{display:block;font-size:12.5px;color:var(--w3)}
+.tdb-ici .tdb-pas small{color:var(--or3);font-weight:700}
+.tdb-cert .tdb-pt{border-style:dashed}
+.tdb-cert.tdb-ok .tdb-pt{border-style:solid}
+.tdb-autres{display:grid;gap:12px;max-width:640px}
+.tdb-autre{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;font-family:var(--font-body);color:inherit;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);padding:15px 16px;cursor:pointer}
+.tdb-autre b{display:block;font-size:15px;line-height:1.35;color:var(--w)}
+.tdb-autre small{display:block;font-size:12.5px;color:var(--w3);margin-top:2px}
+.tdb-autre i{font-style:normal;font-size:13px;font-weight:700;color:var(--or3);white-space:nowrap}
+.tdb-mot{border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);padding:16px;max-width:640px}
+.tdb-mot p{font-size:14.5px;color:var(--w2);margin:0 0 12px;line-height:1.5}
+.tdb-mot a{font-size:14px;font-weight:700;color:#7be3a2;text-decoration:none}
+@media(prefers-reduced-motion:reduce){.tdb-barre i{animation:none}}`;
+  document.head.appendChild(st);
+}
+
+async function tdbOuvrir(formationId, moduleId){ await ouvrirFormation(formationId, '', moduleId||null); }
+async function tdbCertificat(formationId){ await ouvrirFormation(formationId, ''); if(_cours && _cours.formationId===formationId) await afficherCertificat(); }
+
+async function tdbRendre(o){
+  const db = o.db, formations = o.formations||[], certs = o.certs;
+  if(!formations.length) return null;
+  tdbStyle();
+  const ids = formations.map(f=>f.id);
+  const lire = async (q)=>{ try{ const r = await q; return (r && r.data) || []; }catch(_){ return []; } };
+  const [mods, prog, quiz] = await Promise.all([
+    lire(db.from('modules_cours').select('id,formation_id,titre,ordre').in('formation_id',ids).order('ordre')),
+    lire(db.from('progression_apprenant').select('formation_id,module_id,complete,date_completion,created_at').eq('matricule',_s.matricule)),
+    lire(db.from('resultats_quiz').select('module_id,pourcentage,reussi,created_at').eq('matricule',_s.matricule))
+  ]);
+  const faits = new Set(prog.filter(p=>p.complete).map(p=>p.module_id));
+  const meilleur = new Map(), dernier = new Map();
+  quiz.forEach(q=>{
+    const pc = Math.round(Number(q.pourcentage)||0);
+    if(q.reussi && (!meilleur.has(q.module_id) || pc>meilleur.get(q.module_id))) meilleur.set(q.module_id, pc);
+    const d = dernier.get(q.module_id);
+    if(!d || String(q.created_at||'')>String(d.created_at||'')) dernier.set(q.module_id, { created_at:q.created_at, pc:pc, reussi:!!q.reussi });
+  });
+  const activite = new Map();
+  prog.forEach(p=>{ const d = String(p.date_completion||p.created_at||''); if(d > (activite.get(p.formation_id)||'')) activite.set(p.formation_id, d); });
+
+  const etats = formations.map(f=>{
+    const ms = mods.filter(m=>m.formation_id===f.id);
+    const n = ms.filter(m=>faits.has(m.id)).length, total = ms.length;
+    const idx = ms.findIndex(m=>!faits.has(m.id));
+    const cert = certs.get(f.id)||null;
+    const etat = cert ? 'cert' : !total ? 'vide' : idx<0 ? 'fini' : n>0 ? 'encours' : 'debut';
+    return { f:f, ms:ms, n:n, total:total, idx:idx, suivant: idx>=0 ? ms[idx] : null, cert:cert, etat:etat, act: activite.get(f.id)||'' };
+  });
+  const ouvertes = etats.filter(e=>e.etat!=='cert');
+  const principal = ouvertes.slice().sort((a,b)=> a.act===b.act ? 0 : a.act>b.act ? -1 : 1)[0] || etats[0];
+  const autres = etats.filter(e=>e!==principal);
+
+  const pct = e => e.total ? Math.round(e.n/e.total*100) : (e.cert?100:0);
+  const libelle = e => e.etat==='cert' ? 'Voir mon certificat' : e.etat==='fini' ? 'Obtenir mon certificat' : e.etat==='encours' ? 'Reprendre le module '+(e.idx+1) : e.etat==='debut' ? 'Commencer le module 1' : 'Ouvrir la formation';
+  const action = e => (e.etat==='cert'||e.etat==='fini') ? `tdbCertificat('${escH(e.f.id)}')` : `tdbOuvrir('${escH(e.f.id)}','${e.suivant?escH(e.suivant.id):''}')`;
+
+  const p = principal;
+  const ou = p.etat==='cert' ? 'Votre formation est terminée. Félicitations.'
+    : p.etat==='fini' ? 'Vous avez validé tous les modules. Il ne reste que votre certificat.'
+    : p.etat==='encours' ? `Vous avez validé ${p.n} module${p.n>1?'s':''} sur ${p.total}. Reprenez là où vous en étiez.`
+    : 'Votre formation vous attend. Commencez quand vous voulez.';
+  let suite = '';
+  if(p.suivant){
+    const d = dernier.get(p.suivant.id);
+    suite = `<div class="tdb-suite"><small>${p.etat==='debut'?'Pour commencer':'Vous en étiez ici'}</small><strong>Module ${p.idx+1} : ${escH(p.suivant.titre)}</strong>${d && !d.reussi ? `<em>Dernier essai au quiz : ${d.pc} %. Il faut 70 % pour valider.</em>` : ''}</div>`;
+  } else if(p.etat==='fini'){
+    suite = `<div class="tdb-suite"><small>Votre réussite</small><strong>Tous les modules sont validés</strong></div>`;
+  } else if(p.etat==='cert'){
+    suite = `<div class="tdb-suite"><small>Votre réussite</small><strong>Certificat EPPRIDAD obtenu${p.cert.mention?`, mention ${escH(p.cert.mention)}`:''}</strong></div>`;
+  }
+  const reprise = `
+    <div class="tdb-reprise anim d1">
+      <div class="tdb-lbl">${p.etat==='cert'||p.etat==='fini'?'Formation terminée':p.etat==='encours'?'Votre formation en cours':'Votre formation'}</div>
+      <div class="tdb-titre">${escH(p.f.titre)}</div>
+      ${p.total?`<div class="tdb-barre"><i style="width:${pct(p)}%"></i></div>
+      <div class="tdb-barre-txt"><span>${p.n} sur ${p.total} modules validés</span><span>${pct(p)} %</span></div>`:''}
+      ${suite}
+      <button type="button" class="tdb-btn" onclick="${action(p)}">${libelle(p)}</button>
+      ${p.suivant?'<div class="tdb-note">70 % au quiz pour valider. Autant d’essais que nécessaire.</div>':''}
+    </div>`;
+
+  const parcours = p.total ? `
+    <div class="tdb-h">Votre parcours</div>
+    <ol class="tdb-parcours anim d2">
+      ${p.ms.map((m,i)=>{
+        const ok = faits.has(m.id), ici = i===p.idx;
+        const sous = ok ? (meilleur.has(m.id) ? `Validé, quiz à ${meilleur.get(m.id)} %` : 'Validé') : ici ? 'Vous êtes ici' : 'À venir';
+        const dedans = `<span class="tdb-pt">${ok?'✓':(i+1)}</span><span><b>${escH(m.titre)}</b><small>${sous}</small></span>`;
+        return `<li class="${ok?'tdb-ok':ici?'tdb-ici':''}">${(ok||ici) ? `<button type="button" class="tdb-pas" onclick="tdbOuvrir('${escH(p.f.id)}','${escH(m.id)}')">${dedans}</button>` : `<div class="tdb-pas">${dedans}</div>`}</li>`;
+      }).join('')}
+      <li class="tdb-cert ${p.cert?'tdb-ok':''}"><div class="tdb-pas"><span class="tdb-pt">★</span><span><b>Certificat EPPRIDAD</b><small>${p.cert?'Obtenu':`Après les ${p.total} modules`}</small></span></div></li>
+    </ol>` : '';
+
+  const liste = autres.length ? `
+    <div class="tdb-h">Vos autres formations</div>
+    <div class="tdb-autres anim d2">
+      ${autres.map(e=>`<button type="button" class="tdb-autre" onclick="${action(e)}"><span><b>${escH(e.f.titre)}</b><small>${e.cert?`Certificat EPPRIDAD obtenu${e.cert.mention?`, mention ${escH(e.cert.mention)}`:''}`:e.total?`${e.n} sur ${e.total} modules validés`:'Formation en préparation'}</small></span><i>${libelle(e)}</i></button>`).join('')}
+    </div>` : '';
+
+  const aide = `
+    <div class="tdb-h">L’équipe vous accompagne</div>
+    <div class="tdb-mot anim d2">
+      <p>Une question sur le cours ? Écrivez-nous, nous vous répondons.</p>
+      <a href="${waLink(`Bonjour EPPRIDAD, j'ai une question sur ma formation « ${p.f.titre} ». Mon matricule est ${_s.matricule}.`)}" target="_blank" rel="noopener">Poser une question sur WhatsApp</a>
+    </div>`;
+
+  return `
+    <div class="sec-head anim" style="margin-bottom:0">
+      <div class="tdb-salut">${o.sal}, ${escH(o.prenom)}</div>
+      <div class="tdb-ou">${ou}</div>
+    </div>
+    ${o.notifsHTML}
+    ${reprise}
+    ${parcours}
+    ${liste}
+    ${aide}`;
+}
+
 async function loadEnligneDashboard(){
   const el = document.getElementById('page-dashboard');
   el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div><div class="empty-txt">Chargement…</div></div>';
@@ -454,7 +608,9 @@ async function loadEnligneDashboard(){
         </div>`).join('')}
     </div>` : '';
 
-    el.innerHTML = `
+    let tdbHtml = null;
+    try{ tdbHtml = await tdbRendre({ db, formations, certs, sal, prenom, notifsHTML }); }catch(eTdb){ console.error('[TDB] reprise indisponible, ancien tableau de bord affiché :', eTdb); }
+    el.innerHTML = tdbHtml || `
     <div class="sec-head anim">
       <div class="sec-title">${sal}, ${escH(prenom)} 👋</div>
       <div class="sec-sub">Vos formations en ligne EPPRIDAD</div>
@@ -634,7 +790,7 @@ async function loadFormationsEnLigne(){
 }
 
 // ── LECTEUR COURS E-LEARNING ─────────────────────────────────
-async function ouvrirFormation(formationId, titre){
+async function ouvrirFormation(formationId, titre, moduleDepart){
   const db = getDBv30();
   // Récupérer le titre si non fourni (évite le bug apostrophe dans onclick)
   if(!titre){
@@ -681,8 +837,10 @@ async function ouvrirFormation(formationId, titre){
   const pageC = document.getElementById('page-cours');
   pageC.classList.add('open');
 
+  let idxDepart = 0;
+  if(moduleDepart){ const iDep = _cours.modules.findIndex(m=>m.id===moduleDepart); if(iDep>0) idxDepart = iDep; }
   await buildSidebarModules();
-  await chargerModule(0);
+  await chargerModule(idxDepart);
 }
 
 function fermerCours(){
