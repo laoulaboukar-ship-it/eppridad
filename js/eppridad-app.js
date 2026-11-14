@@ -165,7 +165,7 @@ async function doLogin(){
     if(data.session_token) localStorage.setItem('eppr_session_token_v30', data.session_token);
     _s = { matricule:data.matricule, nom:data.nom_complet||data.matricule, role:data.role||'etudiant', email:data.email||null };
     // Garde le mot de passe admin en mémoire (jamais stocké) pour la passerelle admin
-    if(_s.role === 'admin') _adminPwd = mdp;
+    if(_s.role === 'admin'){ _adminPwd = mdp; _adminTok = null; }
     saveSession(_s);
     window._sessionUser = _s;
     afterLogin();
@@ -268,7 +268,7 @@ function forceLogout(msg){
   stopSessionWatch();
   clearSession();
   localStorage.removeItem('eppr_session_token_v30');
-  _s=null; _db=null; _adminPwd=null;
+  _s=null; _db=null; _adminPwd=null; _adminTok=null;
   setTimeout(()=>{
     afficherEcranConnexion();
     const errEl = document.getElementById('err-cnx');
@@ -294,7 +294,7 @@ function doLogout(){
   stopSessionWatch();
   clearSession();
   localStorage.removeItem('eppr_session_token_v30');
-  _s=null; _db=null; _adminPwd=null;
+  _s=null; _db=null; _adminPwd=null; _adminTok=null;
   afficherEcranConnexion();
   document.getElementById('inp-mat').value='';
   document.getElementById('inp-mdp').value='';
@@ -3588,6 +3588,42 @@ function ouvrirPaiementModal(accesId, matricule, nomComplet, titreFormation){
   modal.style.display='flex';
 }
 
+// ── ACTIONS SENSIBLES DU CENTRE DE CONTRÔLE (étape 12) ───────────────────────
+// Les accès aux formations et les certificats ne sont plus modifiés directement dans les tables :
+// chaque action passe par une fonction du serveur qui exige une session de la Direction.
+// Le jeton de session reste en mémoire (jamais dans le navigateur), comme le mot de passe.
+var _adminTok = null;
+async function adminJeton(renouveler){
+  if(_adminTok && !renouveler) return _adminTok;
+  if(!_s || _s.role!=='admin' || !_adminPwd) throw new Error('Session admin expirée. Reconnectez-vous.');
+  const { data, error } = await getDBv30().rpc('admin_connexion', { p_password: _adminPwd });
+  if(error) throw new Error(error.message || 'Connexion de la Direction impossible.');
+  if(!data || !data.ok || !data.token) throw new Error((data && data.message) || 'Connexion de la Direction refusée.');
+  _adminTok = data.token;
+  return _adminTok;
+}
+async function adminSecure(fonction, params){
+  for(let essai=0; essai<2; essai++){
+    const jeton = await adminJeton(essai===1);
+    const { data, error } = await getDBv30().rpc(fonction, Object.assign({ p_admin_token: jeton }, params||{}));
+    if(error) throw new Error(error.message || 'Action refusée par le serveur.');
+    if(data && data.ok) return data;
+    if(data && data.code==='ADMIN_SESSION_INVALIDE' && essai===0){ _adminTok = null; continue; }
+    throw new Error((data && data.message) || 'Action refusée par le serveur.');
+  }
+  throw new Error('Session admin expirée. Reconnectez-vous.');
+}
+// Bouton « Révoquer » de la liste des accès : remplace, sans le modifier, l'ancien traitement de js/espace-etudiant.js
+// (ce fichier est chargé avant celui-ci ; la fonction ci-dessous prend donc sa place).
+async function revokeAcces(id){
+  if(!confirm('Révoquer cet accès ?')) return;
+  try{
+    await adminSecure('admin_enl_acces_etat', { p_acces_id: id, p_actif: false });
+    if(typeof showSuccess==='function') showSuccess('Accès révoqué.');
+    if(typeof loadAcesList==='function') loadAcesList();
+  }catch(e){ if(typeof showError==='function') showError('Erreur: '+e.message); else alert('Erreur : '+e.message); }
+}
+
 async function sauvegarderPaiement(accesId){
   const montant = parseInt(document.getElementById('pm-montant')?.value||'0');
   const moyen   = document.getElementById('pm-moyen')?.value||'';
@@ -3596,13 +3632,7 @@ async function sauvegarderPaiement(accesId){
   const fb      = document.getElementById('pm-feedback');
   if(!moyen){ if(fb) fb.textContent='⚠️ Veuillez choisir un moyen de paiement.'; return; }
   try{
-    const db2=getDBv30();
-    await db2.from('acces_formations').update({
-      montant_paye: montant||null,
-      moyen_paiement: moyen||null,
-      ref_paiement: ref||null,
-      preuve_url: preuve||null,
-    }).eq('id', accesId);
+    await adminSecure('admin_enl_acces_paiement', { p_acces_id: accesId, p_montant: montant||null, p_moyen: moyen||null, p_ref: ref||null, p_preuve: preuve||null });
     if(fb) fb.textContent='✅ Paiement enregistré avec succès';
     setTimeout(()=>{
       document.getElementById('paiementModal').style.display='none';
@@ -3703,11 +3733,7 @@ async function creerApprenantenLigne(){
       matricule: mat, motDePasse: pwd, nomComplet: nom, email: email||null, expiryDate: expStr
     });
     // Activer l'accès à la formation
-    await db2.from('acces_formations').upsert({
-      matricule:mat, formation_id:formId,
-      actif:true, date_debut:new Date().toISOString(),
-      date_fin:expStr
-    },'matricule,formation_id');
+    await adminSecure('admin_enl_acces_activer', { p_matricule: mat, p_formation: formId, p_date_fin: expStr });
 
     if(fb) fb.textContent=`✅ Compte créé ! Matricule : ${mat}`;
 
@@ -4125,12 +4151,7 @@ async function ajouterAccesFormation(matricule){
   else if(duree==='2y') exp.setFullYear(exp.getFullYear()+2);
   else exp.setFullYear(exp.getFullYear()+1);
   try{
-    const db2=getDBv30();
-    await db2.from('acces_formations').upsert({
-      matricule, formation_id:formId,
-      actif:true, date_debut:new Date().toISOString(),
-      date_fin:exp.toISOString().split('T')[0]
-    },'matricule,formation_id');
+    await adminSecure('admin_enl_acces_activer', { p_matricule: matricule, p_formation: formId, p_date_fin: exp.toISOString().split('T')[0] });
     if(fb) fb.textContent='✅ Accès activé avec succès';
     window._enlData=null;
     setTimeout(()=>ouvrirGestionAcces(matricule, ''), 1000);
@@ -4141,11 +4162,7 @@ async function prolongerAcces(accesId, matricule){
   const mois=parseInt(prompt('Prolonger de combien de mois ?','6')||'0');
   if(!mois||mois<1) return;
   try{
-    const db2=getDBv30();
-    const {data:a}=await db2.from('acces_formations').select('date_fin').eq('id',accesId).single();
-    const base=a?.date_fin&&new Date(a.date_fin)>new Date()?new Date(a.date_fin):new Date();
-    base.setMonth(base.getMonth()+mois);
-    await db2.from('acces_formations').update({date_fin:base.toISOString().split('T')[0],actif:true}).eq('id',accesId);
+    await adminSecure('admin_enl_acces_prolonger', { p_acces_id: accesId, p_mois: mois });
     toast('✅ Accès prolongé de '+mois+' mois');
     window._enlData=null;
     ouvrirGestionAcces(matricule,'');
@@ -4154,7 +4171,7 @@ async function prolongerAcces(accesId, matricule){
 
 async function toggleAcces(accesId, nouvelEtat, matricule){
   try{
-    await getDBv30().from('acces_formations').update({actif:nouvelEtat}).eq('id',accesId);
+    await adminSecure('admin_enl_acces_etat', { p_acces_id: accesId, p_actif: !!nouvelEtat });
     toast(nouvelEtat?'✅ Accès activé':'⏸ Accès suspendu');
     window._enlData=null;
     ouvrirGestionAcces(matricule,'');
@@ -4267,7 +4284,7 @@ function voirCertificat(num,nom,form,mention,score,date){
 
 async function toggleCertificat(certId, valide, matricule, nomComplet){
   try{
-    await getDBv30().from('certificats').update({valide}).eq('id',certId);
+    await adminSecure('admin_enl_certificat_etat', { p_cert_id: certId, p_valide: !!valide });
     toast(valide?'✅ Certificat validé':'⛔ Certificat révoqué');
     ouvrirGestionCertificats(matricule, nomComplet);
   }catch(e){ toast('❌ '+e.message); }
@@ -4279,15 +4296,9 @@ async function emettreManuelCertificat(matricule, nomComplet){
   const score=parseInt(document.getElementById('cert-score-inp')?.value||'80');
   const fb=document.getElementById('cert-feedback');
   if(!formId){ if(fb) fb.textContent='⚠️ Choisissez une formation.'; return; }
-  const num='CERT-'+Date.now().toString(36).toUpperCase().slice(-6);
   try{
-    const db2=getDBv30();
-    await db2.from('certificats').upsert({
-      matricule, formation_id:formId,
-      numero:num, nom_apprenant:nomComplet,
-      score_final:score, mention, valide:true,
-      date_emission:new Date().toISOString()
-    },'matricule,formation_id');
+    const rCert = await adminSecure('admin_enl_certificat_delivrer', { p_matricule: matricule, p_formation: formId, p_nom: nomComplet, p_score: score, p_mention: mention });
+    const num = rCert.numero;
     if(fb) fb.textContent='✅ Certificat émis — N° '+num;
     window._enlData=null;
     setTimeout(()=>ouvrirGestionCertificats(matricule, nomComplet), 1500);
