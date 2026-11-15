@@ -310,8 +310,8 @@ var NAV_ETUD = [
   {id:'formations',ico:'🎓',label:'Mes formations'},
 ];
 var NAV_ENL = [
-  {id:'dashboard',ico:'🏠',label:'Tableau de bord'},
-  {id:'formations',ico:'🎓',label:'Mes formations'},
+  {id:'dashboard',ico:'🏠',label:'Tableau de bord',court:'Accueil'},
+  {id:'formations',ico:'🎓',label:'Mes formations',court:'Formations'},
   {id:'docs',ico:'📚',label:'Documents'},
 ];
 var NAV_ADM = [
@@ -354,7 +354,7 @@ function buildSidebar(){
   mn.innerHTML = `<div class="mnav-items">${nav.slice(0,5).map(n=>`
     <button class="mnav-item" id="mnav-${n.id}" onclick="goto('${n.id}')">
       <span class="mnav-icon">${n.ico}</span>
-      <span class="mnav-label">${n.label.split(' ')[0]}</span>
+      <span class="mnav-label">${n.court||n.label.split(' ')[0]}</span>
     </button>`).join('')}</div>`;
 }
 
@@ -770,11 +770,158 @@ async function loadAdmDashboard(){
 }
 
 // ── FORMATIONS EN LIGNE (espace apprenant) ───────────────────
+// ── ÉCRAN « MODULE VALIDÉ » ET PAGE « MES FORMATIONS » (étape 13) ────────────
+// Lecture seule. Mêmes tables et mêmes filtres que le reste du portail. Aucune écriture.
+function e13Style(){
+  if(document.getElementById('e13-style')) return;
+  const st = document.createElement('style'); st.id = 'e13-style';
+  st.textContent = `
+.mv-rond{width:112px;height:112px;margin:0 auto 16px;position:relative}
+.mv-rond svg{width:100%;height:100%;transform:rotate(-90deg)}
+.mv-rond circle{fill:none;stroke-width:7}
+.mv-rond .mv-fond{stroke:#e5e7eb}
+.mv-rond .mv-arc{stroke:#C9A84C;stroke-linecap:round;stroke-dasharray:314;animation:mvArc 1.1s .15s cubic-bezier(.2,.8,.2,1) backwards}
+@keyframes mvArc{from{stroke-dashoffset:314}}
+.mv-rond b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--font-disp);font-size:28px;font-weight:800;color:#16503F}
+.mv-titre{font-family:var(--font-disp);font-size:26px;font-weight:800;line-height:1.2;color:#0B2F25;margin:0}
+.mv-sous{overflow-wrap:anywhere;font-size:15px;color:#33453C;margin:6px 0 4px;line-height:1.45}
+.mv-score{font-size:13px;color:#4A5C53;margin-bottom:18px}
+.mv-obj{text-align:left;border:1px solid #DCE3DA;background:#F5F7F2;border-radius:14px;padding:16px;margin:0 0 18px}
+.mv-obj h3{font-size:14.5px;font-weight:800;color:#0B2F25;margin:0 0 8px}
+.mv-obj ul{list-style:none;margin:0;padding:0}
+.mv-obj li{overflow-wrap:anywhere;position:relative;padding:4px 0 4px 26px;font-size:14px;line-height:1.5;color:#33453C}
+.mv-obj li::before{content:"";position:absolute;left:2px;top:10px;width:12px;height:6px;border-left:2.5px solid #16503F;border-bottom:2.5px solid #16503F;transform:rotate(-45deg)}
+.mv-barre{height:9px;border-radius:99px;background:#e5e7eb;overflow:hidden}
+.mv-barre i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#C9A84C,#e4c06a)}
+.mv-reste{font-size:14px;color:#33453C;margin:10px 0 20px;line-height:1.5}
+.mv-btn{display:block;width:100%;font-family:var(--font-body);font-size:16px;font-weight:800;padding:15px;border-radius:13px;border:none;cursor:pointer;background:linear-gradient(180deg,#e4c06a,#C9A84C);color:#1b1503}
+.mv-btn2{display:block;width:100%;font-family:var(--font-body);font-size:15px;font-weight:700;padding:13px;border-radius:13px;border:1.5px solid #B9C7BD;background:#fff;color:#16503F;cursor:pointer;margin-top:10px}
+.mv-btn:focus-visible,.mv-btn2:focus-visible,.mf-btn:focus-visible,.mf-lien:focus-visible{outline:2px solid #16503F;outline-offset:3px}
+.mf-liste{display:grid;gap:14px;max-width:640px}
+.mf-carte{border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);padding:18px 16px 16px}
+.mf-carte.mf-encours{border-color:rgba(201,168,76,.45);background:linear-gradient(160deg,var(--v3) 0%,var(--v2) 70%)}
+.mf-etat{display:inline-block;font-size:12px;font-weight:800;border-radius:99px;padding:5px 11px;margin-bottom:10px;background:rgba(255,255,255,.1);color:var(--w2)}
+.mf-etat.mf-or{background:var(--or);color:#1b1503}
+.mf-etat.mf-vert{background:rgba(46,160,100,.25);color:#9be8b9}
+.mf-etat.mf-gris{background:rgba(255,255,255,.08);color:var(--w3)}
+.mf-nom{overflow-wrap:anywhere;font-family:var(--font-disp);font-size:19px;font-weight:700;line-height:1.25;color:var(--w);margin:0 0 10px}
+.mf-barre{height:8px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden}
+.mf-barre i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--or),var(--or3))}
+.mf-infos{display:grid;gap:4px;font-size:13px;color:var(--w2);margin:10px 0 14px;line-height:1.45}
+.mf-infos b{color:var(--w)}
+.mf-btn{display:block;width:100%;text-align:center;font-family:var(--font-body);font-size:15px;font-weight:800;padding:13px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(180deg,var(--or3),var(--or));color:#1b1503;text-decoration:none}
+.mf-btn.mf-ligne{background:none;border:1.5px solid rgba(255,255,255,.3);color:var(--w)}
+.mf-lien{display:inline-block;margin-top:22px;font-size:14.5px;font-weight:700;color:var(--or3);text-decoration:underline;text-underline-offset:3px;padding:8px 0}
+.mf-resume{font-size:14.5px;color:var(--w3);margin:6px 0 20px;line-height:1.5}
+.mf-vide{border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);padding:22px 18px;max-width:640px;font-size:14.5px;color:var(--w2);line-height:1.55}
+@media(prefers-reduced-motion:reduce){.mv-rond .mv-arc{animation:none}}`;
+  document.head.appendChild(st);
+}
+
+// Écran affiché quand le serveur vient d'accepter le quiz. Renvoie null au moindre doute : l'ancien écran s'affiche alors.
+async function mvRendre(moduleId, score, scoreMax, pct){
+  const mods = (_cours && _cours.modules) || [], idx = _cours.moduleIdx, mod = mods[idx];
+  if(!mod || mod.id !== moduleId || !mods.length) return null;
+  e13Style();
+  let faits = new Set();
+  try{
+    const r = await getDBv30().from('progression_apprenant').select('module_id,complete').eq('matricule',_s.matricule).eq('formation_id',_cours.formationId);
+    faits = new Set(((r && r.data)||[]).filter(p=>p.complete).map(p=>p.module_id));
+  }catch(_){}
+  faits.add(moduleId);
+  const total = mods.length, n = mods.filter(m=>faits.has(m.id)).length, reste = total - n;
+  const dernier = idx >= total-1;
+  const p = Math.max(0, Math.min(100, Math.round(Number(pct)||0)));
+  const objectifs = String(mod.objectifs||'').split(/\r?\n|;|•/).map(s=>s.replace(/^[\s\-–*·\d.)]+/,'').trim()).filter(s=>s.length>3 && s.length<=160).slice(0,4);
+  return `
+    <div class="mv-rond"><svg viewBox="0 0 112 112" aria-hidden="true"><circle class="mv-fond" cx="56" cy="56" r="50"/><circle class="mv-arc" cx="56" cy="56" r="50" style="stroke-dashoffset:${Math.round(314*(1-p/100))}"/></svg><b>${p} %</b></div>
+    <h2 class="mv-titre">Module ${idx+1} validé</h2>
+    <div class="mv-sous">${escH(mod.titre||'')}</div>
+    <div class="mv-score">${escH(String(score))} bonne${Number(score)>1?'s':''} réponse${Number(score)>1?'s':''} sur ${escH(String(scoreMax))}</div>
+    ${objectifs.length?`<div class="mv-obj"><h3>Objectifs atteints</h3><ul>${objectifs.map(o=>`<li>${escH(o)}</li>`).join('')}</ul></div>`:''}
+    <div class="mv-barre"><i style="width:${Math.round(n/total*100)}%"></i></div>
+    <div class="mv-reste">${reste<=0?'Tous les modules sont validés. Il ne reste que votre certificat EPPRIDAD.':`${n} module${n>1?'s':''} validé${n>1?'s':''} sur ${total}. Encore ${reste} avant votre certificat EPPRIDAD.`}</div>
+    <button type="button" class="mv-btn" onclick="marquerTermine('${escH(moduleId)}')">${dernier?'Obtenir mon certificat':`Passer au module ${idx+2}`}</button>
+    <button type="button" class="mv-btn2" onclick="switchOnglet('cours',null);document.querySelectorAll('.onglet').forEach((o,i)=>o.classList.toggle('active',i===0))">Revoir le cours</button>`;
+}
+
+// Page « Mes formations » de l'apprenant en ligne : toutes ses formations, leur état, la fin d'accès, le certificat.
+async function mfRendre(){
+  const db = getDBv30();
+  const lire = async (q)=>{ try{ const r = await q; return (r && r.data) || []; }catch(_){ return []; } };
+  const rAcces = await db.from('acces_formations').select('formation_id,actif,date_fin').eq('matricule',_s.matricule);
+  if(!rAcces || rAcces.error || !Array.isArray(rAcces.data)) return null; // lecture impossible : on ne prétend pas que l'apprenant n'a aucune formation
+  const acces = rAcces.data;
+  if(typeof tdbStyle==='function') tdbStyle();
+  e13Style();
+  const catalogue = `<a class="mf-lien" href="formations-en-ligne.html">Découvrir les autres formations</a>`;
+  if(!acces.length){
+    return `<div class="sec-head anim" style="margin-bottom:0"><div class="tdb-salut">Mes formations</div><div class="mf-resume">Vous n'avez pas encore de formation.</div></div>
+      <div class="mf-vide anim d1">Choisissez une formation dans le catalogue, puis écrivez à l'EPPRIDAD sur WhatsApp pour l'activer.</div>${catalogue}`;
+  }
+  const ids = acces.map(a=>a.formation_id);
+  const [formations, mods, prog, certs] = await Promise.all([
+    lire(db.from('formations_enligne').select('id,titre,duree_heures').in('id',ids)),
+    lire(db.from('modules_cours').select('id,formation_id,ordre').in('formation_id',ids).order('ordre')),
+    lire(db.from('progression_apprenant').select('formation_id,module_id,complete').eq('matricule',_s.matricule)),
+    lire(db.from('certificats').select('formation_id,numero,mention,date_emission,valide').eq('matricule',_s.matricule))
+  ]);
+  if(!formations.length) return null;
+  const faits = new Set(prog.filter(p=>p.complete).map(p=>p.module_id));
+  const certDe = new Map(certs.map(c=>[c.formation_id,c]));
+  const accesDe = new Map(acces.map(a=>[a.formation_id,a]));
+  const jour = d => { try{ const x = new Date(d); return isNaN(x) ? '' : x.toLocaleDateString('fr-FR'); }catch(_){ return ''; } };
+  const lignes = formations.map(f=>{
+    const ms = mods.filter(m=>m.formation_id===f.id), total = ms.length, n = ms.filter(m=>faits.has(m.id)).length;
+    const idx = ms.findIndex(m=>!faits.has(m.id)), a = accesDe.get(f.id)||{}, c = certDe.get(f.id)||null;
+    const ouvert = a.actif===true, certOk = !!c && c.valide!==false;
+    const etat = certOk ? 'cert' : !ouvert ? 'ferme' : !total ? 'vide' : idx<0 ? 'fini' : n>0 ? 'encours' : 'debut';
+    return { f, total, n, idx, suivant: idx>=0?ms[idx]:null, a, c, ouvert, certOk, etat, rang: {encours:0,fini:1,debut:2,vide:3,cert:4,ferme:5}[etat] };
+  }).sort((x,y)=>x.rang-y.rang);
+  const nbCert = lignes.filter(l=>l.certOk).length;
+  const LIB = { cert:['Certificat EPPRIDAD obtenu','mf-or'], ferme:['Accès fermé','mf-gris'], vide:['En préparation','mf-gris'], fini:['Modules terminés','mf-vert'], encours:['En cours','mf-vert'], debut:['Pas encore commencée',''] };
+  const cartes = lignes.map(l=>{
+    const fid = escH(l.f.id), fin = l.a.date_fin ? jour(l.a.date_fin) : '';
+    const infos = [];
+    if(l.total) infos.push(`<span><b>${l.n} sur ${l.total}</b> modules validés</span>`);
+    if(l.ouvert && fin) infos.push(`<span>Accès ouvert jusqu'au <b>${fin}</b></span>`);
+    if(l.certOk){ infos.push(`<span>Certificat N° <b>${escH(l.c.numero||'-')}</b>${l.c.mention?`, mention ${escH(l.c.mention)}`:''}${l.c.date_emission&&jour(l.c.date_emission)?`, délivré le ${jour(l.c.date_emission)}`:''}</span>`); }
+    if(l.c && !l.certOk) infos.push(`<span>Votre certificat n'est pas valide pour le moment. Contactez l'EPPRIDAD.</span>`);
+    let bouton = '';
+    if(!l.ouvert) bouton = `<a class="mf-btn mf-ligne" target="_blank" rel="noopener" href="${waLink(`Bonjour EPPRIDAD, je souhaite rouvrir mon accès à la formation « ${l.f.titre} ». Mon matricule est ${_s.matricule}.`)}">Demander la réouverture sur WhatsApp</a>`;
+    else if(l.etat==='cert') bouton = `<button type="button" class="mf-btn" onclick="tdbCertificat('${fid}')">Voir mon certificat</button><button type="button" class="mf-btn mf-ligne" style="margin-top:10px" onclick="tdbOuvrir('${fid}','')">Revoir le cours</button>`;
+    else if(l.etat==='fini') bouton = `<button type="button" class="mf-btn" onclick="tdbCertificat('${fid}')">Obtenir mon certificat</button>`;
+    else if(l.etat==='encours') bouton = `<button type="button" class="mf-btn" onclick="tdbOuvrir('${fid}','${escH(l.suivant.id)}')">Reprendre le module ${l.idx+1}</button>`;
+    else if(l.etat==='debut') bouton = `<button type="button" class="mf-btn" onclick="tdbOuvrir('${fid}','${escH(l.suivant.id)}')">Commencer le module 1</button>`;
+    return `<div class="mf-carte ${l.etat==='encours'?'mf-encours':''}">
+      <span class="mf-etat ${LIB[l.etat][1]}">${LIB[l.etat][0]}</span>
+      <h3 class="mf-nom">${escH(l.f.titre)}</h3>
+      ${l.total?`<div class="mf-barre"><i style="width:${Math.round(l.n/l.total*100)}%"></i></div>`:''}
+      <div class="mf-infos">${infos.join('')}</div>
+      ${bouton}
+    </div>`;
+  }).join('');
+  return `
+    <div class="sec-head anim" style="margin-bottom:0">
+      <div class="tdb-salut">Mes formations</div>
+      <div class="mf-resume">${lignes.length} formation${lignes.length>1?'s':''}${nbCert?`, ${nbCert} certificat${nbCert>1?'s':''} EPPRIDAD`:''}</div>
+    </div>
+    <div class="mf-liste anim d1">${cartes}</div>
+    ${catalogue}`;
+}
+
 async function loadFormationsEnLigne(){
   setTitle('Formations en ligne');
   showPage('page-formations');
   const el = document.getElementById('page-formations');
-  if(_s.role==='enligne'){ showPage('page-dashboard'); await loadEnligneDashboard(); return; }
+  if(_s.role==='enligne'){
+    setTitle('Mes formations');
+    el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div></div>';
+    let mfHtml = null;
+    try{ mfHtml = await mfRendre(); }catch(eMf){ console.error('[MF] page indisponible, tableau de bord affiché :', eMf); }
+    if(mfHtml){ el.innerHTML = mfHtml; return; }
+    showPage('page-dashboard'); await loadEnligneDashboard(); return;
+  }
   el.innerHTML = '<div class="empty"><div class="empty-ico">⏳</div></div>';
   const { data:formations } = await getDBv30().from('formations_enligne').select('*').eq('publie',true).order('ordre');
   el.innerHTML = `
@@ -1178,7 +1325,9 @@ async function validerQuiz(questions, moduleId){
   const resEl = document.getElementById('quiz-result');
   if(resEl){
     resEl.style.display='block';
-    resEl.innerHTML=`
+    let mvHtml = null;
+    if(reussi){ try{ mvHtml = await mvRendre(moduleId, score, score_max, pct); }catch(eMv){ console.error('[MV] écran indisponible, ancien affichage :', eMv); } }
+    resEl.innerHTML = mvHtml || `
       <div class="qr-score">${score}/${score_max}</div>
       <div class="qr-pct">${pct}%</div>
       <div class="qr-mention" style="color:${reussi?'var(--ok)':'var(--rd)'}">${reussi?'🎉 Module validé !':'❌ Score insuffisant (minimum 70%)'}</div>
