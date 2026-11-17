@@ -445,7 +445,7 @@
   /* ───────────────────────── 4. CONNEXION ───────────────────────── */
 
   function retourConnexion(message) {
-    var t = S.token; S.token = null; S.lignes = []; S.ouvert = null; S.edition = null; S.ajout = false; effacerSession();
+    var t = S.token; S.token = null; S.lignes = []; viderCertificats(); S.ouvert = null; S.edition = null; S.ajout = false; effacerSession();
     if (minuteur) clearTimeout(minuteur);
     if (t && !message) envoyer('admin_deconnexion', { p_admin_token: t });
     ecranConnexion(message);
@@ -518,7 +518,7 @@
     })));
     c.appendChild(barreOutils());
     if (S.ajout) c.appendChild(carteAjout());
-    if (S.panneau === 'inviter') c.appendChild(panneauInviter()); else if (S.panneau === 'importer') c.appendChild(panneauImporter()); else if (S.panneau === 'logistique') c.appendChild(panneauLogistique());
+    if (S.panneau === 'inviter') c.appendChild(panneauInviter()); else if (S.panneau === 'importer') c.appendChild(panneauImporter()); else if (S.panneau === 'logistique') c.appendChild(panneauLogistique()); else if (S.panneau === 'certificats') c.appendChild(panneauCertificats());
     var vue = filtrer(S.lignes, S.filtre);
     c.appendChild(h('p', { class: 'sc-compte', 'aria-live': 'polite', text: vue.length + ' personne' + (vue.length > 1 ? 's' : '') + ' affichée' + (vue.length > 1 ? 's' : '') + (vue.length !== S.lignes.length ? ' sur ' + S.lignes.length : '') }));
     var liste = h('section', { class: 'sc-liste', 'aria-label': 'Préinscriptions' });
@@ -552,6 +552,7 @@
         h('button', { type: 'button', class: 'btn' + (S.panneau === 'inviter' ? ' actif' : ''), id: 'sc-inviter', 'aria-pressed': S.panneau === 'inviter' ? 'true' : 'false', onclick: function () { basculerPanneau('inviter'); } }, '✉️ Inviter à confirmer'),
         h('button', { type: 'button', class: 'btn btn-sec' + (S.panneau === 'importer' ? ' actif' : ''), id: 'sc-importer', 'aria-pressed': S.panneau === 'importer' ? 'true' : 'false', onclick: function () { basculerPanneau('importer'); } }, '⬆ Importer Google Forms'),
         h('button', { type: 'button', class: 'btn btn-sec' + (S.panneau === 'logistique' ? ' actif' : ''), id: 'sc-logistique', 'aria-pressed': S.panneau === 'logistique' ? 'true' : 'false', onclick: function () { basculerPanneau('logistique'); } }, '📍 Logistique et lieux'),
+        h('button', { type: 'button', class: 'btn btn-sec' + (S.panneau === 'certificats' ? ' actif' : ''), id: 'sc-certificats', 'aria-pressed': S.panneau === 'certificats' ? 'true' : 'false', onclick: function () { basculerPanneau('certificats'); } }, '🎓 Certificats'),
         h('button', { type: 'button', class: 'btn btn-sec', id: 'sc-export', onclick: exporterExcel }, '⬇ Exporter (Excel)'),
         h('button', { type: 'button', class: 'btn btn-sec', id: 'sc-copier', onclick: copierListe }, '📋 Copier la liste (WhatsApp)'),
         h('button', { type: 'button', class: 'btn btn-sec', id: 'sc-imprimer', onclick: imprimerFicheAppel }, '🖨 Fiche d\'appel'),
@@ -745,7 +746,7 @@
       function (e) { if (e && e.expiree) throw e; if (e && e.installation) S.complement = false; });
   }
   function basculerPanneau(p) {
-    syncRecherche(); S.panneau = S.panneau === p ? null : p; S.ajout = false; rendre();
+    syncRecherche(); S.panneau = S.panneau === p ? null : p; S.ajout = false; rendre(); if (S.panneau === 'certificats') ouvrirCertificats();
     var el = document.getElementById('sc-panneau-' + p); if (el && S.panneau === p) el.scrollIntoView({ block: 'start' });
   }
   function avisComplement() { return h('p', { class: 'erreur', role: 'alert', text: 'Cette fonction demande d\u2019installer d\u2019abord le complément dans la base (fichier SQL « 2_INSTALLER_invitations_import.sql »).' }); }
@@ -918,6 +919,287 @@
     });
     sec.appendChild(grille);
     return sec;
+  }
+
+  /* ───────────────────────── 7 bis. CERTIFICATS DES FORMATIONS PRATIQUES (étape 14) ───────────────────────── */
+  // Formateurs (nom, titre, signature), délivrance après chaque week-end, impression A4, image PNG, message WhatsApp, correction, révocation.
+  // Le téléphone reste dans la base : il ne figure jamais sur le certificat ni sur la page publique de contrôle.
+
+  var CERT = { charge: false, installe: true, erreur: '', liste: [], formateurs: [], intitules: {}, intituleEdition: false, formation: '', formateur: '', choix: {}, noms: {}, filtre: '', edition: null, apercu: null, ajoutF: false, editionF: null, sig: null, envoi: false };
+  function viderCertificats() { CERT = { charge: false, installe: true, erreur: '', liste: [], formateurs: [], intitules: {}, intituleEdition: false, formation: '', formateur: '', choix: {}, noms: {}, filtre: '', edition: null, apercu: null, ajoutF: false, editionF: null, sig: null, envoi: false }; }
+  function moteurCert() { return window.EPPRCertPresentiel || null; }
+  function chargerCertificats() {
+    return appeler('admin_courtes_certificats', avecToken()).then(function (d) {
+      if (!d || !d.ok) { CERT.erreur = (d && d.message) || 'Chargement impossible.'; return; }
+      CERT.liste = d.certificats || []; CERT.formateurs = d.formateurs || []; CERT.intitules = d.intitules || {}; CERT.charge = true; CERT.installe = true; CERT.erreur = '';
+    }, function (e) { if (e && e.expiree) throw e; if (e && e.installation) CERT.installe = false; else CERT.erreur = texteErreur(e); });
+  }
+  function formateurParId(id) { for (var i = 0; i < CERT.formateurs.length; i++) if (String(CERT.formateurs[i].id) === String(id)) return CERT.formateurs[i]; return null; }
+  function certValide(ref, code) { for (var i = 0; i < CERT.liste.length; i++) { var c = CERT.liste[i]; if (c.reference === ref && c.formation === code && c.statut === 'valide') return c; } return null; }
+  function nomPourCertificat(l) { return (String(l.prenom || '').trim() + ' ' + String(l.nom || '').trim().toUpperCase()).replace(/\s+/g, ' ').trim(); }
+  function prenomDe(ref) { var l = trouver(ref); return l ? String(l.prenom || '').trim() : ''; }
+  function messageCertificat(c) {
+    var p = prenomDe(c.reference);
+    return 'Bonjour' + (p ? ' ' + p : '') + ', félicitations ! Voici votre certificat de la formation pratique « ' + c.formation_titre + (c.formation_sous_titre ? ' — ' + c.formation_sous_titre : '') + ' » (' + c.formation_dates + '), délivré par l’EPPRIDAD. ' +
+      'N° ' + c.numero + '. Chacun peut le contrôler en scannant le QR code ou ici : ' + (moteurCert() ? moteurCert().urlControle(c.numero) : 'https://www.eppridad.com/verifier.html?cert=' + encodeURIComponent(c.numero)) +
+      ' . Merci pour votre participation et à bientôt !';
+  }
+  function donneesImpression(c) { var f = formateurParId(c.formateur_id); return { d: c, signature: f ? f.signature : null }; }
+
+  // Signature photographiée : réduite, fond clair rendu transparent, recadrée, puis enregistrée en PNG (moins de 300 Ko).
+  function preparerSignature(fichier) {
+    return new Promise(function (ok, ko) {
+      if (!fichier || !/^image\//.test(fichier.type)) { ko(new Error('Choisissez une image (photo ou scan de la signature).')); return; }
+      if (fichier.size > 15 * 1024 * 1024) { ko(new Error('Image trop lourde (15 Mo au plus).')); return; }
+      // Lecture en data URL (la politique de sécurité de la page n'autorise pas les adresses « blob: » pour les images).
+      var lecteur = new FileReader(), im = new Image();
+      im.onload = function () {
+        try {
+          var k = Math.min(1, 900 / im.naturalWidth, 500 / im.naturalHeight), w = Math.max(1, Math.round(im.naturalWidth * k)), hh = Math.max(1, Math.round(im.naturalHeight * k));
+          var cv = document.createElement('canvas'); cv.width = w; cv.height = hh; var g = cv.getContext('2d'); g.drawImage(im, 0, 0, w, hh);
+          var px = g.getImageData(0, 0, w, hh), d = px.data, x0 = w, y0 = hh, x1 = -1, y1 = -1;
+          for (var i = 0; i < d.length; i += 4) {
+            var lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+            if (lum > 200) d[i + 3] = 0; else if (lum > 150) d[i + 3] = Math.round(d[i + 3] * (200 - lum) / 50);
+            if (d[i + 3] > 40) { var p = i / 4, x = p % w, y = (p - x) / w; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+          }
+          if (x1 < 0) { ko(new Error('Aucune signature visible : photographiez-la à l’encre foncée sur papier blanc.')); return; }
+          g.putImageData(px, 0, 0);
+          var m = 6; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(w - 1, x1 + m); y1 = Math.min(hh - 1, y1 + m);
+          var out = document.createElement('canvas'); out.width = x1 - x0 + 1; out.height = y1 - y0 + 1; out.getContext('2d').drawImage(cv, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
+          var res = out.toDataURL('image/png');
+          if (res.length > 400000) { ko(new Error('Signature trop détaillée : recadrez la photo au plus près de la signature.')); return; }
+          ok(res);
+        } catch (e) { ko(new Error('Image illisible sur cet appareil.')); }
+      };
+      im.onerror = function () { ko(new Error('Image illisible (formats acceptés : JPEG, PNG).')); };
+      lecteur.onload = function () { im.src = lecteur.result; };
+      lecteur.onerror = function () { ko(new Error('Image illisible.')); };
+      lecteur.readAsDataURL(fichier);
+    });
+  }
+
+  function ouvrirCertificats() {
+    if (CERT.charge || !S.token) return;
+    chargerCertificats().then(rendre, function () { /* session expirée : déjà traité */ });
+  }
+  function panneauCertificats() {
+    var sec = h('section', { class: 'carte sc-bloc sc-panneau', id: 'sc-panneau-certificats' }, h('h2', { text: 'Certificats des formations pratiques' }),
+      h('p', { class: 'aide', text: 'Après chaque week-end : choisissez la formation et le formateur, vérifiez l’orthographe des noms, délivrez, puis imprimez ou envoyez chaque certificat. Le numéro de téléphone reste dans la base : il n’apparaît jamais sur le certificat.' }));
+    if (!moteurCert()) { sec.appendChild(h('p', { class: 'erreur', role: 'alert', text: 'Le module d’impression des certificats n’est pas chargé : rechargez la page.' })); return sec; }
+    if (!CERT.installe) { sec.appendChild(h('p', { class: 'erreur', role: 'alert', text: 'Cette fonction demande d’installer d’abord le complément dans la base (fichier SQL « 1_INSTALLER_certificats_presentiel.sql »).' })); return sec; }
+    if (CERT.erreur) { sec.appendChild(h('p', { class: 'erreur', role: 'alert', text: CERT.erreur })); sec.appendChild(h('button', { type: 'button', class: 'btn btn-petit', onclick: function () { CERT.erreur = ''; CERT.charge = false; ouvrirCertificats(); } }, 'Réessayer')); return sec; }
+    if (!CERT.charge) { sec.appendChild(h('p', { class: 'chargement', text: 'Chargement…' })); return sec; }
+    sec.appendChild(blocFormateurs()); sec.appendChild(blocDelivrer()); sec.appendChild(blocDelivres());
+    return sec;
+  }
+
+  function blocFormateurs() {
+    var bloc = h('div', { class: 'sc-cert-bloc', id: 'sc-cert-formateurs' }, h('h3', { text: '1. Formateurs' }));
+    if (!CERT.formateurs.length) bloc.appendChild(h('p', { class: 'aide', text: 'Ajoutez d’abord le formateur : son nom et la photo de sa signature (encre foncée sur papier blanc).' }));
+    var liste = h('div', { class: 'sc-cert-formateurs' });
+    CERT.formateurs.forEach(function (f) {
+      if (CERT.editionF === f.id) { liste.appendChild(formulaireFormateur(f)); return; }
+      liste.appendChild(h('div', { class: 'sc-cert-formateur' + (f.actif ? '' : ' inactif') },
+        h('div', { class: 'sc-cert-sigbox' }, f.signature ? h('img', { src: f.signature, alt: 'Signature de ' + f.nom }) : h('span', { class: 'erreur', text: 'Signature manquante' })),
+        h('div', null, h('b', { text: f.nom }), h('div', { class: 'aide', text: (f.titre || 'Formateur') + (f.actif ? '' : ' — inactif') })),
+        h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { CERT.editionF = f.id; CERT.ajoutF = false; CERT.sig = null; rendre(); } }, 'Modifier')));
+    });
+    bloc.appendChild(liste);
+    if (CERT.ajoutF) bloc.appendChild(formulaireFormateur(null));
+    else bloc.appendChild(h('button', { type: 'button', class: 'btn btn-petit', id: 'sc-cert-ajout-formateur', onclick: function () { CERT.ajoutF = true; CERT.editionF = null; CERT.sig = null; rendre(); } }, '+ Ajouter un formateur'));
+    return bloc;
+  }
+  function formulaireFormateur(f) {
+    var nom = h('input', { type: 'text', maxlength: '80', value: f ? f.nom : '', autocomplete: 'off', id: 'sc-cert-f-nom' });
+    var titre = h('input', { type: 'text', maxlength: '80', value: f ? (f.titre || '') : '', placeholder: 'ex. Formateur en maraîchage', autocomplete: 'off', id: 'sc-cert-f-titre' });
+    var actif = h('input', { type: 'checkbox', id: 'sc-cert-f-actif' }); actif.checked = f ? !!f.actif : true;
+    var fichier = h('input', { type: 'file', accept: 'image/*', id: 'sc-cert-f-sig' });
+    var apercu = h('div', { class: 'sc-cert-sigbox grand' }), err = h('p', { class: 'erreur', role: 'alert' });
+    function montrer(src) { vider(apercu); if (src) apercu.appendChild(h('img', { src: src, alt: 'Aperçu de la signature' })); else apercu.appendChild(h('span', { class: 'aide', text: 'Aucune signature' })); }
+    montrer(CERT.sig || (f && f.signature) || null);
+    fichier.addEventListener('change', function () {
+      err.textContent = ''; var x = fichier.files && fichier.files[0]; if (!x) return;
+      preparerSignature(x).then(function (src) { CERT.sig = src; montrer(src); }, function (e) { err.textContent = e.message; });
+    });
+    var b = h('button', { type: 'button', class: 'btn btn-petit', id: 'sc-cert-f-enregistrer', onclick: function () {
+      err.textContent = ''; if (nom.value.trim().length < 3) { err.textContent = 'Indiquez le nom du formateur.'; return; }
+      if (!f && !CERT.sig) { err.textContent = 'Ajoutez la photo de la signature.'; return; }
+      b.disabled = true;
+      appeler('admin_courtes_formateur_enregistrer', avecToken({ p_id: f ? f.id : null, p_nom: nom.value, p_titre: titre.value, p_signature: CERT.sig, p_actif: actif.checked })).then(function (d) {
+        if (!d || !d.ok) { err.textContent = (d && d.message) || 'Enregistrement impossible.'; b.disabled = false; return; }
+        CERT.formateurs = d.formateurs || []; CERT.ajoutF = false; CERT.editionF = null; CERT.sig = null;
+        if (!CERT.formateur && d.id) CERT.formateur = String(d.id);
+        toast('Formateur enregistré.'); rendre();
+      }).catch(function (e) { if (e && e.expiree) return; err.textContent = texteErreur(e); b.disabled = false; });
+    } }, 'Enregistrer');
+    return h('div', { class: 'sc-cert-form' },
+      h('label', { class: 'champ' }, h('span', { text: 'Nom du formateur (tel qu’il apparaîtra sur le certificat)' }), nom),
+      h('label', { class: 'champ' }, h('span', { text: 'Titre (facultatif)' }), titre),
+      h('label', { class: 'champ' }, h('span', { text: f ? 'Changer la signature (photo ou scan)' : 'Signature (photo ou scan)' }), fichier), apercu,
+      h('p', { class: 'aide', text: 'Le fond blanc est retiré automatiquement. Photographiez la signature de près, à la lumière du jour.' }),
+      f ? h('label', { class: 'case' }, actif, ' Formateur actif') : null, err,
+      h('div', { class: 'sc-actions' }, b, h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { CERT.ajoutF = false; CERT.editionF = null; CERT.sig = null; rendre(); } }, 'Annuler')));
+  }
+
+  function blocDelivrer() {
+    var bloc = h('div', { class: 'sc-cert-bloc', id: 'sc-cert-delivrer' }, h('h3', { text: '2. Délivrer les certificats d’une formation' }));
+    var actifs = CERT.formateurs.filter(function (f) { return f.actif && f.signature; });
+    if (CERT.formateur && !formateurParId(CERT.formateur)) CERT.formateur = '';
+    if (!CERT.formateur && actifs.length === 1) CERT.formateur = String(actifs[0].id);
+    var selF = h('select', { id: 'sc-cert-formation', 'aria-label': 'Formation' }, h('option', { value: '', text: 'Choisir la formation…' }), FORMATIONS.map(function (f) { return h('option', { value: f.code, text: f.titre + ' — ' + f.dates }); }));
+    selF.value = CERT.formation; selF.addEventListener('change', function () { CERT.formation = selF.value; CERT.choix = {}; CERT.noms = {}; CERT.intituleEdition = false; rendre(); });
+    var selT = h('select', { id: 'sc-cert-formateur', 'aria-label': 'Formateur' }, h('option', { value: '', text: 'Choisir le formateur…' }), actifs.map(function (f) { return h('option', { value: String(f.id), text: f.nom }); }));
+    selT.value = CERT.formateur; selT.addEventListener('change', function () { CERT.formateur = selT.value; rendre(); });
+    bloc.appendChild(h('div', { class: 'filtres' }, h('label', { class: 'champ' }, h('span', { text: 'Formation' }), selF), h('label', { class: 'champ' }, h('span', { text: 'Formateur' }), selT)));
+    if (!actifs.length) { bloc.appendChild(h('p', { class: 'aide', text: 'Ajoutez d’abord un formateur avec sa signature (étape 1).' })); return bloc; }
+    if (!CERT.formation) return bloc;
+    bloc.appendChild(blocIntitule());
+    var ls = S.lignes.filter(function (l) { return l.statut !== 'annule' && (l.formations || []).indexOf(CERT.formation) > -1; })
+      .sort(function (a, b) { return nomPourCertificat(a).localeCompare(nomPourCertificat(b), 'fr'); });
+    if (!ls.length) { bloc.appendChild(h('p', { class: 'aide', text: 'Aucun participant inscrit à cette formation dans le suivi. Ajoutez-les d’abord (bouton « Ajouter »).' })); return bloc; }
+    var table = h('div', { class: 'sc-cert-participants' });
+    var aFaire = 0, impayes = 0;
+    ls.forEach(function (l) {
+      var deja = certValide(l.reference, CERT.formation);
+      if (!deja && CERT.choix[l.reference] === undefined) CERT.choix[l.reference] = true;
+      if (CERT.noms[l.reference] === undefined) CERT.noms[l.reference] = nomPourCertificat(l);
+      var r = reste(l), coche = h('input', { type: 'checkbox', 'aria-label': 'Délivrer à ' + nomComplet(l), disabled: !!deja });
+      coche.checked = !deja && !!CERT.choix[l.reference];
+      coche.addEventListener('change', function () { CERT.choix[l.reference] = coche.checked; rendre(); });
+      var nom = h('input', { type: 'text', maxlength: '80', value: CERT.noms[l.reference], 'aria-label': 'Nom sur le certificat — ' + nomComplet(l), disabled: !!deja });
+      nom.addEventListener('input', function () { CERT.noms[l.reference] = nom.value; });
+      if (!deja && coche.checked) { aFaire++; if (r > 0) impayes++; }
+      table.appendChild(h('div', { class: 'sc-cert-ligne' + (deja ? ' fait' : ''), 'data-ref': l.reference }, coche, nom,
+        deja ? h('span', { class: 'badge sc-statut-paye', text: 'Délivré · ' + deja.numero })
+          : h('span', { class: 'badge ' + (r > 0 ? 'sc-statut-attente_paiement' : 'sc-statut-paye'), text: r > 0 ? 'Reste ' + fmtFCFA(r) : 'Payé' })));
+    });
+    bloc.appendChild(table);
+    if (impayes) bloc.appendChild(h('p', { class: 'sc-cert-avis', role: 'note', text: '⚠ ' + impayes + ' personne' + (impayes > 1 ? 's' : '') + ' cochée' + (impayes > 1 ? 's n’ont' : ' n’a') + ' pas tout réglé. Vous pouvez délivrer quand même, ou décocher.' }));
+    var err = h('p', { class: 'erreur', role: 'alert', id: 'sc-cert-erreur' });
+    var b = h('button', { type: 'button', class: 'btn', id: 'sc-cert-delivrer-btn', disabled: !aFaire || !CERT.formateur || CERT.envoi, onclick: function () { delivrerSelection(ls, err, b); } },
+      CERT.envoi ? 'Délivrance en cours…' : '🎓 Délivrer ' + aFaire + ' certificat' + (aFaire > 1 ? 's' : ''));
+    bloc.appendChild(err); bloc.appendChild(h('div', { class: 'sc-actions' }, b));
+    return bloc;
+  }
+  // Intitulé imprimé sur les certificats de la formation choisie (titre + sous-titre), modifiable.
+  function blocIntitule() {
+    var it = CERT.intitules[CERT.formation] || { titre: (formationParCode(CERT.formation) || {}).titre || '', sous_titre: null };
+    var nbValides = CERT.liste.filter(function (c) { return c.formation === CERT.formation && c.statut === 'valide'; }).length;
+    if (!CERT.intituleEdition) {
+      return h('div', { class: 'sc-cert-intitule', id: 'sc-cert-intitule' },
+        h('div', null, h('span', { class: 'aide', text: 'Intitulé sur le certificat' }), h('b', { text: String(it.titre || '').toUpperCase() }), it.sous_titre ? h('i', { text: it.sous_titre }) : null),
+        h('button', { type: 'button', class: 'btn btn-sec btn-petit', id: 'sc-cert-intitule-modifier', onclick: function () { CERT.intituleEdition = true; rendre(); } }, '✏ Modifier'));
+    }
+    var titre = h('input', { type: 'text', maxlength: '90', value: it.titre || '', id: 'sc-cert-intitule-titre', autocomplete: 'off' });
+    var sous = h('input', { type: 'text', maxlength: '120', value: it.sous_titre || '', id: 'sc-cert-intitule-sous', placeholder: 'facultatif', autocomplete: 'off' });
+    var appl = h('input', { type: 'checkbox', id: 'sc-cert-intitule-appliquer' }); appl.checked = nbValides > 0;
+    var err = h('p', { class: 'erreur', role: 'alert' });
+    var b = h('button', { type: 'button', class: 'btn btn-petit', id: 'sc-cert-intitule-enregistrer', onclick: function () {
+      b.disabled = true; err.textContent = '';
+      appeler('admin_courtes_cert_intitule', avecToken({ p_formation: CERT.formation, p_titre: titre.value, p_sous_titre: sous.value, p_appliquer: nbValides > 0 && appl.checked })).then(function (d) {
+        if (!d || !d.ok) { err.textContent = (d && d.message) || 'Enregistrement impossible.'; b.disabled = false; return; }
+        CERT.intitules = d.intitules || {}; CERT.liste = d.certificats || CERT.liste; CERT.intituleEdition = false;
+        toast(d.mis_a_jour ? 'Intitulé enregistré ; ' + d.mis_a_jour + ' certificat' + (d.mis_a_jour > 1 ? 's' : '') + ' à réimprimer.' : 'Intitulé enregistré.'); rendre();
+      }).catch(function (e) { if (e && e.expiree) return; err.textContent = texteErreur(e); b.disabled = false; });
+    } }, 'Enregistrer l\u2019intitulé');
+    return h('div', { class: 'sc-cert-form', id: 'sc-cert-intitule' },
+      h('label', { class: 'champ' }, h('span', { text: 'Titre de la formation sur le certificat' }), titre),
+      h('label', { class: 'champ' }, h('span', { text: 'Sous-titre' }), sous),
+      nbValides ? h('label', { class: 'case' }, appl, ' Appliquer aussi aux ' + nbValides + ' certificat' + (nbValides > 1 ? 's' : '') + ' déjà délivré' + (nbValides > 1 ? 's' : '') + ' (à réimprimer)') : null,
+      err, h('div', { class: 'sc-actions' }, b, h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { CERT.intituleEdition = false; rendre(); } }, 'Annuler')));
+  }
+  function delivrerSelection(ls, err, b) {
+    var file = ls.filter(function (l) { return CERT.choix[l.reference] && !certValide(l.reference, CERT.formation); });
+    if (!file.length || !CERT.formateur) return;
+    CERT.envoi = true; b.disabled = true; b.textContent = 'Délivrance en cours…'; err.textContent = '';
+    var faits = 0, echecs = [], code = CERT.formation, fid = parseInt(CERT.formateur, 10);
+    function suivant(i) {
+      if (i >= file.length) {
+        CERT.envoi = false; CERT.filtre = code;
+        toast(faits + ' certificat' + (faits > 1 ? 's' : '') + ' délivré' + (faits > 1 ? 's' : '') + (echecs.length ? ' ; ' + echecs.length + ' refusé' + (echecs.length > 1 ? 's' : '') : '') + '.');
+        rendre(); if (echecs.length) { var e = document.getElementById('sc-cert-erreur'); if (e) e.textContent = echecs.join(' — '); }
+        var z = document.getElementById('sc-cert-delivres'); if (z && faits) z.scrollIntoView({ block: 'start' });
+        return;
+      }
+      var l = file[i];
+      appeler('admin_courtes_certificat_delivrer', avecToken({ p_reference: l.reference, p_formation: code, p_formateur_id: fid, p_nom_affiche: CERT.noms[l.reference] || nomPourCertificat(l) })).then(function (d) {
+        if (d && d.ok) { CERT.liste.unshift(d.certificat); faits++; CERT.choix[l.reference] = false; } else echecs.push(nomComplet(l) + ' : ' + ((d && d.message) || 'refusé'));
+        suivant(i + 1);
+      }).catch(function (e) { CERT.envoi = false; if (e && e.expiree) return; err.textContent = texteErreur(e) + (faits ? ' (' + faits + ' déjà délivré' + (faits > 1 ? 's' : '') + ')' : ''); rendre(); });
+    }
+    suivant(0);
+  }
+
+  function blocDelivres() {
+    var bloc = h('div', { class: 'sc-cert-bloc', id: 'sc-cert-delivres' }, h('h3', { text: '3. Certificats délivrés' }));
+    var sel = h('select', { id: 'sc-cert-filtre', 'aria-label': 'Filtrer par formation' }, h('option', { value: '', text: 'Toutes les formations' }), FORMATIONS.map(function (f) { return h('option', { value: f.code, text: f.titre }); }));
+    sel.value = CERT.filtre; sel.addEventListener('change', function () { CERT.filtre = sel.value; rendre(); });
+    var vue = CERT.liste.filter(function (c) { return !CERT.filtre || c.formation === CERT.filtre; });
+    var valides = vue.filter(function (c) { return c.statut === 'valide'; });
+    bloc.appendChild(h('div', { class: 'filtres' }, sel, h('button', { type: 'button', class: 'btn btn-sec', id: 'sc-cert-imprimer-tous', disabled: !valides.length, onclick: function () {
+      moteurCert().imprimer(document.getElementById('zone-impression'), valides.map(donneesImpression));
+    } }, '🖨 Imprimer les ' + valides.length + ' certificat' + (valides.length > 1 ? 's' : '') + ' valide' + (valides.length > 1 ? 's' : ''))));
+    if (!vue.length) { bloc.appendChild(h('p', { class: 'aide', text: 'Aucun certificat délivré pour le moment.' })); return bloc; }
+    bloc.appendChild(h('p', { class: 'aide', text: 'Pour WhatsApp : téléchargez l’image du certificat, puis ouvrez le message prêt à l’envoi et joignez-y l’image.' }));
+    vue.forEach(function (c) { bloc.appendChild(carteCertificat(c)); });
+    return bloc;
+  }
+  function carteCertificat(c) {
+    var f = formationParCode(c.formation), valide = c.statut === 'valide', err = h('p', { class: 'erreur', role: 'alert' });
+    var carte = h('div', { class: 'sc-cert-carte' + (valide ? '' : ' revoque'), 'data-numero': c.numero },
+      h('div', { class: 'sc-cert-tete' }, h('b', { text: c.nom_affiche }), h('span', { class: 'sc-cert-num', text: c.numero }),
+        h('span', { class: 'badge ' + (valide ? 'sc-statut-paye' : 'sc-statut-annule'), text: valide ? 'Valide' : 'Révoqué' })),
+      h('p', { class: 'aide', text: c.formation_titre + ' · ' + c.formation_dates + ' · formateur : ' + c.formateur_nom + ' · délivré le ' + fmtDate(c.delivre_le) + (valide || !c.motif ? '' : ' · motif : ' + c.motif) }));
+    var actions = h('div', { class: 'sc-actions' });
+    if (valide) {
+      actions.appendChild(h('button', { type: 'button', class: 'btn btn-sec btn-petit', 'aria-expanded': CERT.apercu === c.numero ? 'true' : 'false', onclick: function () { CERT.apercu = CERT.apercu === c.numero ? null : c.numero; rendre(); } }, CERT.apercu === c.numero ? 'Masquer l’aperçu' : '👁 Aperçu'));
+      actions.appendChild(h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { moteurCert().imprimer(document.getElementById('zone-impression'), [donneesImpression(c)]); } }, '🖨 Imprimer'));
+      var bPng = h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () {
+        var x = donneesImpression(c); bPng.disabled = true; bPng.textContent = '⏳ Image…';
+        moteurCert().telechargerPng(x.d, x.signature).then(function () { bPng.disabled = false; bPng.textContent = '⬇ Image'; },
+          function () { bPng.disabled = false; bPng.textContent = '⬇ Image'; err.textContent = 'Image impossible sur cet appareil : utilisez « Imprimer » puis « Enregistrer en PDF ».'; });
+      } }, '⬇ Image');
+      actions.appendChild(bPng);
+      actions.appendChild(lien(lienWhatsApp(c.telephone, messageCertificat(c)), '💬 WhatsApp', 'btn btn-sec btn-petit'));
+      actions.appendChild(h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { CERT.edition = { numero: c.numero, mode: 'nom' }; rendre(); } }, '✏ Corriger le nom'));
+      actions.appendChild(h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { CERT.edition = { numero: c.numero, mode: 'revoquer' }; rendre(); } }, 'Révoquer'));
+    } else {
+      actions.appendChild(h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { changerEtat(c, 'valide', null, err); } }, 'Rétablir'));
+    }
+    carte.appendChild(actions); carte.appendChild(err);
+    if (CERT.edition && CERT.edition.numero === c.numero) carte.appendChild(formulaireEdition(c, err));
+    if (valide && CERT.apercu === c.numero) carte.appendChild(apercuCertificat(c));
+    return carte;
+  }
+  function apercuCertificat(c) {
+    var x = donneesImpression(c), boite = h('div', { class: 'cfp-apercu' }), page = moteurCert().construire(x.d, x.signature);
+    boite.appendChild(page);
+    function ajuster() { var l = boite.clientWidth || 600, k = Math.min(1, l / moteurCert().LARGEUR_A4); page.style.transform = 'scale(' + k + ')'; boite.style.height = Math.round(moteurCert().LARGEUR_A4 * 210 / 297 * k) + 'px'; }
+    setTimeout(ajuster, 0); return boite;
+  }
+  function formulaireEdition(c, err) {
+    var nom = CERT.edition.mode === 'nom', champ = h('input', { type: 'text', maxlength: nom ? '80' : '300', value: nom ? c.nom_affiche : '', id: 'sc-cert-edition', placeholder: nom ? '' : 'ex. Absent le dimanche, erreur de saisie…' });
+    var b = h('button', { type: 'button', class: 'btn btn-petit', onclick: function () {
+      b.disabled = true;
+      if (nom) {
+        appeler('admin_courtes_certificat_corriger', avecToken({ p_numero: c.numero, p_nom_affiche: champ.value })).then(function (d) { fin(d, 'Nom corrigé. Réimprimez ce certificat.'); }).catch(echec);
+      } else changerEtat(c, 'revoque', champ.value, err, function () { b.disabled = false; });
+    } }, nom ? 'Enregistrer le nom' : 'Confirmer la révocation');
+    function fin(d, msg) {
+      if (!d || !d.ok) { err.textContent = (d && d.message) || 'Enregistrement impossible.'; b.disabled = false; return; }
+      remplacerCert(d.certificat); CERT.edition = null; toast(msg); rendre();
+    }
+    function echec(e) { if (e && e.expiree) return; err.textContent = texteErreur(e); b.disabled = false; }
+    return h('div', { class: 'sc-cert-form' }, h('label', { class: 'champ' }, h('span', { text: nom ? 'Nom tel qu’il doit apparaître (le numéro ne change pas)' : 'Motif de la révocation (il reste interne, il n’est jamais affiché publiquement)' }), champ),
+      h('div', { class: 'sc-actions' }, b, h('button', { type: 'button', class: 'btn btn-sec btn-petit', onclick: function () { CERT.edition = null; rendre(); } }, 'Annuler')));
+  }
+  function remplacerCert(c) { for (var i = 0; i < CERT.liste.length; i++) if (CERT.liste[i].numero === c.numero) { CERT.liste[i] = c; return; } CERT.liste.unshift(c); }
+  function changerEtat(c, statut, motif, err, siEchec) {
+    appeler('admin_courtes_certificat_etat', avecToken({ p_numero: c.numero, p_statut: statut, p_motif: motif })).then(function (d) {
+      if (!d || !d.ok) { err.textContent = (d && d.message) || 'Enregistrement impossible.'; if (siEchec) siEchec(); return; }
+      remplacerCert(d.certificat); CERT.edition = null; toast(statut === 'valide' ? 'Certificat rétabli.' : 'Certificat révoqué : le contrôle par QR code l’indique désormais.'); rendre();
+    }).catch(function (e) { if (e && e.expiree) return; err.textContent = texteErreur(e); if (siEchec) siEchec(); });
   }
 
   /* ───────────────────────── 8. EXPORTS ───────────────────────── */
