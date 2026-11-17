@@ -153,7 +153,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--off);color:var(
         onkeydown="if(event.key==='Enter')verifierCertificat()">
       <button class="v-btn" onclick="verifierCertificat()" id="verifyBtn">🔍 Vérifier</button>
     </div>
-    <div class="v-hint">Le numéro se trouve en bas du certificat PDF ou dans votre espace apprenant</div>
+    <div class="v-hint">Le numéro se trouve en bas du certificat (formation en ligne ou formation pratique en présentiel)</div>
   </div>
 </section>
 
@@ -171,12 +171,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--off);color:var(
     <div class="v-info-card">
       <div class="v-info-ico">📊</div>
       <div class="v-info-title">Score et mention visibles</div>
-      <div class="v-info-text">La vérification affiche le score final, la mention obtenue et la date d'émission — pour une transparence totale sur le niveau atteint.</div>
+      <div class="v-info-text">La vérification affiche la formation suivie et la date de délivrance ; pour les formations en ligne, également le score et la mention obtenus.</div>
     </div>
     <div class="v-info-card">
       <div class="v-info-ico">📱</div>
       <div class="v-info-title">QR code intégré</div>
-      <div class="v-info-text">Le certificat PDF contient un QR code qui pointe directement vers cette page. Un scan suffit pour confirmer l'authenticité en quelques secondes.</div>
+      <div class="v-info-text">Chaque certificat porte un QR code qui pointe directement vers cette page. Un scan suffit pour confirmer l'authenticité en quelques secondes.</div>
     </div>
   </div>
 </section>
@@ -213,6 +213,21 @@ async function verifierCertificat(){
   zone.scrollIntoView({behavior:'smooth', block:'start'});
 
   try{
+    // Certificat d'une formation pratique en présentiel : contrôle par la fonction publique dédiée
+    if(/^CERT-\d{4}-FCP-[A-Z0-9]{6}$/.test(num)){
+      const r = await fetch(`${SUPA_URL}/rest/v1/rpc/verifier_certificat_presentiel`, {
+        method:'POST',
+        headers:{ 'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY, 'Content-Type':'application/json' },
+        body: JSON.stringify({ p_numero: num })
+      });
+      if(!r.ok) throw new Error('Erreur réseau');
+      const d = await r.json();
+      if(!d || !d.ok || !d.certificat) afficherInvalide(num);
+      else if(!d.certificat.valide) afficherRevoque(d.certificat.numero, d.certificat.nom, d.certificat.formation);
+      else afficherPresentiel(d.certificat);
+      return;
+    }
+
     // Requête Supabase
     const res = await fetch(
       `${SUPA_URL}/rest/v1/certificats?numero=eq.${encodeURIComponent(num)}&select=*`,
@@ -255,6 +270,7 @@ async function verifierCertificat(){
 
 function afficherValide(cert, formationData){
   const zone = document.getElementById('result-zone');
+  if(cert.valide === false){ afficherRevoque(cert.numero, cert.nom_apprenant, formationData ? formationData.titre : ''); return; }
   const date = cert.date_emission
     ? new Date(cert.date_emission).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})
     : '—';
@@ -275,7 +291,7 @@ function afficherValide(cert, formationData){
       <div class="ico">✅</div>
       <div>
         <h2>Certificat authentique</h2>
-        <p>Ce certificat a été émis par EPPRIDAD et est enregistré dans notre base de données officielle.</p>
+        <p>Ce certificat a été émis par l'EPPRIDAD et figure dans sa base de données.</p>
       </div>
       <div class="v-badge-valid">VALIDE</div>
     </div>
@@ -338,7 +354,7 @@ function afficherValide(cert, formationData){
           <div style="width:44px;height:44px;background:linear-gradient(135deg,#0D3B1A,#1a5d2e);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🌱</div>
           <div>
             <div style="font-weight:800;color:var(--txt);font-size:15px">EPPRIDAD</div>
-            <div style="font-size:12px;color:var(--tl)">École Polytechnique Privée d'Agriculture, Développement Rural,<br>Irrigation, Développement Agropastoral et Diversification</div>
+            <div style="font-size:12px;color:var(--tl)">École Polytechnique Privée pour le Développement Agricole Durable</div>
             <div style="font-size:11px;color:var(--tl);margin-top:3px">📍 Niamey, République du Niger · Ouverte 2026 · www.eppridad.com</div>
           </div>
         </div>
@@ -442,13 +458,13 @@ function imprimerRapport(){
       <div class="rpt-seal">🌱</div>
       <div>
         <div class="rpt-brand-name">EPPRIDAD</div>
-        <div class="rpt-brand-sub">École Polytechnique Privée d'Agriculture</div>
+        <div class="rpt-brand-sub">École Polytechnique Privée pour le Développement Agricole Durable</div>
         <div class="rpt-brand-loc">Niamey · République du Niger · Niamey 2026</div>
       </div>
     </div>
     <div class="rpt-doc-type">
       <div class="rpt-doc-title">Rapport de Vérification</div>
-      <div class="rpt-doc-sub">Document officiel EPPRIDAD</div>
+      <div class="rpt-doc-sub">Document EPPRIDAD</div>
       <div class="rpt-doc-sub">Généré le ${dateVerif} à ${heureVerif}</div>
     </div>
   </div>
@@ -483,7 +499,7 @@ function imprimerRapport(){
     <div class="rpt-institution-seal">🌱</div>
     <div>
       <div class="rpt-institution-name">EPPRIDAD</div>
-      <div class="rpt-institution-full">École Polytechnique Privée d'Agriculture, Développement Rural, Irrigation, Développement Agropastoral et Diversification</div>
+      <div class="rpt-institution-full">École Polytechnique Privée pour le Développement Agricole Durable</div>
       <div class="rpt-institution-contact">📍 Niamey, République du Niger · 📧 eppridad@gmail.com · 📞 +227 99 85 15 32 · 🌐 www.eppridad.com</div>
     </div>
   </div>
@@ -491,7 +507,7 @@ function imprimerRapport(){
   <!-- PIED -->
   <div class="rpt-footer">
     <div class="rpt-footer-note">
-      Ce document atteste de la vérification officielle d'un certificat EPPRIDAD. Il a été généré automatiquement à partir de la base de données sécurisée de l'institution et peut être présenté à tout employeur, institution ou organisme souhaitant confirmer la certification de l'apprenant mentionné.
+      Ce document atteste de la vérification d'un certificat EPPRIDAD. Il a été généré automatiquement à partir de la base de données sécurisée de l'institution et peut être présenté à tout employeur, institution ou organisme souhaitant confirmer la certification de l'apprenant mentionné.
     </div>
     <div class="rpt-footer-verif">
       <strong>Vérification effectuée</strong>
@@ -515,7 +531,7 @@ function imprimerRapport(){
   function esc(s){ return String(s||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   document.getElementById('rpt-status-zone').innerHTML =
-    '<div class="rpt-status"><div class="rpt-status-ico">✅</div><div><div class="rpt-status-title">Certificat authentique et valide</div><div class="rpt-status-sub">Enregistré dans la base de données officielle EPPRIDAD · N° '+esc(certData.numero)+'</div></div><div class="rpt-badge">VALIDE</div></div>';
+    '<div class="rpt-status"><div class="rpt-status-ico">✅</div><div><div class="rpt-status-title">Certificat authentique et valide</div><div class="rpt-status-sub">Enregistré dans la base de données EPPRIDAD · N° '+esc(certData.numero)+'</div></div><div class="rpt-badge">VALIDE</div></div>';
 
   document.getElementById('rpt-mention-zone').innerHTML =
     '<div class="rpt-mention-bar"><div style="font-size:24px">'+mentionEmoji+'</div><div><div class="rpt-mention-name">'+esc(certData.mention||'Bien')+'</div><div class="rpt-mention-sub">Mention obtenue — Formation complétée avec succès</div></div><div class="rpt-score"><strong>'+esc(certData.score_final)+'%</strong><span>Score final</span></div></div>';
@@ -538,6 +554,102 @@ function imprimerRapport(){
   <\/script>
   </body></html>`);
   w.document.close();
+}
+
+function dateFr(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso||'')); if(!m) return '—';
+  return new Date(+m[1], +m[2]-1, +m[3]).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+}
+function afficherPresentiel(c){
+  const zone = document.getElementById('result-zone');
+  const dateVerif = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const heureVerif = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  zone.innerHTML = `
+  <div class="v-card-valid" id="rapport-verif">
+    <div class="v-card-header-valid">
+      <div class="ico">✅</div>
+      <div>
+        <h2>Certificat authentique</h2>
+        <p>Ce certificat de formation pratique en présentiel a été délivré par l'EPPRIDAD et figure dans sa base de données.</p>
+      </div>
+      <div class="v-badge-valid">VALIDE</div>
+    </div>
+    <div class="v-cert-body">
+      <div class="v-cert-grid">
+        <div class="v-cert-field" style="grid-column:1/-1">
+          <div class="v-cert-field-label">Nom du participant</div>
+          <div class="v-cert-field-value gold">${escHtml(c.nom||'—')}</div>
+        </div>
+        <div class="v-cert-field" style="grid-column:1/-1">
+          <div class="v-cert-field-label">Formation pratique suivie</div>
+          <div class="v-cert-field-value">${escHtml(c.formation||'—')}${c.sous_titre?'<br><span style="font-weight:400;font-style:italic;font-size:13px">'+escHtml(c.sous_titre)+'</span>':''}</div>
+        </div>
+        <div class="v-cert-field">
+          <div class="v-cert-field-label">Dates</div>
+          <div class="v-cert-field-value">${escHtml(c.dates||'—')}</div>
+        </div>
+        <div class="v-cert-field">
+          <div class="v-cert-field-label">Durée et lieu</div>
+          <div class="v-cert-field-value green">${escHtml((c.duree||'—')+' · '+(c.lieu||'—'))}</div>
+        </div>
+        <div class="v-cert-field">
+          <div class="v-cert-field-label">Formateur</div>
+          <div class="v-cert-field-value">${escHtml(c.formateur||'—')}${c.formateur_titre?'<br><span style="font-weight:400;font-size:12px">'+escHtml(c.formateur_titre)+'</span>':''}</div>
+        </div>
+        <div class="v-cert-field">
+          <div class="v-cert-field-label">Délivré le</div>
+          <div class="v-cert-field-value green">${escHtml(dateFr(c.delivre_le))}</div>
+        </div>
+        <div class="v-cert-field">
+          <div class="v-cert-field-label">Type</div>
+          <div class="v-cert-field-value">Formation pratique en présentiel</div>
+        </div>
+        <div class="v-cert-field">
+          <div class="v-cert-field-label">Statut du certificat</div>
+          <div class="v-cert-field-value green">✅ Valide</div>
+        </div>
+      </div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="font-size:22px">🔐</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:#15803d">Vérification effectuée avec succès</div>
+          <div style="font-size:11px;color:#16a34a;margin-top:2px">Le ${dateVerif} à ${heureVerif} · N° ${escHtml(c.numero)} · Source : base de données EPPRIDAD</div>
+        </div>
+      </div>
+    </div>
+    <div class="v-cert-footer">
+      <div class="v-cert-num">N° <strong>${escHtml(c.numero)}</strong> · EPPRIDAD · Niamey, Niger</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--tl)">
+    Ce certificat est vérifiable à tout moment sur <strong>www.eppridad.com/verifier.html</strong>
+  </div>`;
+}
+function afficherRevoque(num, nom, formation){
+  const zone = document.getElementById('result-zone');
+  zone.innerHTML = `
+  <div class="v-card-invalid">
+    <div class="v-card-header-invalid">
+      <div class="ico">⛔</div>
+      <div>
+        <h2>Certificat révoqué</h2>
+        <p>Ce numéro a bien été délivré par l'EPPRIDAD, mais le certificat a été annulé : il n'est plus valable.</p>
+      </div>
+    </div>
+    <div class="v-cert-body">
+      <div style="background:#fff9f9;border-radius:12px;padding:20px;border:1px solid #ffcdd2;margin-bottom:20px">
+        <div style="font-weight:700;color:#c62828;margin-bottom:8px">Numéro contrôlé</div>
+        <div style="font-size:18px;font-family:monospace;color:#333">${escHtml(num)}</div>
+        ${nom?'<div style="margin-top:10px;color:#333">'+escHtml(nom)+(formation?' — '+escHtml(formation):'')+'</div>':''}
+      </div>
+      <div style="font-size:14px;color:var(--tl);line-height:1.7">
+        <p>Pour toute question, contactez-nous :<br>
+          📧 <a href="mailto:eppridad@gmail.com" style="color:var(--g);font-weight:700">eppridad@gmail.com</a> ·
+          📞 <a href="tel:+22799851532" style="color:var(--g);font-weight:700">+227 99 85 15 32</a>
+        </p>
+      </div>
+    </div>
+  </div>`;
 }
 
 function afficherInvalide(num){
