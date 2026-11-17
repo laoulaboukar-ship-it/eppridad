@@ -1,0 +1,59 @@
+/* EPPRIDAD — Certificat des formations pratiques en présentiel (A4 paysage). Même charte que le certificat en ligne. */
+.cfp{position:relative;width:var(--cw);height:calc(var(--cw) * 210 / 297);background:#F7F5EC;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#172019;margin:0 auto;border-radius:2px;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cfp *{box-sizing:border-box}
+.cfp-cadre1{position:absolute;inset:1.7%;border:1.2px solid #0F4D38;pointer-events:none}
+.cfp-cadre2{position:absolute;inset:2.25%;border:.7px solid #C89B3C;pointer-events:none}
+.cfp-coin{position:absolute;width:calc(var(--cw)*.032);height:calc(var(--cw)*.032)}
+.cfp-coin.hg{top:2.7%;left:2.7%;border-top:1.4px solid #0F4D38;border-left:1.4px solid #0F4D38}
+.cfp-coin.hd{top:2.7%;right:2.7%;border-top:1.4px solid #0F4D38;border-right:1.4px solid #0F4D38}
+.cfp-coin.bg{bottom:2.7%;left:2.7%;border-bottom:1.4px solid #0F4D38;border-left:1.4px solid #0F4D38}
+.cfp-coin.bd{bottom:2.7%;right:2.7%;border-bottom:1.4px solid #0F4D38;border-right:1.4px solid #0F4D38}
+.cfp-coin-point{position:absolute;width:calc(var(--cw)*.008);height:calc(var(--cw)*.008);background:#C89B3C;transform:rotate(45deg)}
+.cfp-coin.hg .cfp-coin-point{top:-2px;left:-2px}.cfp-coin.hd .cfp-coin-point{top:-2px;right:-2px}
+.cfp-coin.bg .cfp-coin-point{bottom:-2px;left:-2px}.cfp-coin.bd .cfp-coin-point{bottom:-2px;right:-2px}
+.cfp-pagne{position:absolute;left:0;width:100%;height:2.3%;overflow:hidden}.cfp-pagne.haut{top:0}.cfp-pagne.bas{bottom:0}
+.cfp-pagne svg,.cfp-pagne-coin svg{display:block;width:100%;height:100%}
+.cfp-pagne-coin{position:absolute;bottom:-3%;right:-3%;width:13%;height:18.4%;transform:rotate(-45deg);overflow:hidden}
+.cfp-logo{position:absolute;top:5.3%;left:50%;transform:translateX(-50%);width:12.5%;height:auto}
+.cfp-marque{position:absolute;top:20.3%;left:0;width:100%;text-align:center;font-weight:800;font-size:calc(var(--cw)*.026);letter-spacing:calc(var(--cw)*.0012);color:#0F4D38}
+.cfp-marque-sous{position:absolute;top:24.3%;left:15%;width:70%;text-align:center;font-weight:700;font-size:calc(var(--cw)*.0098);letter-spacing:calc(var(--cw)*.0005);line-height:1.5;color:#0F4D38}
+.cfp-surtitre{position:absolute;top:28.7%;left:0;width:100%;text-align:center;font-weight:700;font-size:calc(var(--cw)*.009);letter-spacing:calc(var(--cw)*.002);color:#0F4D38;white-space:pre}
+.cfp-titre{position:absolute;top:31%;left:0;width:100%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:calc(var(--cw)*.068);letter-spacing:calc(var(--cw)*.003);color:#0D4935;line-height:1}
+.cfp-titre2{position:absolute;top:39.3%;left:0;width:100%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:calc(var(--cw)*.0165);letter-spacing:calc(var(--cw)*.0035);color:#0D4935}
+.cfp-ornement{position:absolute;top:43.3%;left:30%;width:40%;display:flex;align-items:center;justify-content:center;gap:calc(var(--cw)*.01)}
+.cfp-ornement .l{height:1px;background:#C89B3C;flex:1}.cfp-ornement .f{font-size:calc(var(--cw)*.014);color:#C89B3C}
+.cfp-decerne{position:absolute;top:46.3%;left:0;width:100%;text-align:center;font-size:calc(var(--cw)*.0125);color:#3a3a3a}
+.cfp-nom{position:absolute;top:49.3%;left:10%;width:80%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:600;color:#0D4935;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.cfp-nom-ligne{position:absolute;top:56.3%;left:37.5%;width:25%;height:1px;background:#C89B3C}
+.cfp-intro{position:absolute;top:57.6%;left:0;width:100%;text-align:center;font-size:calc(var(--cw)*.0118);color:#3a3a3a}
+.cfp-formation{position:absolute;top:60.4%;left:12.5%;width:75%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:600;letter-spacing:calc(var(--cw)*.0008);color:#0D4935;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.cfp-sous-titre{position:absolute;top:64.7%;left:10%;width:80%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:calc(var(--cw)*.0122);color:#0D4935;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cfp-details.seul{top:66.6%}
+.cfp-details{position:absolute;top:68%;left:0;width:100%;text-align:center;font-weight:700;font-size:calc(var(--cw)*.0105);color:#9a7b1f;white-space:pre}
+.cfp-date{position:absolute;top:75.5%;left:9%;font-size:calc(var(--cw)*.0112);color:#172019;text-align:left}
+.cfp-date b{display:block;font-size:calc(var(--cw)*.0118)}.cfp-date .sous{margin-top:3px;color:#333}
+.cfp-qr{position:absolute;top:81.6%;left:9%;display:flex;align-items:center;gap:calc(var(--cw)*.008)}
+.cfp-qr-img{width:calc(var(--cw)*.066);height:calc(var(--cw)*.066);border:1px solid rgba(15,40,24,.15);border-radius:3px;background:#fff;image-rendering:pixelated}
+.cfp-qr-txt{font-size:calc(var(--cw)*.0084);color:#333;line-height:1.5}.cfp-qr-txt b{display:block;color:#0F4D38;font-size:calc(var(--cw)*.009)}
+.cfp-sig{position:absolute;top:71%;width:21%;text-align:center;transform:translateX(-50%)}
+.cfp-sig.formateur{left:40%}.cfp-sig.fondateur{left:62.5%}
+.cfp-sig-img{height:calc(var(--cw)*.062);display:flex;align-items:flex-end;justify-content:center;margin-bottom:calc(var(--cw)*.002)}
+.cfp-sig-img img{max-height:100%;max-width:92%;width:auto;height:auto;display:block}
+.cfp-sig-ligne{width:78%;margin:0 auto calc(var(--cw)*.005);height:1px;background:#0F4D38;opacity:.5}
+.cfp-sig-nom{font-weight:700;font-size:calc(var(--cw)*.0118);color:#172019;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cfp-sig-titre{font-size:calc(var(--cw)*.0088);color:#555;margin-top:2px;line-height:1.4}
+.cfp-sceau{position:absolute;top:69%;left:83.5%;width:14%;height:19.8%}
+.cfp-sceau svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.cfp-sceau img{position:absolute;top:20%;left:20%;width:60%;height:60%;object-fit:contain}
+.cfp-numero{position:absolute;top:91.6%;left:0;width:100%;text-align:center;font-size:calc(var(--cw)*.0105);color:#333}.cfp-numero b{color:#0F4D38}
+.cfp-slogan{position:absolute;top:93.2%;left:0;width:100%;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:calc(var(--cw)*.0128);letter-spacing:calc(var(--cw)*.0012);color:#0F4D38}
+.cfp-devise{position:absolute;top:95.9%;left:0;width:100%;text-align:center;font-weight:700;font-size:calc(var(--cw)*.0082);letter-spacing:calc(var(--cw)*.0015);color:#C89B3C;white-space:pre}
+.cfp-annule{position:absolute;top:42%;left:0;width:100%;text-align:center;font-weight:800;font-size:calc(var(--cw)*.11);color:rgba(170,30,30,.28);transform:rotate(-14deg);pointer-events:none}
+.cfp-hors{position:fixed;left:-20000px;top:0;width:1122px}
+/* Aperçu à l'écran : réduit à la largeur disponible */
+.cfp-apercu{overflow:hidden;border-radius:6px;box-shadow:0 10px 30px rgba(0,0,0,.35);margin:.6rem 0}
+.cfp-apercu .cfp{transform-origin:0 0}
+/* Impression : une page A4 paysage par certificat, à taille réelle */
+.cfp-feuille{width:297mm;height:210mm;overflow:hidden;break-after:page;page-break-after:always}
+.cfp-feuille:last-child{break-after:auto;page-break-after:auto}
+@media print{.zone-impression .cfp-feuille .cfp{width:297mm;height:210mm;box-shadow:none;border-radius:0}}

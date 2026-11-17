@@ -94,3 +94,29 @@
   .sc-barre .sc-actions .btn{flex:0 0 auto;white-space:nowrap;scroll-snap-align:start}
   .sc-panneau .sc-actions .btn{flex:1 1 100%}
 }
+/* ── Étape 14 : panneau « Certificats » (formations pratiques en présentiel) ── */
+.sc-cert-bloc{border-top:1px solid var(--w4);padding-top:.9rem;margin-top:.9rem}.sc-cert-bloc h3{margin:0 0 .6rem;font-size:1rem}
+.sc-cert-bloc .filtres{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end}.sc-cert-bloc .filtres .champ{flex:1 1 240px;margin:0}
+.sc-cert-formateurs{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.6rem}
+.sc-cert-formateur{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;padding:.5rem .6rem;border:1px solid var(--w4);border-radius:10px}
+.sc-cert-formateur>div:nth-child(2){flex:1 1 160px;min-width:0}.sc-cert-formateur.inactif{opacity:.6}
+.sc-cert-sigbox{width:140px;height:56px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto}
+.sc-cert-sigbox img{max-width:94%;max-height:90%}.sc-cert-sigbox.grand{width:100%;max-width:340px;height:120px;margin:.2rem 0 .4rem}
+.sc-cert-sigbox .aide,.sc-cert-sigbox .erreur{color:#555;font-size:.8rem;margin:0}
+.sc-cert-form{display:flex;flex-direction:column;gap:.4rem;padding:.7rem;border:1px dashed var(--w4);border-radius:10px;margin:.4rem 0}
+.sc-cert-form input[type=file]{max-width:100%}
+.sc-cert-participants{display:flex;flex-direction:column;gap:.35rem;margin:.6rem 0}
+.sc-cert-ligne{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.6rem;align-items:center;padding:.35rem .5rem;border:1px solid var(--w4);border-radius:10px}
+.sc-cert-ligne input[type=checkbox]{width:1.2rem;height:1.2rem}.sc-cert-ligne input[type=text]{width:100%;min-width:0}
+.sc-cert-ligne.fait{opacity:.75}
+.sc-cert-avis{background:rgba(255,167,38,.14);color:#ffcc80;border-radius:10px;padding:.5rem .7rem;margin:.4rem 0}
+.sc-cert-carte{border:1px solid var(--w4);border-radius:12px;padding:.7rem .8rem;margin:.5rem 0;min-width:0}
+.sc-cert-carte.revoque{opacity:.7;border-style:dashed}
+.sc-cert-tete{display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center}.sc-cert-num{font-family:monospace;font-size:.85rem;color:var(--or3)}
+.sc-cert-carte .aide{margin:.25rem 0 .5rem}.sc-cert-carte .sc-actions{flex-wrap:wrap}
+@media (max-width:640px){
+  .sc-cert-ligne{grid-template-columns:auto minmax(0,1fr)}.sc-cert-ligne .badge{grid-column:2;justify-self:start}
+  .sc-cert-carte .sc-actions .btn{flex:1 1 calc(50% - .5rem)}
+}
+.sc-cert-intitule{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;padding:.6rem .7rem;border:1px solid var(--w4);border-radius:10px;margin:.6rem 0}
+.sc-cert-intitule>div{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:.15rem}.sc-cert-intitule .aide{margin:0}
