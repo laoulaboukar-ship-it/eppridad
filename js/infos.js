@@ -229,7 +229,7 @@ function renderTicker() {
   if(n(c.inscrits)&&c.inscrits>0)        items.push(['🎓', c.inscrits, ' inscrits à nos formations en ligne']);
   if(n(c.en_formation)&&c.en_formation>0) items.push(['📚', c.en_formation, ' apprenants en formation actuellement']);
   if(n(c.payes)&&c.payes>0)               items.push(['✅', c.payes, ' ont déjà payé leur formation']);
-  if(n(c.actifs)&&c.actifs>0)             items.push(['🟢', c.actifs, ' apprenants actifs depuis le lancement']);
+  if(n(c.actifs)&&c.actifs>0)             items.push(['🟢', c.actifs, ' apprenants actifs']);
   _posts.slice(0,4).forEach(p=>items.push(['📢', null, p.title]));
   if(!items.length) items.push(['📢', null, 'EPPRIDAD — Former les bâtisseurs du monde rural']);
   const html=it=>`<span class="ticker-item">${it[0]} ${it[1]===null?'':`<b class="compteur" data-cible="${parseInt(it[1],10)}">0</b>`}${it[1]===null?it[2]:it[2].replace(/</g,'&lt;')}</span>`;
