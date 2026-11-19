@@ -6,18 +6,51 @@
 // ═══════════════════════════════════════════════════════════
 
 // ── Config ───────────────────────────────────────────────────
-// Hash SHA-256 du mot de passe admin de la page infos
-// (mot de passe réel connu de l'admin uniquement — jamais stocker le texte en clair)
-const INFOS_ADMIN_HASH = window.CFG && window.CFG.ADMIN_HASH
-  ? window.CFG.ADMIN_HASH
-  : '8f9c2b5a3e7d1f4b6c0a2e5d8b1f3c6a9e2d5b8a4f7c0e3d6b9a1f4c7e0d3b6'; // fallback à remplacer
-const INFOS_SESS_KEY  = 'eppr_infos_admin_v2';
-
-function isInfosAdmin()  { return sessionStorage.getItem(INFOS_SESS_KEY) === '1'; }
-function setInfosAdmin(v){ v ? sessionStorage.setItem(INFOS_SESS_KEY,'1') : sessionStorage.removeItem(INFOS_SESS_KEY); }
+// Administration : le mot de passe est vérifié par le SERVEUR (même mot de passe que le suivi des formations courtes).
+// Le navigateur ne garde qu'un jeton de session temporaire (2 heures au plus), jamais le mot de passe.
+const INFOS_SESS_KEY = 'eppr_infos_admin_v3';
+try { sessionStorage.removeItem('eppr_infos_admin_v2'); } catch (e) {}
+function infosToken()     { try { return sessionStorage.getItem(INFOS_SESS_KEY) || ''; } catch (e) { return ''; } }
+function isInfosAdmin()   { return !!infosToken(); }
+function setInfosAdmin(t) { try { t ? sessionStorage.setItem(INFOS_SESS_KEY, t) : sessionStorage.removeItem(INFOS_SESS_KEY); } catch (e) {} }
+async function infosRpc(fn, args) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args || {})
+  });
+  if (!r.ok) throw new Error('Service momentanément indisponible. Réessayez.');
+  return r.json();
+}
+async function infosAdminRpc(fn, args) {
+  const d = await infosRpc(fn, Object.assign({ p_admin_token: infosToken() }, args || {}));
+  if (d && d.code === 'ADMIN_SESSION_INVALIDE') { adminLogout(true); throw new Error('Session administrateur expirée : reconnectez-vous.'); }
+  if (!d || !d.ok) throw new Error((d && d.message) || 'Opération refusée.');
+  return d;
+}
 
 // ── Stats étudiants (depuis Supabase) ────────────────────────
-let _stats = { total:30, admis:24, taux:80, best:15.5, moyGen:'12.40', bestName:'— en cours —', bestFi:'' };
+let _stats = { total:'—', admis:'—', taux:'—', best:'—', moyGen:'—', bestName:'—', bestFi:'' };
+let _compteurs = null;
+async function chargerCompteurs() {
+  try { const d = await infosRpc('compteurs_publics', {}); if (d && d.ok) _compteurs = d; } catch (e) { _compteurs = null; }
+  renderTicker();
+}
+function masquerBlocsResultats() {
+  const m = document.getElementById('majorBox'); if (m) m.style.display = 'none';
+  const st = document.getElementById('statsContent'); if (st && st.closest('.sidebar-box')) st.closest('.sidebar-box').style.display = 'none';
+}
+// Compteurs animés : chaque nombre monte de 0 à sa valeur réelle en 1,8 seconde.
+function animerCompteurs() {
+  const els = document.querySelectorAll('#tickerTrack .compteur');
+  const t0 = performance.now(), duree = 1800;
+  function pas(t) {
+    const k = Math.min(1, (t - t0) / duree), e = 1 - Math.pow(1 - k, 3);
+    els.forEach(el => { const c = parseInt(el.dataset.cible, 10) || 0; el.textContent = Math.round(c * e).toLocaleString('fr-FR'); });
+    if (k < 1) requestAnimationFrame(pas);
+  }
+  requestAnimationFrame(pas);
+}
 let _posts  = [];
 
 async function loadStatsFromSupabase() {
@@ -68,20 +101,23 @@ async function loadPostsFromSupabase() {
       filters: [{col:'publie',val:'eq.true'},{col:'categorie',val:'neq.conseil_stage'}],
       order: 'created_at.desc'
     });
+    // Chaque texte est neutralisé avant affichage ; seuls les liens https:// et les images intégrées sont gardés.
+    const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/`/g,'&#96;');
+    const lien = (v, image) => { v = String(v || '').trim(); return (/^https:\/\/[^\s"'<>`]+$/.test(v) || (image && /^data:image\/(png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/=]+$/.test(v))) ? v : null; };
     _posts = (rows||[]).map(r => ({
-      id: r.id,
-      type: r.type_post || r.categorie || 'actu',
-      title: r.titre,
-      text: r.contenu || '',
-      imageUrl: r.image_url || null,
-      videoUrl: r.video_url || null,
+      id: String(r.id).replace(/[^A-Za-z0-9-]/g, ''),
+      type: String(r.type_post || r.categorie || 'actu').replace(/[^a-z_]/g, '') || 'actu',
+      title: esc(r.titre),
+      text: esc(r.contenu || ''),
+      imageUrl: lien(r.image_url, true),
+      videoUrl: lien(r.video_url, false),
       pinned: r.epingle || false,
       date: new Date(r.created_at).getTime(),
-      majorName: r.major_nom || '',
-      majorFiliere: r.major_filiere || '',
-      majorMoy: r.major_moy || '',
-      resAdmis: r.res_admis || '',
-      resTaux: r.res_taux || '',
+      majorName: esc(r.major_nom || ''),
+      majorFiliere: esc(r.major_filiere || ''),
+      majorMoy: esc(r.major_moy || ''),
+      resAdmis: esc(r.res_admis || ''),
+      resTaux: esc(r.res_taux || ''),
     }));
     renderFeed();
     renderRecent();
@@ -187,16 +223,18 @@ function renderPost(p) {
 }
 
 function renderTicker() {
-  const s=_stats;
-  const items=[
-    `Semestre 1 · 2025/2026 — Taux de réussite : ${s.taux}%`,
-    `${s.admis} étudiants admis sur ${s.total}`,
-    `Meilleure moyenne : ${s.best}/20`,
-    ...(_posts.slice(0,4).map(p=>p.title))
-  ];
   const track=document.getElementById('tickerTrack');if(!track)return;
-  const doubled=[...items,...items];
-  track.innerHTML=doubled.map(t=>`<span class="ticker-item">${t}</span>`).join('');
+  const c=_compteurs||{}, n=v=>Number.isFinite(Number(v))&&v!==null&&v!==undefined;
+  const items=[];
+  if(n(c.inscrits)&&c.inscrits>0)        items.push(['🎓', c.inscrits, ' inscrits à nos formations en ligne']);
+  if(n(c.en_formation)&&c.en_formation>0) items.push(['📚', c.en_formation, ' apprenants en formation actuellement']);
+  if(n(c.payes)&&c.payes>0)               items.push(['✅', c.payes, ' ont déjà payé leur formation']);
+  if(n(c.actifs)&&c.actifs>0)             items.push(['🟢', c.actifs, ' apprenants actifs depuis le lancement']);
+  _posts.slice(0,4).forEach(p=>items.push(['📢', null, p.title]));
+  if(!items.length) items.push(['📢', null, 'EPPRIDAD — Former les bâtisseurs du monde rural']);
+  const html=it=>`<span class="ticker-item">${it[0]} ${it[1]===null?'':`<b class="compteur" data-cible="${parseInt(it[1],10)}">0</b>`}${it[1]===null?it[2]:it[2].replace(/</g,'&lt;')}</span>`;
+  track.innerHTML=[...items,...items].map(html).join('');
+  animerCompteurs();
 }
 
 function renderRecent() {
@@ -227,20 +265,28 @@ function closeAdminPanel(){
   document.getElementById('adminPwdInput').value='';
   document.getElementById('adminLoginErr').style.display='none';
 }
+let _connexionEnCours = false;
 async function checkAdminLogin(){
-  const pwd=document.getElementById('adminPwdInput').value;
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
-  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if(hash===INFOS_ADMIN_HASH){
-    setInfosAdmin(true);
+  if(_connexionEnCours) return;
+  const input=document.getElementById('adminPwdInput'), err=document.getElementById('adminLoginErr');
+  const pwd=input.value;
+  if(!pwd){ err.textContent='Saisissez le mot de passe administrateur.'; err.style.display='block'; return; }
+  _connexionEnCours = true;
+  let d;
+  try { d = await infosRpc('admin_connexion', { p_password: pwd }); } catch(e) { d = { ok:false, message:e.message }; }
+  _connexionEnCours = false;
+  input.value='';
+  if(d && d.ok && d.token){
+    setInfosAdmin(d.token);
+    renderFeed();
     document.getElementById('adminLoginSection').style.display='none';
     document.getElementById('adminPostSection').style.display='block';
     document.getElementById('adminLoginErr').style.display='none';
     document.getElementById('adminFab').classList.add('visible');
     const mf=document.getElementById('msgFab');if(mf)mf.style.display='flex';
-  } else { document.getElementById('adminLoginErr').style.display='block'; }
+  } else { err.textContent='❌ '+((d && d.message) || 'Mot de passe incorrect.'); err.style.display='block'; }
 }
-function adminLogout(){setInfosAdmin(false);document.getElementById('adminFab').classList.remove('visible');const mf=document.getElementById('msgFab');if(mf)mf.style.display='none';closeAdminPanel();}
+function adminLogout(expiree){const t=infosToken();if(t&&!expiree)infosRpc('admin_deconnexion',{p_admin_token:t}).catch(()=>{});setInfosAdmin(null);renderFeed();document.getElementById('adminFab').classList.remove('visible');const mf=document.getElementById('msgFab');if(mf)mf.style.display='none';closeAdminPanel();}
 
 function selectType(btn,type){
   selectedType=type;
@@ -289,7 +335,7 @@ async function publishPost(){
       videoUrl = (document.getElementById('videoUrl')||{}).value?.trim() || null;
     }
 
-    await sb.insert('actualites', {
+    await infosAdminRpc('admin_actu_publier', { p_champs: {
       titre: title,
       contenu: text,
       categorie: selectedType==='major'?'resultat':selectedType==='results'?'resultat':'info',
@@ -304,7 +350,7 @@ async function publishPost(){
       major_moy: document.getElementById('majorMoy')?.value.trim()||null,
       res_admis: document.getElementById('resAdmis')?.value.trim()||null,
       res_taux: document.getElementById('resTaux')?.value.trim()||null,
-    });
+    } });
 
     closeAdminPanel();
     resetForm();
@@ -325,16 +371,16 @@ function fileToBase64(file){
 async function deletePost(id){
   if(!confirm('Supprimer cette publication ?'))return;
   try{
-    await sb.del('actualites',{col:'id',val:`eq.${id}`});
-    _posts=_posts.filter(p=>p.id!==id);
+    await infosAdminRpc('admin_actu_supprimer',{p_id:String(id)});
+    _posts=_posts.filter(p=>p.id!==String(id));
     renderFeed();renderRecent();renderTicker();
   }catch(e){alert('Erreur: '+e.message);}
 }
 
 async function togglePin(id){
-  const p=_posts.find(x=>x.id===id);if(!p)return;
+  const p=_posts.find(x=>x.id===String(id));if(!p)return;
   try{
-    await sb.update('actualites',{epingle:!p.pinned},{col:'id',val:`eq.${id}`});
+    await infosAdminRpc('admin_actu_epingler',{p_id:String(id),p_epingle:!p.pinned});
     p.pinned=!p.pinned;
     renderFeed();
   }catch(e){alert('Erreur: '+e.message);}
@@ -357,9 +403,7 @@ function resetForm(){
 // ═══════════════════════════════════════════════════════════
 
 // Config EmailJS — À remplir avec vos clés EmailJS
-const EMAILJS_SERVICE_ID  = 'service_5sapdz7';
-const EMAILJS_TEMPLATE_ID = 'template_6iuy2mm';
-const EMAILJS_PUBLIC_KEY  = 'S_LQPUgqU6988zXny';
+// Clés EmailJS : définies une seule fois dans js/supabase.js (les redéclarer ici bloquait toute la page).
 
 let _etudiants_msg = []; // liste étudiants chargée pour messagerie
 
@@ -524,10 +568,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   }
 
   // Charger données depuis Supabase
-  await Promise.all([loadStatsFromSupabase(), loadPostsFromSupabase()]);
+  masquerBlocsResultats();
+  await Promise.all([chargerCompteurs(), loadPostsFromSupabase()]);
 
   if(isInfosAdmin()){document.getElementById('adminFab').classList.add('visible');const mf=document.getElementById('msgFab');if(mf)mf.style.display='flex';}
-    const mf=document.getElementById('msgFab');if(mf)mf.style.display='flex';
 
   // Fermer panels en cliquant dehors
   const adminPanel=document.getElementById('adminPanel');
