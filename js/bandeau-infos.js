@@ -134,6 +134,19 @@
     } else animer(nums);
   }
 
+  /* ───── Chiffres dans le texte des pages : <span data-compteur="inscrits">53</span> ─────
+     Le chiffre écrit dans la page sert de secours (sans connexion) ; il est remplacé par la valeur en direct, animée quand elle devient visible. */
+  function remplirChiffresDesPages(c) {
+    var els = [].slice.call(document.querySelectorAll('[data-compteur]')).filter(function (e) { return nombre(c[e.getAttribute('data-compteur')]) !== null; });
+    if (!els.length) return;
+    els.forEach(function (e) { e.dataset.cible = String(nombre(c[e.getAttribute('data-compteur')])); });
+    if (!('IntersectionObserver' in window)) { animer(els); return; }
+    var io = new IntersectionObserver(function (entrees) {
+      entrees.forEach(function (x) { if (x.isIntersecting) { io.unobserve(x.target); animer([x.target]); } });
+    }, { threshold: 0.3 });
+    els.forEach(function (e) { io.observe(e); });
+  }
+
   function demarrer() {
     // Le bandeau apparaît tout de suite avec les faits de l'école ; s'il faut plus de 0,8 s pour obtenir les chiffres en direct,
     // il est complété dès leur arrivée (connexion lente).
@@ -143,6 +156,7 @@
       var c = (r[0] && r[0].ok) ? r[0] : {};
       construireBandeau(c, r[1]);
       var zone = document.getElementById('bdi-resume'); if (zone) construireResume(zone, c);
+      remplirChiffresDesPages(c);
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', demarrer); else demarrer();
