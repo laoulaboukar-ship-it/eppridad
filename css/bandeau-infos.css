@@ -1,0 +1,59 @@
+/* EPPRIDAD — Bandeau d'informations sous le menu (toutes les pages publiques) + texte détaillé de la page Infos */
+.bdi{position:fixed;left:0;right:0;top:68px;z-index:999;height:40px;display:flex;align-items:stretch;
+  background:linear-gradient(90deg,#08200f 0%,#0f3a1c 30%,#134a23 50%,#0f3a1c 70%,#08200f 100%);
+  border-top:1px solid rgba(212,175,55,.18);border-bottom:1px solid rgba(212,175,55,.55);
+  box-shadow:0 8px 22px rgba(0,0,0,.28);font-family:'Outfit',system-ui,sans-serif;overflow:hidden;transition:top .3s ease}
+.bdi::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 55%)}
+.bdi a{text-decoration:none}
+.bdi-etiquette{position:relative;z-index:3;flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 16px 0 14px;
+  background:linear-gradient(135deg,#d4af37,#f0d060);color:#0a150a;font-size:10.5px;font-weight:800;letter-spacing:2px;
+  clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.bdi-point{width:8px;height:8px;border-radius:50%;background:#c62828;box-shadow:0 0 0 0 rgba(198,40,40,.6);animation:bdi-pouls 1.6s ease-out infinite}
+@keyframes bdi-pouls{0%{box-shadow:0 0 0 0 rgba(198,40,40,.6)}70%{box-shadow:0 0 0 8px rgba(198,40,40,0)}100%{box-shadow:0 0 0 0 rgba(198,40,40,0)}}
+.bdi-fenetre{position:relative;flex:1 1 auto;min-width:0;overflow:hidden;display:flex;align-items:center;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 48px,#000 calc(100% - 48px),transparent 100%);
+          mask-image:linear-gradient(90deg,transparent 0,#000 48px,#000 calc(100% - 48px),transparent 100%)}
+.bdi-piste{display:flex;width:max-content;animation:bdi-defile 60s linear infinite;will-change:transform}
+.bdi:hover .bdi-piste,.bdi:focus-within .bdi-piste{animation-play-state:paused}
+@keyframes bdi-defile{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.bdi-groupe{display:flex;align-items:center;flex:0 0 auto;padding-left:28px}
+.bdi-item{display:inline-flex;align-items:baseline;gap:6px;white-space:nowrap;color:rgba(255,255,255,.92);font-size:13px;letter-spacing:.2px;padding:0 4px;transition:color .2s}
+.bdi-item:hover,.bdi-item:focus{color:#f0d060}
+.bdi-ico{font-size:13px}
+.bdi-n{color:#f0d060;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;text-shadow:0 0 12px rgba(240,208,96,.35)}
+.bdi-sep{color:rgba(212,175,55,.75);font-size:8px;margin:0 22px}
+.bdi-tout{position:relative;z-index:3;flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:0 16px 0 18px;color:#f0d060;font-size:12px;font-weight:700;letter-spacing:.4px;
+  background:linear-gradient(90deg,rgba(8,32,15,0),#08200f 35%);border-left:1px solid rgba(212,175,55,.35)}
+.bdi-tout:hover .bdi-fleche{transform:translateX(3px)}
+.bdi-fleche{transition:transform .2s}
+@media (max-width:768px){
+  .bdi{height:36px}
+  .bdi-etiquette{padding:0 12px 0 10px;font-size:9.5px;letter-spacing:1.4px}
+  .bdi-item{font-size:12px}.bdi-n{font-size:13px}.bdi-sep{margin:0 16px}
+  .bdi-tout-txt{display:none}.bdi-tout{padding:0 12px}
+}
+@media (prefers-reduced-motion:reduce){
+  .bdi-piste{animation:none}.bdi-fenetre{overflow-x:auto}.bdi-point{animation:none}
+}
+/* La page descend de la hauteur du bandeau : rien n'est caché dessous (le haut de page reste sous le menu, comme avant). */
+html.avec-bdi body{padding-top:40px}
+@media (max-width:768px){html.avec-bdi body{padding-top:36px}}
+@media print{.bdi{display:none!important}html.avec-bdi body{padding-top:0}}
+
+/* ── Page Infos : texte détaillé de tout ce qui défile ── */
+#bdi-resume{max-width:1180px;margin:0 auto;padding:56px 5% 8px}
+.bdi-r-tete{text-align:center;max-width:760px;margin:0 auto 32px}
+.bdi-r-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#1a5d1a;border:1px solid rgba(26,93,26,.25);border-radius:30px;padding:6px 14px;margin-bottom:14px}
+.bdi-r-titre{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(28px,4vw,40px);line-height:1.15;color:#0a150a;margin:0 0 12px}
+.bdi-r-intro{font-size:15px;line-height:1.7;color:#55605a;margin:0}
+.bdi-r-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.bdi-r-carte{background:#fff;border:1px solid rgba(26,93,26,.12);border-radius:16px;padding:22px 22px 20px;box-shadow:0 6px 20px rgba(10,21,10,.05);position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.bdi-r-carte::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#d4af37,#1a5d1a)}
+.bdi-r-carte:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(10,21,10,.09)}
+.bdi-r-ico{font-size:26px;margin-bottom:10px}
+.bdi-r-chiffre{font-size:16px;font-weight:700;color:#0a150a;line-height:1.35;margin-bottom:8px}
+.bdi-r-n{font-family:'Cormorant Garamond',Georgia,serif;font-size:38px;font-weight:700;color:#1a5d1a;font-variant-numeric:tabular-nums;line-height:1;margin-right:2px}
+.bdi-r-texte{font-size:14px;line-height:1.65;color:#55605a;margin:0}
+.bdi-r-liens{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px}
+.bdi-r-lien{font-size:13px;font-weight:700;color:#1a5d1a;text-decoration:none;border-bottom:1px solid rgba(212,175,55,.7)}
+.bdi-r-lien:hover{color:#b8941f}
