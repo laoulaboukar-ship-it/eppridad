@@ -329,6 +329,7 @@ var NAV_ADM = [
   // Outils de la Direction : ils s'ouvrent dans un NOUVEL onglet (chacun demande sa propre connexion) ; ce centre de contrôle reste ouvert.
   {id:'ext-suivi-courtes',      ico:'📜', label:'Suivi formations courtes ↗', href:'suivi-courtes.html'},
   {id:'ext-admin-eleves',       ico:'🎓', label:'Espace élèves (administration) ↗', href:'admin-eleves.html'},
+  {id:'ext-infos',              ico:'📢', label:'Publier une actualité (Infos) ↗', href:'infos.html#admin'},
 ];
 
 function buildSidebar(){

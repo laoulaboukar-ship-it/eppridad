@@ -572,6 +572,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   await Promise.all([chargerCompteurs(), loadPostsFromSupabase()]);
 
   if(isInfosAdmin()){document.getElementById('adminFab').classList.add('visible');const mf=document.getElementById('msgFab');if(mf)mf.style.display='flex';}
+  if(location.hash==='#admin') openAdminPanel();
+  window.addEventListener('hashchange',()=>{ if(location.hash==='#admin') openAdminPanel(); });
 
   // Fermer panels en cliquant dehors
   const adminPanel=document.getElementById('adminPanel');
