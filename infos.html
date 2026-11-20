@@ -19,6 +19,7 @@
   <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="shortcut icon" href="favicon.ico">
+<link rel="stylesheet" href="css/bandeau-infos.css">
 </head>
 <body>
 
@@ -78,13 +79,8 @@
   </div>
 </div>
 
-<!-- BANDEAU TICKER -->
-<div class="news-ticker-bar" id="tickerBar">
-  <div class="ticker-label">📢 INFOS</div>
-  <div class="ticker-track" id="tickerTrack">
-    <!-- rempli par JS -->
-  </div>
-</div>
+<!-- L'EPPRIDAD EN CE MOMENT : texte détaillé de tout ce qui défile dans le bandeau (rempli par js/bandeau-infos.js) -->
+<section id="bdi-resume" aria-label="L'EPPRIDAD en ce moment"></section>
 
 <!-- MAIN CONTENT -->
 <div class="infos-main">
@@ -393,5 +389,6 @@
 <script src="js/supabase.js"></script>
 <script src="js/infos.js"></script>
 <script src="js/chatbot.js"></script>
+<script src="js/bandeau-infos.js" defer></script>
 </body>
 </html>

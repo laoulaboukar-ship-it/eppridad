@@ -18,6 +18,7 @@
   <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="shortcut icon" href="favicon.ico">
+<link rel="stylesheet" href="css/bandeau-infos.css">
 </head>
 <body>
 <nav>
@@ -573,12 +574,7 @@
     </div>
   </div>
 </section>
-<div style="background:var(--green);padding:9px 0;overflow:hidden;position:relative;border-bottom:2px solid var(--gold);" id="homeTickerBar">
-  <div style="position:absolute;left:0;top:0;bottom:0;z-index:3;background:var(--gold);color:var(--dark);font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:0 16px;display:flex;align-items:center;">📢 INFOS</div>
-  <div style="position:absolute;left:0;top:0;bottom:0;width:130px;z-index:2;background:linear-gradient(to right,var(--green),transparent);pointer-events:none;"></div>
-  <div style="position:absolute;right:0;top:0;bottom:0;width:80px;z-index:2;background:linear-gradient(to left,var(--green),transparent);pointer-events:none;"></div>
-  <div id="homeTickerTrack" style="display:flex;gap:60px;white-space:nowrap;padding-left:150px;animation:tickerScroll 40s linear infinite;"></div>
-</div>
+<!-- Ancien bandeau remplacé par le bandeau unique sous le menu (js/bandeau-infos.js) -->
 <link rel="stylesheet" href="css/index_0.css">
 
 <section class="axes-section">
@@ -874,5 +870,6 @@
     }
   </script>
 <script src="js/chatbot.js"></script>
+<script src="js/bandeau-infos.js" defer></script>
 </body>
 </html>
