@@ -19,6 +19,9 @@
       texte: 'La nouvelle année scolaire a démarré dans nos filières diplômantes, à Niamey.' },
     { ico: '🌾', court: '3 sites de pratique en service à Niamey', titre: '3 sites de pratique en service à Niamey',
       texte: 'Une formation 100 % pratique : chaque notion vue en cours est appliquée sur le terrain.' },
+    { ico: '📸', court: 'Nos formations pratiques en images sur notre chaîne WhatsApp', titre: 'Nos formations en images',
+      texte: 'Chaque formation pratique du week-end est partagée en photos, en direct, sur notre chaîne WhatsApp. Venez voir nos participants à l\u2019œuvre.',
+      liens: [['Suivre notre chaîne WhatsApp', 'https://whatsapp.com/channel/0029VbE1NXLFi8xbQOucTt2X']] },
     { ico: '📝', court: 'Inscriptions 2026-2027 ouvertes — rejoignez l’EPPRIDAD !', titre: 'Inscriptions 2026-2027 ouvertes',
       texte: 'Formations diplômantes, formations pratiques du week-end ou formations en ligne : il est encore temps de nous rejoindre.',
       liens: [['S’inscrire', 'inscription.html'], ['Formations en ligne', 'formations-en-ligne.html']] }
@@ -78,6 +81,8 @@
     var fenetre = el('div', 'bdi-fenetre'), piste = el('div', 'bdi-piste');
     var items = [];
     DIRECT.forEach(function (d) { var n = nombre(c[d.cle]); if (n !== null) items.push({ ico: d.ico, n: n, txt: d.court }); });
+    var fc = window.EPPR_FC && window.EPPR_FC.prochaine();
+    if (fc) items.push({ ico: '📅', txt: 'Prochaine formation pratique : ' + fc.titre + ' — ' + window.EPPR_FC.texteSession(fc) });
     FAITS.forEach(function (f) { items.push({ ico: f.ico, txt: f.court }); });
     titres.forEach(function (t) { items.push({ ico: '📢', txt: t.length > 90 ? t.slice(0, 88) + '…' : t }); });
     function bloc(cache) {
@@ -122,7 +127,7 @@
       if (n !== null) { var b = el('span', 'bdi-r-n', '0'); b.dataset.cible = String(n); nums.push(b); h.appendChild(b); h.appendChild(document.createTextNode(' ')); }
       h.appendChild(el('span', 'bdi-r-lib', titre)); k.appendChild(h);
       k.appendChild(el('p', 'bdi-r-texte', texte));
-      if (liens) { var l = el('div', 'bdi-r-liens'); liens.forEach(function (x) { var a = el('a', 'bdi-r-lien', x[0] + ' →'); a.href = x[1]; l.appendChild(a); }); k.appendChild(l); }
+      if (liens) { var l = el('div', 'bdi-r-liens'); liens.forEach(function (x) { var a = el('a', 'bdi-r-lien', x[0] + ' →'); a.href = x[1]; if (/^https?:/.test(x[1])) { a.target = '_blank'; a.rel = 'noopener noreferrer'; } l.appendChild(a); }); k.appendChild(l); }
       grille.appendChild(k);
     }
     DIRECT.forEach(function (d) { var n = nombre(c[d.cle]); if (n !== null) carte(d.ico, n, d.titre, d.texte, d.liens); });
@@ -147,11 +152,17 @@
     els.forEach(function (e) { io.observe(e); });
   }
 
+  // Calendrier des formations courtes : chargé une seule fois, depuis son fichier unique.
+  function calendrier() {
+    if (window.EPPR_FC) return Promise.resolve();
+    return new Promise(function (ok) { var sc = document.createElement('script'); sc.src = 'js/formations-courtes-statut.js'; sc.onload = ok; sc.onerror = ok; document.head.appendChild(sc); });
+  }
+
   function demarrer() {
     // Le bandeau apparaît tout de suite avec les faits de l'école ; s'il faut plus de 0,8 s pour obtenir les chiffres en direct,
     // il est complété dès leur arrivée (connexion lente).
     var fait = false, provisoire = setTimeout(function () { if (!fait) construireBandeau({}, []); }, 800);
-    Promise.all([compteurs(), actualites()]).then(function (r) {
+    Promise.all([compteurs(), actualites(), calendrier()]).then(function (r) {
       fait = true; clearTimeout(provisoire);
       var c = (r[0] && r[0].ok) ? r[0] : {};
       construireBandeau(c, r[1]);
