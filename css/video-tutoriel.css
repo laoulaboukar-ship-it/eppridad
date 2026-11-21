@@ -1,0 +1,89 @@
+/* EPPRIDAD — Vidéo tutoriel « Formations en ligne : le mode d'emploi ».
+   Lecteur léger : seule la miniature est chargée ; le lecteur YouTube (youtube-nocookie.com) n'est chargé qu'au clic.
+   Toutes les classes commencent par vt- pour ne rien changer au reste des pages. */
+
+/* ── Lecteur ── */
+.vt-lecteur{position:relative;width:100%;margin:0 auto;background:#050e05;border-radius:18px;overflow:hidden;
+  box-shadow:0 18px 40px rgba(5,14,5,.28),0 0 0 1px rgba(212,175,55,.35)}
+.vt-lecteur.vt-vertical{aspect-ratio:9/16;max-width:340px}
+.vt-lecteur.vt-horizontal{aspect-ratio:16/9;max-width:760px}
+.vt-play{position:absolute;inset:0;width:100%;height:100%;padding:0;margin:0;border:0;background:#050e05;cursor:pointer;display:block;
+  -webkit-tap-highlight-color:transparent}
+.vt-play img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease,filter .3s ease}
+.vt-play::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,14,5,0) 45%,rgba(5,14,5,.78) 100%);pointer-events:none}
+.vt-rond{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;z-index:1;
+  background:#d4af37;box-shadow:0 0 0 8px rgba(212,175,55,.25),0 10px 28px rgba(0,0,0,.35);transition:transform .25s ease,box-shadow .25s ease}
+.vt-rond::before{content:'';position:absolute;left:31px;top:24px;border-style:solid;border-width:14px 0 14px 22px;border-color:transparent transparent transparent #0f3a1c}
+.vt-duree{position:absolute;left:14px;bottom:14px;z-index:1;color:#fff;font:700 12.5px/1.3 'Outfit',system-ui,sans-serif;letter-spacing:.3px;text-align:left}
+.vt-duree b{display:block;color:#f0d060;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:2px}
+.vt-play:hover img{transform:scale(1.03)}
+.vt-play:hover .vt-rond{transform:scale(1.08);box-shadow:0 0 0 12px rgba(212,175,55,.22),0 12px 30px rgba(0,0,0,.4)}
+.vt-play:focus-visible{outline:3px solid #f0d060;outline-offset:-3px}
+.vt-lecteur iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.vt-secours{display:block;text-align:center;margin-top:12px;font:600 13px/1.4 'Outfit',system-ui,sans-serif}
+.vt-secours a{color:inherit;opacity:.8;text-decoration:none;border-bottom:1px solid #d4af37;padding-bottom:1px}
+.vt-secours a:hover{opacity:1}
+@media(prefers-reduced-motion:reduce){.vt-play img,.vt-rond{transition:none}.vt-play:hover img{transform:none}}
+
+/* ── Accueil : section « mode d'emploi » ── */
+.vt-section{background:#f7f5ec;padding:70px 6%;position:relative;overflow:hidden;border-top:1px solid rgba(212,175,55,.35)}
+.vt-section::before{content:'';position:absolute;right:-120px;top:-120px;width:380px;height:380px;border-radius:50%;background:rgba(26,93,26,.06);pointer-events:none}
+.vt-inner{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;position:relative;z-index:1}
+.vt-tag{display:inline-block;color:#1a5d1a;font:700 11px/1 'Outfit',sans-serif;letter-spacing:2px;text-transform:uppercase;border-left:3px solid #d4af37;padding:3px 0 3px 10px;margin-bottom:14px}
+.vt-section h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(28px,3.6vw,42px);line-height:1.12;color:#0f3a1c;margin:0 0 16px;font-weight:700}
+.vt-section h2 span{color:#a8821a}
+.vt-section .vt-intro{font-size:16px;line-height:1.75;color:#3d4f3d;margin:0 0 22px;max-width:520px}
+.vt-etapes{list-style:none;margin:0 0 28px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;max-width:520px}
+.vt-etapes li{display:flex;align-items:center;gap:10px;font-size:14px;color:#1a2a1a;font-weight:500}
+.vt-etapes li span{flex:0 0 28px;height:28px;border-radius:8px;background:#0f3a1c;color:#f0d060;display:flex;align-items:center;justify-content:center;font:700 13px/1 'Outfit',sans-serif}
+.vt-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#1a5d1a,#0f3a1c);color:#fff;text-decoration:none;
+  font:700 15px/1.2 'Outfit',sans-serif;padding:15px 26px;border-radius:12px;box-shadow:0 10px 24px rgba(15,58,28,.25);border:1px solid rgba(212,175,55,.5);transition:transform .2s,box-shadow .2s}
+.vt-btn:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(15,58,28,.32)}
+.vt-btn b{color:#f0d060;font-weight:700}
+.vt-note{margin:12px 0 0;font-size:12.5px;color:#5a6e5a}
+.vt-section .vt-secours{color:#1a5d1a}
+@media(max-width:860px){
+  .vt-section{padding:54px 5% 56px}
+  .vt-inner{grid-template-columns:1fr;gap:34px}
+  .vt-texte{text-align:center}
+  .vt-section .vt-intro,.vt-etapes{margin-left:auto;margin-right:auto}
+  .vt-etapes{text-align:left}
+}
+@media(max-width:420px){.vt-etapes{grid-template-columns:1fr;max-width:300px}.vt-btn{width:100%;justify-content:center;padding:15px 16px}}
+
+/* ── Page Formations en ligne : encadré « Nouveau ici ? » ── */
+.vt-encart-zone{background:#081a08;padding:56px 5% 8px}
+.vt-encart{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:auto 1fr;gap:40px;align-items:center;
+  background:linear-gradient(135deg,rgba(212,175,55,.10),rgba(26,93,26,.18));border:1px solid rgba(212,175,55,.35);border-radius:22px;padding:30px 36px;color:#fff}
+.vt-encart .vt-lecteur.vt-vertical{width:250px;max-width:250px}
+.vt-encart .vt-tag{color:#f0d060}
+.vt-encart h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(26px,3vw,36px);line-height:1.12;margin:0 0 12px;color:#fff;font-weight:700}
+.vt-encart h2 span{color:#d4af37}
+.vt-encart p{color:rgba(255,255,255,.75);font-size:15px;line-height:1.7;margin:0 0 18px;max-width:560px}
+.vt-encart .vt-etapes li{color:rgba(255,255,255,.88)}
+.vt-encart .vt-etapes li span{background:rgba(212,175,55,.16);color:#f0d060;border:1px solid rgba(212,175,55,.35)}
+.vt-encart .vt-secours{color:#f0d060}
+.vt-encart .vt-btn{background:#d4af37;color:#0f3a1c;border-color:#d4af37}
+.vt-encart .vt-btn b{color:#0f3a1c}
+@media(max-width:760px){
+  .vt-encart-zone{padding:40px 4% 4px}
+  .vt-encart{grid-template-columns:1fr;gap:26px;padding:26px 18px;text-align:center}
+  .vt-encart .vt-lecteur.vt-vertical{width:100%;max-width:300px}
+  .vt-encart p,.vt-encart .vt-etapes{margin-left:auto;margin-right:auto}
+  .vt-encart .vt-etapes{text-align:left}
+}
+
+/* ── Espace apprenant : lien discret + fenêtre vidéo ── */
+.vt-lien{color:var(--or,#C9A84C);font-weight:700;cursor:pointer;text-decoration:none}
+.vt-lien:hover{text-decoration:underline}
+.vt-fenetre{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(3,10,3,.86);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.vt-fenetre-boite{position:relative;width:100%;max-width:340px}
+.vt-fenetre-boite.vt-h{max-width:760px}
+.vt-fenetre .vt-lecteur.vt-vertical{width:min(340px,100%,calc((100vh - 110px) * 9 / 16));width:min(340px,100%,calc((100svh - 110px) * 9 / 16))}
+.vt-fenetre-boite{display:flex;flex-direction:column;align-items:center}
+.vt-fermer{position:absolute;right:0;top:-46px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);
+  color:#fff;font:400 24px/1 system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.vt-fermer:focus-visible{outline:2px solid #f0d060;outline-offset:2px}
+.vt-fenetre .vt-secours{color:#f0d060}
+.vt-fenetre-ouverte{overflow:hidden}
