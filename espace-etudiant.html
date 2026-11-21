@@ -525,6 +525,7 @@ select.inp option{background:#1a3a2a;color:#fff}
 
 @media print{.sidebar,.topbar,.mobile-nav,#toast{display:none!important}.main{margin-left:0}}
 </style>
+<link rel="stylesheet" href="css/video-tutoriel.css">
 </head>
 <body>
 
@@ -577,7 +578,7 @@ select.inp option{background:#1a3a2a;color:#fff}
         <li><b>Écrivez votre mot de passe</b> dans la deuxième case, puis appuyez sur « Se connecter ».</li>
         <li><b>Ouvrez votre cours.</b> Sur votre tableau de bord, appuyez sur le bouton doré : il vous ramène là où vous en étiez.</li>
       </ol></div></div>
-      <div class="cx-liens"><div>Vous avez un matricule mais pas encore de mot de passe ? <a onclick="switchTab('ins')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')switchTab('ins')">Choisir mon mot de passe</a></div><div>Pas encore inscrit ? <a href="formations-en-ligne.html">Voir les formations en ligne</a></div></div>
+      <div class="cx-liens"><div>Vous avez un matricule mais pas encore de mot de passe ? <a onclick="switchTab('ins')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')switchTab('ins')">Choisir mon mot de passe</a></div><div>Pas encore inscrit ? <a href="formations-en-ligne.html">Voir les formations en ligne</a></div><div>Comment se passe une formation ? <a class="vt-lien" href="https://youtu.be/tcqn_diGHD8" target="_blank" rel="noopener noreferrer" data-vt-fenetre="tcqn_diGHD8" data-format="vertical" data-titre="Formations en ligne EPPRIDAD : le mode d'emploi">▶ Voir le tutoriel vidéo (4 min)</a></div></div>
       <div class="auth-link" style="margin-top:8px"><a href="https://wa.me/22799851532?text=Bonjour%20EPPRIDAD%2C%20j'ai%20besoin%20d'aide%20pour%20me%20connecter." target="_blank" style="color:var(--gris2)">💬 Aide : WhatsApp +227 99 85 15 32</a></div>
     </div>
 
@@ -998,5 +999,6 @@ async function togglePublicationFormation(formId,estPublie){
 <input id="acces-duree" type="hidden">
 <input id="acces-note" type="hidden">
 <input id="adminHint" type="hidden">
+<script src="js/video-tutoriel.js" defer></script>
 </body>
 </html>

@@ -453,6 +453,7 @@ select.form-input:focus{background:#fff;}
     });
   </script>
 <link rel="stylesheet" href="css/bandeau-infos.css">
+<link rel="stylesheet" href="css/video-tutoriel.css">
 </head>
 <body>
 <nav>
@@ -524,6 +525,35 @@ select.form-input:focus{background:#fff;}
       </div>
     </div>
   </div>
+</div>
+
+<!-- ══ MODE D'EMPLOI EN VIDÉO (chargée au clic) ══ -->
+<div class="vt-encart-zone">
+  <section class="vt-encart" aria-labelledby="vt-titre">
+    <div class="vt-video">
+      <div class="vt-lecteur vt-vertical" data-yt="tcqn_diGHD8" data-titre="Formations en ligne EPPRIDAD : le mode d'emploi">
+        <button type="button" class="vt-play" aria-label="Lire la vidéo : Formations en ligne EPPRIDAD : le mode d'emploi (4 minutes)">
+          <img src="https://i.ytimg.com/vi/tcqn_diGHD8/hqdefault.jpg" alt="Aperçu de la vidéo : comment se déroule une formation en ligne EPPRIDAD" width="480" height="360" loading="lazy" decoding="async">
+          <span class="vt-rond" aria-hidden="true"></span>
+          <span class="vt-duree" aria-hidden="true"><b>Tutoriel</b>4 min</span>
+        </button>
+      </div>
+      <div class="vt-secours"><a href="https://youtu.be/tcqn_diGHD8" target="_blank" rel="noopener noreferrer">Regarder sur YouTube ↗</a></div>
+    </div>
+    <div class="vt-texte">
+      <div class="vt-tag">✦ Nouveau ici ?</div>
+      <h2 id="vt-titre">Regardez d'abord <span>le mode d'emploi (4 min)</span></h2>
+      <p>De la connexion à votre certificat de formation EPPRIDAD, voyez comment se passe une formation en ligne. Ensuite, commencez par notre formation gratuite « Découvrir les métiers de l'agriculture moderne ».</p>
+      <ul class="vt-etapes">
+        <li><span>1</span>Se connecter</li>
+        <li><span>2</span>Lire un module</li>
+        <li><span>3</span>Fiches et guide PDF</li>
+        <li><span>4</span>Exercice et quiz</li>
+        <li><span>5</span>Le certificat</li>
+      </ul>
+      <a class="vt-btn" href="#catalogue" data-vt-inscrire="15">Commencer la formation gratuite <b>→</b></a>
+    </div>
+  </section>
 </div>
 
 <!-- ══ CATALOGUE — EN PREMIER ══ -->
@@ -1380,5 +1410,6 @@ function goStep3(){
 
 </script>
 <script src="js/bandeau-infos.js" defer></script>
+<script src="js/video-tutoriel.js" defer></script>
 </body>
 </html>
