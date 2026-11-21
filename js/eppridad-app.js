@@ -1075,8 +1075,12 @@ async function afficherContenu(module, onglet){
     // 1. Vidéo YouTube
     const videoUrl=videoRes?.contenu_url||videoRes?.url||mc?.video_url||mc?.contenu_url;
     if(videoUrl){
-      const ytId=videoUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
-      if(ytId) ch+='<div style="position:relative;padding-bottom:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:24px;box-shadow:0 4px 20px rgba(0,0,0,.2)"><iframe src="https://www.youtube.com/embed/'+ytId+'?rel=0&modestbranding=1&color=white" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none"></iframe></div>';
+      const ytId=videoUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      // Vidéo verticale (lien youtube.com/shorts/...) : cadre 9:16 centré, sans bandes noires. Sinon : cadre 16:9 habituel.
+      const vertical=/youtube\.com\/shorts\//.test(videoUrl);
+      if(ytId) ch+=vertical
+        ? '<div style="position:relative;width:100%;max-width:340px;aspect-ratio:9/16;margin:0 auto 24px;background:#000;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.2)"><iframe src="https://www.youtube.com/embed/'+ytId+'?rel=0&modestbranding=1&playsinline=1" title="Vidéo du module" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none"></iframe></div>'
+        : '<div style="position:relative;padding-bottom:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:24px;box-shadow:0 4px 20px rgba(0,0,0,.2)"><iframe src="https://www.youtube.com/embed/'+ytId+'?rel=0&modestbranding=1&color=white" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none"></iframe></div>';
     }
     // 2. Contenu texte: contenu_html > contenu_texte > description
     const contenu=mc?.contenu_html||mc?.contenu_texte||mc?.description||module.description||"<p>Contenu en cours de préparation par l'équipe pédagogique EPPRIDAD.</p>";
